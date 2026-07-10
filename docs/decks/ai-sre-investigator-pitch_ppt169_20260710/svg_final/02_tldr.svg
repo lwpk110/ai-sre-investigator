@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" />
+
+  
+  <g id="header">
+    <rect x="56" y="48" width="6" height="32" fill="#00A6A6" />
+    <text x="74" y="72" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">02 · TL;DR</text>
+    <text x="56" y="118" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="37" font-weight="bold" fill="#0F2A44">一句话：把"全员找 SRE"变成"开发自己闭环"</text>
+    <text x="56" y="156" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5A6B7E">自然语言 → 自动 QL 转化 → 多步证据 → 结构化 RCA · 让一线开发独立排查，让 SRE 回归平台工程</text>
+  </g>
+
+  
+  <g id="left-panel">
+    <path fill="#F4F6FA" stroke="#E2E8F0" d="M62,200 H370 A6,6 0 0 1 376,206 V634 A6,6 0 0 1 370,640 H62 A6,6 0 0 1 56,634 V206 A6,6 0 0 1 62,200 Z" />
+    <text x="80" y="240" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" letter-spacing="2">为什么必须做</text>
+    <line x1="80" y1="256" x2="356" y2="256" stroke="#00A6A6" stroke-width="2" />
+
+    
+    <g transform="translate(80,290)">
+      <text x="0" y="0" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="40" font-weight="bold" fill="#0F2A44">80%</text>
+      <text x="0" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">一线开发不熟 PromQL / LogQL / TraceQL</text>
+      <text x="0" y="52" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#8896A6">（依赖 SRE 预设面板排查）</text>
+    </g>
+
+    
+    <g transform="translate(80,400)">
+      <text x="0" y="0" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="40" font-weight="bold" fill="#0F2A44">1 : N</text>
+      <text x="0" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">极少数 SRE 服务全公司排查请求</text>
+      <text x="0" y="52" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#8896A6">（"多对一"人力灾难）</text>
+    </g>
+
+    
+    <g transform="translate(80,510)">
+      <text x="0" y="0" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="40" font-weight="bold" fill="#0F2A44">0</text>
+      <text x="0" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">组织级 RCA 沉淀，肌肉记忆仅在个人</text>
+      <text x="0" y="52" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#8896A6">（事后整理耗时 · MTTR 居高）</text>
+    </g>
+  </g>
+
+  
+  <g id="claims">
+    
+    <g transform="translate(420,200)">
+      <path fill="#FFFFFF" stroke="#E2E8F0" d="M6,0 H794 A6,6 0 0 1 800,6 V124 A6,6 0 0 1 794,130 H6 A6,6 0 0 1 0,124 V6 A6,6 0 0 1 6,0 Z" />
+      <rect x="0" y="0" width="6" height="130" fill="#00A6A6" />
+      
+  <g transform="translate(24.0, 28.0) scale(3.0)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M9 0V2H13L16 8.5L13 15H3L0 8.5L3 2H7V0H9ZM4.59794 11.7384L8 12.2618L11.4021 11.7384L11.0979 9.76163L8 10.2382L4.90206 9.76163L4.59794 11.7384ZM7 6.75C7 7.44036 6.44036 8 5.75 8C5.05964 8 4.5 7.44036 4.5 6.75C4.5 6.05964 5.05964 5.5 5.75 5.5C6.44036 5.5 7 6.05964 7 6.75ZM10.25 8C10.9404 8 11.5 7.44036 11.5 6.75C11.5 6.05964 10.9404 5.5 10.25 5.5C9.55964 5.5 9 6.05964 9 6.75C9 7.44036 9.55964 8 10.25 8Z" />
+  </g>
+      <text x="92" y="46" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#0F2A44">自然语言 → 自动 QL → 多步证据 → 结构化 RCA</text>
+      <text x="92" y="80" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5A6B7E">用户用大白话申告，Agent 自动转 PromQL / LogQL / TraceQL，跨 Mimir / Loki / Tempo 多步探针，</text>
+      <text x="92" y="104" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5A6B7E">最终输出可下钻、可分享的根因分析报告。</text>
+    </g>
+
+    
+    <g transform="translate(420,350)">
+      <path fill="#FFFFFF" stroke="#E2E8F0" d="M6,0 H794 A6,6 0 0 1 800,6 V124 A6,6 0 0 1 794,130 H6 A6,6 0 0 1 0,124 V6 A6,6 0 0 1 6,0 Z" />
+      <rect x="0" y="0" width="6" height="130" fill="#0F2A44" />
+      
+  <g transform="translate(24.0, 28.0) scale(3.0)" fill="#0F2A44">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16L4.35009 13.3929C2.24773 11.8912 1 9.46667 1 6.88306V3L8 0L15 3V6.88306C15 9.46667 13.7523 11.8912 11.6499 13.3929L8 16ZM12.2071 5.70711L10.7929 4.29289L7 8.08579L5.20711 6.29289L3.79289 7.70711L7 10.9142L12.2071 5.70711Z" />
+  </g>
+      <text x="92" y="46" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#0F2A44">只读边界 + SafeToolExecutor 四层包装</text>
+      <text x="92" y="80" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5A6B7E">Agent 永不修改线上状态（ADR-002）；QL 预校验 / 失败自修正 / 缓存 / 预算四道关卡（ADR-004），</text>
+      <text x="92" y="104" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5A6B7E">把"不崩"升级为"自愈 + 可控"，让"读得准"先于"写得对"。</text>
+    </g>
+
+    
+    <g transform="translate(420,500)">
+      <path fill="#FFFFFF" stroke="#E2E8F0" d="M6,0 H794 A6,6 0 0 1 800,6 V124 A6,6 0 0 1 794,130 H6 A6,6 0 0 1 0,124 V6 A6,6 0 0 1 6,0 Z" />
+      <rect x="0" y="0" width="6" height="130" fill="#4A6FA5" />
+      
+  <g transform="translate(24.0, 28.0) scale(3.0)" fill="#4A6FA5">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 4C5.79086 4 4 5.79086 4 8C4 10.2091 5.79086 12 8 12C10.2091 12 12 10.2091 12 8C12 5.79086 10.2091 4 8 4ZM6 8C6 6.89543 6.89543 6 8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8Z" />
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0ZM2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8Z" />
+  </g>
+      <text x="92" y="46" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#0F2A44">原生 Tool-Calling，无框架抽象债务</text>
+      <text x="92" y="80" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5A6B7E">直接用 openai SDK 的 tool_calls，推理流可见可调试（ADR-001）；ToolSpec 统一契约为 MCP / GOAP</text>
+      <text x="92" y="104" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#5A6B7E">演进铺路，未来替换 transport 不动业务逻辑（ADR-003）。</text>
+    </g>
+  </g>
+
+  
+  <line x1="56" y1="676" x2="1224" y2="676" stroke="#E2E8F0" />
+  <text x="56" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">ADR-001 / 002 / 003 / 004 · 来源：PRD §2、brainstorm §0</text>
+  <text x="1224" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6" text-anchor="end">P02 / 12</text>
+</svg>

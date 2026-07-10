@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" />
+
+  
+  <rect x="56" y="48" width="6" height="32" fill="#00A6A6" />
+  <text x="74" y="72" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">05 · 架构总览</text>
+  <text x="56" y="118" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="37" font-weight="bold" fill="#0F2A44">三层解耦 + 原生 Tool-Calling 闭环</text>
+  <text x="56" y="156" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5A6B7E">Frontend（Next.js）· Backend（FastAPI + 原生 Tool-Calling）· 观测后端（Mimir / Loki / Tempo）</text>
+
+  
+  <g id="layer-frontend">
+    <path fill="#F4F6FA" stroke="#4A6FA5" stroke-width="1.4" d="M108,200 H1172 A8,8 0 0 1 1180,208 V292 A8,8 0 0 1 1172,300 H108 A8,8 0 0 1 100,292 V208 A8,8 0 0 1 108,200 Z" />
+    <rect x="100" y="200" width="6" height="100" fill="#4A6FA5" />
+    <text x="124" y="232" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#4A6FA5" letter-spacing="2">LAYER 1 · FRONTEND</text>
+    <text x="124" y="262" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="20" font-weight="bold" fill="#0F2A44">Next.js · Tailwind · React Markdown</text>
+    <text x="124" y="288" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#5A6B7E">Chat Input → Execution Timeline → RCA Report View · 支持 SSE 流式与可下钻证据</text>
+
+    
+    <g transform="translate(540,228)">
+      <path fill="#FFFFFF" stroke="#4A6FA5" stroke-opacity="0.4" d="M4,0 H146 A4,4 0 0 1 150,4 V52 A4,4 0 0 1 146,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="75" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#0F2A44" text-anchor="middle">Chat Input</text>
+    </g>
+    <g transform="translate(710,228)">
+      <path fill="#FFFFFF" stroke="#4A6FA5" stroke-opacity="0.4" d="M4,0 H146 A4,4 0 0 1 150,4 V52 A4,4 0 0 1 146,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="75" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#0F2A44" text-anchor="middle">Timeline</text>
+    </g>
+    <g transform="translate(880,228)">
+      <path fill="#FFFFFF" stroke="#4A6FA5" stroke-opacity="0.4" d="M4,0 H236 A4,4 0 0 1 240,4 V52 A4,4 0 0 1 236,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="120" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#0F2A44" text-anchor="middle">RCA Report View</text>
+    </g>
+  </g>
+
+  
+  <g id="arrow-1">
+    <line x1="640" y1="300" x2="640" y2="324" stroke="#0F2A44" stroke-width="2" />
+    <polygon points="640,332 634,322 646,322" fill="#0F2A44" />
+    <rect x="660" y="306" width="120" height="20" fill="#FFFFFF" />
+    <text x="720" y="322" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E" text-anchor="middle">HTTP POST / SSE</text>
+  </g>
+
+  
+  <g id="layer-backend">
+    <path fill="#0F2A44" d="M108,336 H1172 A8,8 0 0 1 1180,344 V488 A8,8 0 0 1 1172,496 H108 A8,8 0 0 1 100,488 V344 A8,8 0 0 1 108,336 Z" />
+    <rect x="100" y="336" width="6" height="160" fill="#00A6A6" />
+    <text x="124" y="368" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">LAYER 2 · BACKEND (核心)</text>
+    <text x="124" y="398" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF">FastAPI · Pydantic v2 · HTTPX · openai SDK</text>
+    <text x="124" y="424" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#A8C0DA">原生 Tool-Calling 循环 · 无 LangChain 等框架抽象</text>
+
+    
+    <g transform="translate(124,448)">
+      <path fill="#FFFFFF" fill-opacity="0.08" stroke="#00A6A6" stroke-opacity="0.6" d="M4,0 H236 A4,4 0 0 1 240,4 V32 A4,4 0 0 1 236,36 H4 A4,4 0 0 1 0,32 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="120" y="23" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF" text-anchor="middle">Session Manager</text>
+    </g>
+    <g transform="translate(384,448)">
+      <path fill="#00A6A6" fill-opacity="0.16" stroke="#00A6A6" d="M4,0 H256 A4,4 0 0 1 260,4 V32 A4,4 0 0 1 256,36 H4 A4,4 0 0 1 0,32 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="130" y="23" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Tool-Calling Loop ★</text>
+    </g>
+    <g transform="translate(664,448)">
+      <path fill="#FFFFFF" fill-opacity="0.08" stroke="#00A6A6" stroke-opacity="0.6" d="M4,0 H236 A4,4 0 0 1 240,4 V32 A4,4 0 0 1 236,36 H4 A4,4 0 0 1 0,32 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="120" y="23" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF" text-anchor="middle">RCA Generator</text>
+    </g>
+    <g transform="translate(924,448)">
+      <path fill="#FFFFFF" fill-opacity="0.08" stroke="#00A6A6" stroke-opacity="0.6" d="M4,0 H236 A4,4 0 0 1 240,4 V32 A4,4 0 0 1 236,36 H4 A4,4 0 0 1 0,32 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="120" y="23" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF" text-anchor="middle">SafeToolExecutor ★</text>
+    </g>
+  </g>
+
+  
+  <g id="arrow-2">
+    <line x1="640" y1="496" x2="640" y2="520" stroke="#0F2A44" stroke-width="2" />
+    <polygon points="640,528 634,518 646,518" fill="#0F2A44" />
+    <rect x="660" y="502" width="140" height="20" fill="#FFFFFF" />
+    <text x="730" y="518" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E" text-anchor="middle">HTTPX async · 带 timeout</text>
+  </g>
+
+  
+  <g id="layer-toolset">
+    <path fill="#F4F6FA" stroke="#00A6A6" stroke-width="1.4" d="M108,532 H1172 A8,8 0 0 1 1180,540 V624 A8,8 0 0 1 1172,632 H108 A8,8 0 0 1 100,624 V540 A8,8 0 0 1 108,532 Z" />
+    <rect x="100" y="532" width="6" height="100" fill="#00A6A6" />
+    <text x="124" y="564" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">LAYER 3 · NATIVE AGENT TOOLSET</text>
+    <text x="124" y="594" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="20" font-weight="bold" fill="#0F2A44">ToolSpec 统一契约 + 可插拔注册表</text>
+    <text x="124" y="618" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">所有 Tool 走 SafeToolExecutor 四层包装；schema 与 MCP server 对齐，为演进铺路</text>
+
+    <g transform="translate(540,558)">
+      <path fill="#FFFFFF" stroke="#00A6A6" stroke-opacity="0.4" d="M4,0 H116 A4,4 0 0 1 120,4 V52 A4,4 0 0 1 116,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="60" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">Mimir</text>
+      <text x="60" y="48" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#5A6B7E" text-anchor="middle">指标 · PromQL</text>
+    </g>
+    <g transform="translate(680,558)">
+      <path fill="#FFFFFF" stroke="#00A6A6" stroke-opacity="0.4" d="M4,0 H116 A4,4 0 0 1 120,4 V52 A4,4 0 0 1 116,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="60" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">Loki</text>
+      <text x="60" y="48" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#5A6B7E" text-anchor="middle">日志 · LogQL</text>
+    </g>
+    <g transform="translate(820,558)">
+      <path fill="#FFFFFF" stroke="#00A6A6" stroke-opacity="0.4" d="M4,0 H116 A4,4 0 0 1 120,4 V52 A4,4 0 0 1 116,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="60" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">Tempo</text>
+      <text x="60" y="48" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#5A6B7E" text-anchor="middle">链路 · TraceQL</text>
+    </g>
+    <g transform="translate(960,558)">
+      <path fill="#FFFFFF" fill-opacity="0.4" stroke="#8896A6" stroke-dasharray="4 4" d="M4,0 H156 A4,4 0 0 1 160,4 V52 A4,4 0 0 1 156,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="80" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#8896A6" text-anchor="middle">+ Prometheus / ES / k8s</text>
+      <text x="80" y="48" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#8896A6" text-anchor="middle">后续可插拔</text>
+    </g>
+  </g>
+
+  
+  <g id="adr-strip">
+    <text x="56" y="666" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#0F2A44">ADR 索引：</text>
+    <text x="140" y="666" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">ADR-001 原生 Tool-Calling</text>
+    <text x="320" y="666" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">· 002 只读边界</text>
+    <text x="430" y="666" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">· 003 ToolSpec</text>
+    <text x="540" y="666" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">· 004 SafeToolExecutor</text>
+    <text x="720" y="666" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">· 005 优雅收尾</text>
+    <text x="850" y="666" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">· 006 技术栈</text>
+  </g>
+
+  <line x1="56" y1="676" x2="1224" y2="676" stroke="#E2E8F0" />
+  <text x="56" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">PRD §4 / README 架构图</text>
+  <text x="1224" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6" text-anchor="end">P05 / 12</text>
+</svg>

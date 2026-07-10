@@ -1,0 +1,5 @@
+- 三层：Frontend（Next.js）/ Backend（FastAPI + 原生 Tool-Calling）/ Toolset（Mimir/Loki/Tempo）。
+- Backend 核心模块：Session Manager、Tool-Calling Loop、RCA Generator、SafeToolExecutor。
+- Toolset 统一契约 + 可插拔注册表，对齐 MCP。
+- ADR 索引：一页串起 6 个 ADR。
+- 引用：PRD §4、README 架构图、ADR-001/002/003/004/005/006。

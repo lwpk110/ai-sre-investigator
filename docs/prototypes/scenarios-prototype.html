@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI SRE Investigator — Scenario Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg-app:#0a0c14;--bg-sidebar:#0e1020;--bg-main:#0c0e18;--bg-surface1:#141728;--bg-surface2:#1a1e34;--bg-code:#070912;--text-1:#e8eaf0;--text-2:#a0a6b8;--text-3:#6b7088;--text-4:#444962;--accent:#5e8aff;--accent-hover:#7aa1ff;--accent-muted:rgba(94,138,255,.12);--ok:#10b981;--ok-bg:rgba(16,185,129,.10);--warn:#f59e0b;--warn-bg:rgba(245,158,11,.10);--err:#f43f5e;--err-bg:rgba(244,63,94,.10);--info:#38bdf8;--info-bg:rgba(56,189,248,.10);--border-subtle:rgba(255,255,255,.06);--border-std:rgba(255,255,255,.08);--border-emph:rgba(255,255,255,.12);--font-sans:'Inter',-apple-system,system-ui,sans-serif;--font-mono:'JetBrains Mono','SF Mono',Menlo,monospace;--sidebar-w:260px;--content-w:780px}
+*{margin:0;padding:0;box-sizing:border-box}html{font-size:14px}body{font-family:var(--font-sans);background:var(--bg-app);color:var(--text-1);font-feature-settings:"cv01";overflow:hidden;height:100vh;-webkit-font-smoothing:antialiased}
+.app{display:flex;height:100vh}
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-sidebar);border-right:1px solid var(--border-subtle);display:flex;flex-direction:column}
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border-subtle)}
+.logo-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.logo-icon{width:24px;height:24px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-text{font-size:14px;font-weight:600;color:var(--text-1);letter-spacing:-.01em}
+.logo-sub{font-size:10px;font-weight:500;color:var(--text-4);letter-spacing:.04em;text-transform:uppercase}
+.search-box{position:relative}.search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-4)}
+.search-box input{width:100%;background:var(--bg-surface1);border:1px solid var(--border-subtle);border-radius:6px;padding:7px 10px 7px 32px;font:400 13px var(--font-sans);color:var(--text-1);outline:none;transition:border-color .15s}
+.search-box input::placeholder{color:var(--text-4)}.search-box input:focus{border-color:rgba(94,138,255,.3)}
+.new-session-btn{margin:12px 16px;padding:8px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font:500 13px var(--font-sans);display:flex;align-items:center;gap:8px;cursor:pointer;transition:background .15s}
+.new-session-btn:hover{background:var(--accent-hover)}
+.session-list{flex:1;overflow-y:auto;padding:0 8px 8px}
+.session-list-label{font:500 10px var(--font-sans);color:var(--text-4);text-transform:uppercase;letter-spacing:.06em;padding:8px 8px 4px}
+.session-item{padding:9px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:flex-start;gap:8px;transition:background .12s;margin-bottom:2px}
+.session-item:hover{background:rgba(255,255,255,.04)}.session-item.active{background:var(--accent-muted)}.session-item.active .session-title{color:var(--text-1)}
+.session-dot{width:6px;height:6px;border-radius:50%;margin-top:6px;flex-shrink:0}
+.session-dot.ok{background:var(--ok)}.session-dot.warn{background:var(--warn)}.session-dot.err{background:var(--err)}.session-dot.running{background:var(--info);animation:pulse 1.5s ease-in-out infinite}
+.session-body{flex:1;min-width:0}.session-title{font:500 12px var(--font-sans);color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-meta{font:400 10px var(--font-mono);color:var(--text-4);margin-top:2px}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border-subtle);display:flex;align-items:center;gap:10px}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#5e8aff,#7c3aed);flex-shrink:0}
+.user-info{flex:1}.user-name{font:500 12px var(--font-sans);color:var(--text-2)}.user-role{font:400 10px var(--font-sans);color:var(--text-4)}
+.main{flex:1;background:var(--bg-main);display:flex;flex-direction:column;overflow:hidden}
+.main-header{padding:10px 24px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:16px}
+.scenario-switcher{display:flex;gap:4px;flex-wrap:wrap}
+.sc-tab{font:500 12px var(--font-sans);color:var(--text-3);background:transparent;border:1px solid var(--border-subtle);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .12s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.sc-tab:hover{color:var(--text-1);background:rgba(255,255,255,.04)}.sc-tab.active{background:var(--accent-muted);color:var(--accent);border-color:rgba(94,138,255,.25)}
+.sc-tab .sc-dot{width:6px;height:6px;border-radius:50%}.sc-dot.ok{background:var(--ok)}.sc-dot.warn{background:var(--warn)}.sc-dot.err{background:var(--err)}.sc-dot.info{background:var(--info)}.sc-dot.accent{background:var(--accent)}
+.main-header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.icon-btn{width:32px;height:32px;border:1px solid var(--border-std);background:transparent;border-radius:6px;color:var(--text-3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s}
+.icon-btn:hover{background:rgba(255,255,255,.06);color:var(--text-1)}
+.scroll-area{flex:1;overflow-y:auto}
+.scenario-panel{display:none}.scenario-panel.active{display:block;max-width:var(--content-w);width:100%;margin:0 auto;padding:24px}
+.incident{background:var(--bg-surface1);border:1px solid var(--border-std);border-radius:8px;padding:14px 16px}
+.incident-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.incident-avatar{width:24px;height:24px;border-radius:50%;background:#2d3348;display:flex;align-items:center;justify-content:center;font:500 11px var(--font-sans);color:var(--text-2);flex-shrink:0}
+.incident-author{font:500 13px var(--font-sans);color:var(--text-1)}.incident-time{font:400 11px var(--font-mono);color:var(--text-4)}
+.incident-text{font:400 14px var(--font-sans);color:var(--text-1);line-height:1.5}
+.incident-tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}.tag{font:500 11px var(--font-mono);padding:2px 8px;border-radius:9999px;background:rgba(255,255,255,.05);color:var(--text-3)}
+.warn-banner{background:var(--warn-bg);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
+.warn-banner-icon{color:var(--warn);flex-shrink:0;margin-top:1px}.warn-banner-body{flex:1}
+.warn-banner-title{font:600 13px var(--font-sans);color:var(--warn);margin-bottom:4px}
+.warn-banner-text{font:400 13px var(--font-sans);color:var(--text-2);line-height:1.5}
+.warn-banner-text code{font:400 12px var(--font-mono);color:var(--text-1);background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px}
+.warn-missing{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.warn-missing-item{display:flex;align-items:center;gap:6px;font:400 12px var(--font-sans);color:var(--text-3)}
+.warn-missing-item code{font:400 11px var(--font-mono);color:var(--text-2)}
+.budget-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg-surface1);border:1px solid var(--border-subtle);border-radius:8px}
+.budget-icon{color:var(--accent);flex-shrink:0}.budget-info{flex:1}
+.budget-label{font:500 11px var(--font-sans);color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
+.budget-track{height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden}
+.budget-fill{height:100%;border-radius:2px;transition:width .3s}.budget-fill.normal{background:var(--accent)}.budget-fill.warn{background:var(--warn)}.budget-fill.err{background:var(--err)}
+.budget-stats{font:400 12px var(--font-mono);color:var(--text-2);text-align:right;white-space:nowrap}.budget-stats span{color:var(--text-3)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.panel-title{font:600 15px var(--font-sans);color:var(--text-1);display:flex;align-items:center;gap:8px}
+.panel-title .badge{font:500 11px var(--font-mono);padding:1px 7px;border-radius:9999px}.badge.ok{background:var(--ok-bg);color:var(--ok)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.info{background:var(--info-bg);color:var(--info)}
+.ghost-btn{font:500 12px var(--font-sans);color:var(--text-3);background:transparent;border:none;cursor:pointer;padding:4px 8px;border-radius:4px;transition:all .12s}
+.ghost-btn:hover{color:var(--text-1);background:rgba(255,255,255,.04)}
+.timeline{display:flex;flex-direction:column;gap:8px}
+.step-card{background:var(--bg-surface1);border:1px solid var(--border-subtle);border-radius:8px;overflow:hidden;transition:border-color .15s;animation:slideUp .3s ease-out}
+.step-card:hover{border-color:var(--border-std)}
+.step-card.ok{border-left:2px solid var(--ok)}.step-card.warn{border-left:2px solid var(--warn)}.step-card.info{border-left:2px solid var(--info)}.step-card.err{border-left:2px solid var(--err)}.step-card.running{border-left:2px solid var(--info)}
+.step-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
+.step-num{font:500 11px var(--font-mono);color:var(--text-4);width:20px;text-align:center;flex-shrink:0}
+.probe-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.probe-icon.mimir{background:rgba(244,162,97,.12);color:#f4a261}.probe-icon.loki{background:rgba(225,80,80,.12);color:#e15050}.probe-icon.tempo{background:rgba(0,200,150,.12);color:#00c896}.probe-icon.shield{background:var(--accent-muted);color:var(--accent)}.probe-icon.brain{background:rgba(168,85,247,.12);color:#a855f7}
+.step-body-header{flex:1;min-width:0}.step-title{font:500 14px var(--font-sans);color:var(--text-1);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.step-subtitle{font:400 12px var(--font-sans);color:var(--text-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}.latency-badge{font:400 11px var(--font-mono);color:var(--text-3);padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.04)}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.status-dot.ok{background:var(--ok)}.status-dot.warn{background:var(--warn)}.status-dot.info{background:var(--info)}.status-dot.err{background:var(--err)}.status-dot.running{background:var(--info);animation:pulse 1.5s ease-in-out infinite}
+.chevron{color:var(--text-4);transition:transform .2s;flex-shrink:0}.step-card.expanded .chevron{transform:rotate(90deg)}
+.step-content{display:none;padding:0 14px 14px 52px}.step-card.expanded .step-content{display:block}
+.code-block{background:var(--bg-code);border:1px solid var(--border-subtle);border-radius:6px;overflow:hidden;margin-top:10px}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--border-subtle)}
+.code-lang{font:500 10px var(--font-mono);color:var(--text-4);text-transform:uppercase;letter-spacing:.05em}
+.code-copy{font:400 10px var(--font-sans);color:var(--text-4);background:transparent;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;transition:color .12s}.code-copy:hover{color:var(--text-2)}
+.code-body{padding:10px 12px;font:400 12.5px var(--font-mono);line-height:1.6;color:var(--text-2);overflow-x:auto;white-space:pre}
+.code-body .kw{color:#c792ea}.code-body .fn{color:#82aaff}.code-body .str{color:#c3e88d}.code-body .num{color:#f78c6c}.code-body .op{color:#89ddff}.code-body .cmt{color:var(--text-4);font-style:italic}
+.heal-block{margin-top:10px;border-radius:6px;overflow:hidden}.heal-row{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;font:400 12px var(--font-sans)}
+.heal-row.fail{background:var(--err-bg);color:var(--err)}.heal-row.fix{background:var(--warn-bg);color:var(--warn)}.heal-row svg{flex-shrink:0;margin-top:1px}
+.result-summary{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.result-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid var(--border-subtle)}
+.result-label{font:400 12px var(--font-sans);color:var(--text-3);flex-shrink:0;min-width:80px}.result-value{font:500 13px var(--font-mono);color:var(--text-1)}
+.result-value.alert{color:var(--err)}.result-value.warn{color:var(--warn)}.result-value.ok{color:var(--ok)}
+.sparkline-block{margin-top:10px;background:rgba(255,255,255,.02);border:1px solid var(--border-subtle);border-radius:6px;padding:12px}
+.sparkline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sparkline-label{font:500 11px var(--font-sans);color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}.sparkline-range{font:400 10px var(--font-mono);color:var(--text-4)}
+.sparkline{display:flex;align-items:flex-end;gap:1px;height:48px;padding-top:4px}
+.spark-bar{flex:1;background:rgba(94,138,255,.3);border-radius:1px 1px 0 0;min-height:2px;transition:background .2s}.spark-bar.spike{background:var(--err)}.spark-bar.baseline{background:rgba(255,255,255,.12)}
+.sparkline-axis{display:flex;justify-content:space-between;margin-top:4px;font:400 9px var(--font-mono);color:var(--text-4)}
+.log-viewer{margin-top:10px;background:var(--bg-code);border:1px solid var(--border-subtle);border-radius:6px;overflow:hidden}
+.log-viewer-header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--border-subtle)}
+.log-viewer-body{max-height:200px;overflow-y:auto;font:400 11.5px var(--font-mono);line-height:1.7}
+.log-line{display:flex;gap:8px;padding:2px 10px;transition:background .1s}.log-line:hover{background:rgba(255,255,255,.03)}
+.log-ts{color:var(--text-4);flex-shrink:0}.log-level{font-weight:500;flex-shrink:0;width:36px}
+.log-level.ERR{color:var(--err)}.log-level.WARN{color:var(--warn)}.log-level.INFO{color:var(--info)}
+.log-msg{color:var(--text-2);word-break:break-all}.log-msg .hl{color:var(--err);font-weight:500}.log-msg .hl-warn{color:var(--warn)}
+.trace-waterfall{margin-top:10px;background:rgba(255,255,255,.02);border:1px solid var(--border-subtle);border-radius:6px;padding:12px}
+.trace-waterfall-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.trace-id{font:400 11px var(--font-mono);color:var(--text-3)}.trace-total{font:500 11px var(--font-mono);color:var(--warn)}
+.trace-spans{display:flex;flex-direction:column;gap:4px}.trace-span{display:flex;align-items:center;gap:8px}
+.span-label{font:400 11px var(--font-mono);color:var(--text-2);width:180px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.span-bar-container{flex:1;height:18px;position:relative;background:rgba(255,255,255,.03);border-radius:3px}
+.span-bar{height:100%;border-radius:3px;display:flex;align-items:center;padding:0 6px;font:400 10px var(--font-mono);color:var(--text-1);white-space:nowrap}
+.span-bar.ok{background:rgba(16,185,129,.25);border:1px solid rgba(16,185,129,.3)}.span-bar.slow{background:rgba(245,158,11,.25);border:1px solid rgba(245,158,11,.3)}.span-bar.critical{background:rgba(244,63,94,.25);border:1px solid rgba(244,63,94,.3)}
+.span-duration{font:400 10px var(--font-mono);color:var(--text-3);width:50px;flex-shrink:0;text-align:right}
+.rca-report{background:var(--bg-surface1);border:1px solid var(--border-std);border-radius:8px;overflow:hidden}
+.rca-header{padding:16px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.rca-title{font:600 18px var(--font-sans);color:var(--text-1);letter-spacing:-.01em}.rca-subtitle{font:400 12px var(--font-mono);color:var(--text-3);margin-top:4px}
+.rca-sev{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:9999px;font:600 12px var(--font-sans);flex-shrink:0}
+.rca-sev.p1{background:var(--err-bg);color:var(--err)}.rca-sev.p2{background:var(--warn-bg);color:var(--warn)}
+.rca-nav{display:flex;gap:0;padding:0 16px;border-bottom:1px solid var(--border-subtle);overflow-x:auto}
+.rca-nav-item{font:500 12px var(--font-sans);color:var(--text-3);padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;white-space:nowrap}
+.rca-nav-item:hover{color:var(--text-1)}.rca-nav-item.active{color:var(--accent);border-bottom-color:var(--accent)}
+.rca-body{padding:20px;display:flex;flex-direction:column;gap:20px}
+.rca-section h3{font:600 14px var(--font-sans);color:var(--text-1);margin-bottom:8px;display:flex;align-items:center;gap:6px}.rca-section h3 svg{color:var(--accent)}
+.rca-section p{font:400 13.5px var(--font-sans);color:var(--text-2);line-height:1.6}.rca-section p code{font:400 12px var(--font-mono);background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;color:var(--text-1)}
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.metric-card{background:rgba(255,255,255,.02);border:1px solid var(--border-subtle);border-radius:6px;padding:10px 12px}
+.metric-label{font:500 10px var(--font-sans);color:var(--text-4);text-transform:uppercase;letter-spacing:.04em}.metric-value{font:600 20px var(--font-mono);color:var(--text-1);margin-top:4px;letter-spacing:-.02em}
+.metric-value.alert{color:var(--err)}.metric-value.warn{color:var(--warn)}.metric-delta{font:400 11px var(--font-mono);color:var(--text-3);margin-top:2px}.metric-delta.up{color:var(--err)}
+.evidence-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.evidence-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid var(--border-subtle);cursor:pointer;transition:border-color .12s}
+.evidence-item:hover{border-color:var(--border-std)}
+.evidence-num{font:500 11px var(--font-mono);color:var(--accent);width:24px;text-align:center;flex-shrink:0}.evidence-text{font:400 12.5px var(--font-sans);color:var(--text-2);flex:1}.evidence-text code{font:400 11px var(--font-mono);color:var(--text-1)}
+.evidence-item.missing{opacity:.5;border-style:dashed}.evidence-item.missing .evidence-num{color:var(--warn)}
+.rec-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.rec-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid var(--border-subtle)}
+.rec-priority{font:600 10px var(--font-sans);text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:3px;flex-shrink:0;margin-top:1px}
+.rec-priority.p0{background:var(--err-bg);color:var(--err)}.rec-priority.p1{background:var(--warn-bg);color:var(--warn)}.rec-priority.p2{background:var(--info-bg);color:var(--info)}
+.rec-text{font:400 13px var(--font-sans);color:var(--text-2);line-height:1.5;flex:1}.rec-text code{font:400 12px var(--font-mono);color:var(--text-1);background:rgba(255,255,255,.05);padding:1px 4px;border-radius:3px}
+.confidence-badge{display:inline-flex;align-items:center;gap:4px;font:500 11px var(--font-sans);padding:2px 8px;border-radius:9999px;margin-left:8px}
+.confidence-badge.high{background:var(--ok-bg);color:var(--ok)}.confidence-badge.med{background:var(--warn-bg);color:var(--warn)}.confidence-badge.low{background:var(--err-bg);color:var(--err)}
+.input-area{padding:16px 24px 20px;border-top:1px solid var(--border-subtle);background:var(--bg-main)}.input-wrapper{max-width:var(--content-w);margin:0 auto}
+.input-box{background:var(--bg-surface1);border:1px solid var(--border-std);border-radius:8px;display:flex;align-items:flex-end;gap:8px;padding:10px 12px;transition:border-color .15s}.input-box:focus-within{border-color:rgba(94,138,255,.3)}
+.input-box textarea{flex:1;background:transparent;border:none;outline:none;resize:none;font:400 14px var(--font-sans);color:var(--text-1);line-height:1.5;min-height:24px;max-height:120px}.input-box textarea::placeholder{color:var(--text-4)}
+.send-btn{width:32px;height:32px;background:var(--accent);border:none;border-radius:6px;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s}.send-btn:hover{background:var(--accent-hover)}
+.quick-templates{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.quick-tmpl{font:400 11px var(--font-sans);color:var(--text-3);background:rgba(255,255,255,.03);border:1px solid var(--border-subtle);border-radius:9999px;padding:4px 10px;cursor:pointer;transition:all .12s}.quick-tmpl:hover{color:var(--text-1);background:rgba(255,255,255,.06)}
+.conv-message{display:flex;gap:10px;margin-bottom:16px}.conv-message.user{flex-direction:row-reverse}
+.conv-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font:500 11px var(--font-sans)}
+.conv-avatar.ai{background:var(--accent-muted);color:var(--accent)}.conv-avatar.user{background:#2d3348;color:var(--text-2)}
+.conv-bubble{max-width:85%;padding:10px 14px;border-radius:8px;font:400 13.5px var(--font-sans);line-height:1.5}
+.conv-message.user .conv-bubble{background:var(--accent-muted);color:var(--text-1);border:1px solid rgba(94,138,255,.15)}.conv-message.ai .conv-bubble{background:var(--bg-surface1);color:var(--text-2);border:1px solid var(--border-subtle)}
+.conv-bubble code{font:400 12px var(--font-mono);color:var(--text-1);background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px}
+.conv-bubble .mini-evidence{margin-top:8px;padding:8px 10px;background:var(--bg-code);border:1px solid var(--border-subtle);border-radius:6px;font:400 11.5px var(--font-mono);color:var(--text-3);line-height:1.6}.conv-bubble .mini-evidence .hl{color:var(--err)}
+.onboarding-hero{text-align:center;padding:40px 20px 20px}.onboarding-hero h1{font:600 24px var(--font-sans);color:var(--text-1);letter-spacing:-.02em}.onboarding-hero p{font:400 14px var(--font-sans);color:var(--text-3);margin-top:8px;line-height:1.5}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}
+.demo-card{background:var(--bg-surface1);border:1px solid var(--border-std);border-radius:8px;padding:16px;cursor:pointer;transition:all .15s;position:relative}.demo-card:hover{border-color:rgba(94,138,255,.3);background:var(--bg-surface2)}
+.demo-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.demo-card-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.demo-card-icon.err{background:var(--err-bg);color:var(--err)}.demo-card-icon.warn{background:var(--warn-bg);color:var(--warn)}.demo-card-icon.info{background:var(--info-bg);color:var(--info)}.demo-card-icon.ok{background:var(--ok-bg);color:var(--ok)}
+.demo-card-title{font:600 14px var(--font-sans);color:var(--text-1)}.demo-card-desc{font:400 12.5px var(--font-sans);color:var(--text-3);line-height:1.5}
+.demo-card-meta{display:flex;gap:8px;margin-top:10px}.demo-card-tag{font:400 10px var(--font-mono);color:var(--text-4);padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.03)}.demo-card-time{font:400 10px var(--font-mono);color:var(--text-4);position:absolute;top:16px;right:16px}
+.skeleton-card{background:var(--bg-surface1);border:1px solid var(--border-subtle);border-radius:8px;padding:14px;border-left:2px solid var(--info)}
+.skeleton-thinking{display:flex;align-items:center;gap:8px}.thinking-dots{display:flex;gap:4px}.thinking-dot{width:6px;height:6px;border-radius:50%;background:var(--info);animation:thinking 1.4s ease-in-out infinite}.thinking-dot:nth-child(2){animation-delay:.2s}.thinking-dot:nth-child(3){animation-delay:.4s}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.14)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}@keyframes thinking{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.mobile-toggle{display:none}
+@media(max-width:768px){.sidebar{position:fixed;z-index:100;transform:translateX(-100%);transition:transform .2s}.sidebar.open{transform:translateX(0)}.mobile-toggle{display:flex}.scenario-switcher{overflow-x:auto;flex-wrap:nowrap}.metric-grid{grid-template-columns:1fr}.demo-grid{grid-template-columns:1fr}}
+/* === New: Dependency Chain === */
+.dep-chain{display:flex;align-items:center;gap:0;margin-top:10px;padding:14px;background:rgba(255,255,255,.02);border:1px solid var(--border-subtle);border-radius:6px;overflow-x:auto}
+.dep-node{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 14px;border-radius:6px;background:var(--bg-surface1);border:1px solid var(--border-subtle);min-width:110px;flex-shrink:0;transition:all .15s}
+.dep-node:hover{border-color:var(--border-std)}
+.dep-node.err{border-color:rgba(244,63,94,.3);background:var(--err-bg)}.dep-node.warn{border-color:rgba(245,158,11,.3);background:var(--warn-bg)}.dep-node.ok{border-color:rgba(16,185,129,.3);background:var(--ok-bg)}
+.dep-node-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:2px}
+.dep-node-icon.err{background:rgba(244,63,94,.15);color:var(--err)}.dep-node-icon.warn{background:rgba(245,158,11,.15);color:var(--warn)}.dep-node-icon.ok{background:rgba(16,185,129,.15);color:var(--ok)}
+.dep-node-name{font:500 12px var(--font-mono);color:var(--text-1);white-space:nowrap}
+.dep-node-status{font:400 10px var(--font-sans);color:var(--text-3);white-space:nowrap}
+.dep-node-status.err{color:var(--err)}.dep-node-status.warn{color:var(--warn)}
+.dep-arrow{color:var(--text-4);flex-shrink:0;padding:0 2px;display:flex;align-items:center}.dep-arrow.cascade{color:var(--err)}
+/* === New: Pattern Hit Card === */
+.pattern-hit{background:linear-gradient(135deg,rgba(94,138,255,.08),rgba(168,85,247,.06));border:1px solid rgba(94,138,255,.2);border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px}
+.pattern-hit-icon{width:32px;height:32px;border-radius:8px;background:rgba(168,85,247,.15);display:flex;align-items:center;justify-content:center;color:#a855f7;flex-shrink:0}
+.pattern-hit-body{flex:1;min-width:0}
+.pattern-hit-title{font:600 13px var(--font-sans);color:var(--text-1);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pattern-hit-desc{font:400 12.5px var(--font-sans);color:var(--text-2);margin-top:6px;line-height:1.5}
+.pattern-hit-desc code{font:400 11px var(--font-mono);color:var(--text-1);background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px}
+.pattern-hit-meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.pattern-hit-tag{font:400 10px var(--font-mono);color:var(--text-3);padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.04)}
+.pattern-hit-actions{display:flex;gap:6px;margin-top:10px}
+.ph-btn{font:500 11px var(--font-sans);padding:5px 12px;border-radius:5px;border:1px solid var(--border-std);cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:5px}
+.ph-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.ph-btn.primary:hover{background:var(--accent-hover)}
+.ph-btn.ghost{background:transparent;color:var(--text-3)}.ph-btn.ghost:hover{color:var(--text-1);background:rgba(255,255,255,.04)}
+.pattern-ref{margin-top:10px;padding:10px 12px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.15);border-radius:6px;display:flex;align-items:center;gap:10px}
+.pattern-ref-icon{color:#a855f7;flex-shrink:0}
+.pattern-ref-title{font:500 12px var(--font-sans);color:var(--text-1)}.pattern-ref-meta{font:400 11px var(--font-mono);color:var(--text-3);margin-top:2px}
+/* === New: Deploy Annotation === */
+.deploy-marker{position:absolute;top:0;bottom:18px;width:1.5px;background:var(--info);z-index:2;pointer-events:none}
+.deploy-marker::before{content:'';position:absolute;top:-2px;left:-3px;width:7px;height:7px;border-radius:50%;background:var(--info)}
+.deploy-event{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--info-bg);border:1px solid rgba(56,189,248,.2);border-radius:6px;margin-top:10px}
+.deploy-event-icon{color:var(--info);flex-shrink:0}
+.deploy-event-body{flex:1}
+.deploy-event-title{font:500 12px var(--font-sans);color:var(--text-1)}
+.deploy-event-meta{font:400 11px var(--font-mono);color:var(--text-3);margin-top:2px}
+.deploy-event-diff{font:400 11px var(--font-mono);color:var(--warn);margin-top:4px}
+.diff-viewer{margin-top:10px;background:var(--bg-code);border:1px solid var(--border-subtle);border-radius:6px;overflow:hidden}
+.diff-header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--border-subtle)}
+.diff-body{font:400 11.5px var(--font-mono);line-height:1.7;padding:8px 0}
+.diff-line{display:flex;gap:8px;padding:0 10px}.diff-line.add{background:rgba(16,185,129,.06)}.diff-line.del{background:rgba(244,63,94,.06)}
+.diff-sign{width:12px;flex-shrink:0;text-align:center}.diff-sign.add{color:var(--ok)}.diff-sign.del{color:var(--err)}
+.diff-content{color:var(--text-2)}.diff-content .str{color:#c3e88d}.diff-content .num{color:#f78c6c}.diff-content .kw{color:#c792ea}
+.svc-tag{font:500 10px var(--font-mono);padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.06);color:var(--text-2)}
+.svc-tag.err{background:var(--err-bg);color:var(--err)}.svc-tag.warn{background:var(--warn-bg);color:var(--warn)}
+/* === New: Topology Graph === */
+.topo-container{background:var(--bg-surface1);border:1px solid var(--border-std);border-radius:8px;overflow:hidden;margin-bottom:16px}
+.topo-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-subtle)}
+.topo-title{font:600 14px var(--font-sans);color:var(--text-1);display:flex;align-items:center;gap:8px}
+.topo-legend{display:flex;gap:12px;font:400 11px var(--font-sans);color:var(--text-3)}
+.topo-legend-item{display:flex;align-items:center;gap:4px}
+.topo-legend-dot{width:8px;height:8px;border-radius:50%}
+.topo-svg-wrap{position:relative;width:100%;height:340px;overflow:hidden}
+.topo-svg-wrap svg{width:100%;height:100%;display:block}
+.topo-node{cursor:pointer;transition:opacity .15s}
+.topo-node rect{transition:stroke-width .15s}
+.topo-node:hover rect{stroke-width:2}
+.topo-node.selected rect{stroke-width:2.5}
+.topo-node.dimmed{opacity:.3}
+.topo-node-label{font:500 11px var(--font-sans);fill:var(--text-1);text-anchor:middle;pointer-events:none}
+.topo-node-sub{font:400 9px var(--font-mono);fill:var(--text-3);text-anchor:middle;pointer-events:none}
+.topo-edge{stroke:var(--text-4);stroke-width:1.2;fill:none;transition:stroke .15s}
+.topo-edge.cascade{stroke:var(--err);stroke-width:1.8;stroke-dasharray:4 3;animation:dashFlow 1s linear infinite}
+@keyframes dashFlow{to{stroke-dashoffset:-7}}
+.topo-edge-label{font:400 9px var(--font-mono);fill:var(--text-4);text-anchor:middle;pointer-events:none}
+.topo-detail-panel{border-top:1px solid var(--border-subtle);padding:16px;display:none}
+.topo-detail-panel.show{display:block;animation:slideUp .2s ease-out}
+.topo-detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.topo-detail-title{font:600 13px var(--font-sans);color:var(--text-1);display:flex;align-items:center;gap:8px}
+.topo-detail-close{font:400 11px var(--font-sans);color:var(--text-3);background:transparent;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:all .12s}
+.topo-detail-close:hover{color:var(--text-1);background:rgba(255,255,255,.04)}
+.topo-detail-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.topo-hint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font:400 11px var(--font-sans);color:var(--text-4);background:var(--bg-code);padding:3px 10px;border-radius:9999px;border:1px solid var(--border-subtle);pointer-events:none}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-row">
+        <div class="logo-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M9 11H1l3-3-3-3"/><path d="M22 12A10 10 0 1 1 12 2"/><path d="M16 6l-4 4-4-4"/><path d="M8 18l4-4 4 4"/></svg></div>
+        <div><div class="logo-text">AI SRE</div><div class="logo-sub">Investigator</div></div>
+      </div>
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="搜索会话...">
+      </div>
+    </div>
+    <button class="new-session-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      新建排查
+    </button>
+    <div class="session-list">
+      <div class="session-list-label">今天</div>
+      <div class="session-item active" data-sc="sc1"><div class="session-dot err"></div><div class="session-body"><div class="session-title">payment-service 大量 500</div><div class="session-meta">14:31 · 4 步 · 47s</div></div></div>
+      <div class="session-item" data-sc="sc2"><div class="session-dot err"></div><div class="session-body"><div class="session-title">order-processor Pod OOM</div><div class="session-meta">13:05 · 5 步 · 62s</div></div></div>
+      <div class="session-item" data-sc="sc3"><div class="session-dot warn"></div><div class="session-body"><div class="session-title">notification-service 延迟</div><div class="session-meta">11:42 · 部分RCA · 38s</div></div></div>
+      <div class="session-item" data-sc="st1"><div class="session-dot running"></div><div class="session-body"><div class="session-title">search-service GC 停顿</div><div class="session-meta">正在进行 · 3/5 步</div></div></div>
+      <div class="session-list-label">昨天</div>
+      <div class="session-item" data-sc="st2"><div class="session-dot ok"></div><div class="session-body"><div class="session-title">user-service DB 连接池</div><div class="session-meta">昨天 16:20 · 4 步 · 51s</div></div></div>
+      <div class="session-item" data-sc="st3"><div class="session-dot ok"></div><div class="session-body"><div class="session-title">inventory-service 超时</div><div class="session-meta">昨天 09:15 · 6 步 · 73s</div></div></div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="avatar"></div>
+      <div class="user-info"><div class="user-name">luwei</div><div class="user-role">SRE Engineer</div></div>
+      <button class="icon-btn" style="width:28px;height:28px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <div class="scenario-switcher">
+        <button class="sc-tab active" data-target="sc1"><span class="sc-dot err"></span> 500 错误率飙升</button>
+        <button class="sc-tab" data-target="sc2"><span class="sc-dot err"></span> Pod OOM Kill</button>
+        <button class="sc-tab" data-target="sc3"><span class="sc-dot warn"></span> 部分 RCA</button>
+        <button class="sc-tab" data-target="st1"><span class="sc-dot info"></span> 排查进行中</button>
+        <button class="sc-tab" data-target="st2"><span class="sc-dot accent"></span> 对话追问</button>
+        <button class="sc-tab" data-target="st3"><span class="sc-dot ok"></span> 新手引导</button>
+      </div>
+      <div class="main-header-actions">
+        <button class="icon-btn mobile-toggle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <button class="icon-btn" title="导出"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        <button class="icon-btn" title="分享"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+      </div>
+    </div>
+
+    <div class="scroll-area">
+
+      <!-- ========== SCENARIO 1: payment-service 500 (Enhanced V1.5 Evidence) ========== -->
+      <div class="scenario-panel active" data-sc="sc1">
+        <div class="incident">
+          <div class="incident-header">
+            <div class="incident-avatar">L</div>
+            <span class="incident-author">luwei</span>
+            <span class="incident-time">14:23 CST</span>
+          </div>
+          <div class="incident-text">payment-service 刚才为什么大量 500？错误率好像突然飙上去了</div>
+          <div class="incident-tags">
+            <span class="tag">payment-service</span><span class="tag">HTTP 5xx</span><span class="tag">P1</span>
+          </div>
+        </div>
+
+        <div class="budget-bar">
+          <div class="budget-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="budget-info">
+            <div class="budget-label">SafeToolExecutor · 查询预算</div>
+            <div class="budget-track"><div class="budget-fill normal" style="width:42%"></div></div>
+          </div>
+          <div class="budget-stats">4 / 10 查询 · <span>2,100 / 5,000 token</span></div>
+        </div>
+
+        <div>
+          <div class="panel-header">
+            <div class="panel-title">排查时间线 <span class="badge ok">4 步完成</span></div>
+            <button class="ghost-btn">全部展开</button>
+          </div>
+          <div class="timeline">
+            <div class="step-card ok expanded" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">01</span>
+                <div class="probe-icon mimir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div class="step-body-header">
+                  <div class="step-title">Mimir · 5xx 错误率查询</div>
+                  <div class="step-subtitle">错误率从 0.1% 飙升至 12.3%，14:23 突发</div>
+                </div>
+                <div class="step-meta"><span class="latency-badge">180ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block">
+                  <div class="code-header"><span class="code-lang">PromQL</span><button class="code-copy"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 复制</button></div>
+                  <div class="code-body"><span class="fn">sum</span>(<span class="fn">rate</span>(<span class="kw">http_requests_total</span>{<span class="str">service</span>=<span class="str">"payment-service"</span>,<span class="str">status</span>=<span class="str">"5xx"</span>}[<span class="num">5m</span>])) / <span class="fn">sum</span>(<span class="fn">rate</span>(<span class="kw">http_requests_total</span>{<span class="str">service</span>=<span class="str">"payment-service"</span>}[<span class="num">5m</span>]))</div>
+                </div>
+                <div class="sparkline-block">
+                  <div class="sparkline-header"><span class="sparkline-label">5xx 错误率 · 最近 1 小时</span><span class="sparkline-range">14:00 — 15:00</span></div>
+                  <div class="sparkline">
+                    <div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:3%"></div><div class="spark-bar baseline" style="height:5%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:3%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:5%"></div><div class="spark-bar baseline" style="height:3%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:5%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:6%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:5%"></div><div class="spark-bar baseline" style="height:3%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:6%"></div><div class="spark-bar baseline" style="height:5%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:3%"></div><div class="spark-bar baseline" style="height:5%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:6%"></div><div class="spark-bar baseline" style="height:5%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar baseline" style="height:3%"></div><div class="spark-bar baseline" style="height:5%"></div><div class="spark-bar baseline" style="height:4%"></div><div class="spark-bar spike" style="height:35%"></div><div class="spark-bar spike" style="height:72%"></div><div class="spark-bar spike" style="height:98%"></div><div class="spark-bar spike" style="height:88%"></div><div class="spark-bar spike" style="height:76%"></div><div class="spark-bar spike" style="height:64%"></div><div class="spark-bar spike" style="height:42%"></div><div class="spark-bar spike" style="height:28%"></div><div class="spark-bar baseline" style="height:6%"></div><div class="spark-bar baseline" style="height:4%"></div>
+                  </div>
+                  <div class="sparkline-axis"><span>14:00</span><span>14:15</span><span>14:23 突发</span><span>14:35</span><span>15:00</span></div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">峰值错误率</span><span class="result-value alert">12.3%</span><span class="result-label" style="min-width:auto">基线</span><span class="result-value ok">0.1%</span></div>
+                  <div class="result-row"><span class="result-label">突发时间</span><span class="result-value">14:23:07 CST</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">02</span>
+                <div class="probe-icon mimir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Mimir · P99 延迟查询</div><div class="step-subtitle">P99 从 180ms 飙升至 2.8s，与错误率时间窗口完全重合</div></div>
+                <div class="step-meta"><span class="latency-badge">290ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">PromQL</span><button class="code-copy"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 复制</button></div>
+                  <div class="code-body"><span class="fn">histogram_quantile</span>(<span class="num">0.99</span>, <span class="fn">rate</span>(<span class="kw">http_request_duration_seconds_bucket</span>{<span class="str">service</span>=<span class="str">"payment-service"</span>}[<span class="num">5m</span>]))</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">P99 峰值</span><span class="result-value alert">2.8s</span><span class="result-label" style="min-width:auto">基线</span><span class="result-value ok">180ms</span></div>
+                  <div class="result-row"><span class="result-label">相关性</span><span class="result-value warn">与 5xx 错误率时间窗口完全重合</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card warn" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">03</span>
+                <div class="probe-icon loki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Loki · 错误日志检索 <span class="confidence-badge med">自修正</span></div><div class="step-subtitle">首次 QL 语法错误 → 自动修正后命中 847 条 DB 连接超时日志</div></div>
+                <div class="step-meta"><span class="latency-badge">1.2s</span><div class="status-dot warn"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="heal-block">
+                  <div class="heal-row fail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span>首次查询语法错误：<code style="font-family:var(--font-mono);opacity:.8">select * from logs where...</code> 不是合法 LogQL</span></div>
+                  <div class="heal-row fix"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span>自动修正为 LogQL 语法，重试成功</span></div>
+                </div>
+                <div class="code-block"><div class="code-header"><span class="code-lang">LogQL</span><button class="code-copy"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 复制</button></div>
+                  <div class="code-body"><span class="fn">rate</span>({<span class="str">service</span>=<span class="str">"payment-service"</span>} <span class="op">|=</span> <span class="str">"ERROR"</span> <span class="op">|</span> <span class="kw">json</span> [<span class="num">5m</span>])</div>
+                </div>
+                <div class="log-viewer">
+                  <div class="log-viewer-header"><span class="code-lang">日志样本 · Top 8</span><span class="code-copy">847 条命中</span></div>
+                  <div class="log-viewer-body">
+                    <div class="log-line"><span class="log-ts">14:23:12.341</span><span class="log-level ERR">ERR</span><span class="log-msg"><span class="hl">HikariPool-1 - Connection is not available, request timed out after 30s</span></span></div>
+                    <div class="log-line"><span class="log-ts">14:23:12.358</span><span class="log-level ERR">ERR</span><span class="log-msg">java.sql.SQLTransientConnectionException: <span class="hl">HikariPool-1 - Connection is not available</span></span></div>
+                    <div class="log-line"><span class="log-ts">14:23:14.022</span><span class="log-level ERR">ERR</span><span class="log-msg">payment.handler.OrderHandler - <span class="hl">database connection timeout</span>: mysql.payment-db.svc:3306</span></div>
+                    <div class="log-line"><span class="log-ts">14:23:15.891</span><span class="log-level WARN">WARN</span><span class="log-msg"><span class="hl-warn">HikariPool-1 - Pool stats (total=10, active=10, idle=0, waiting=47)</span></span></div>
+                    <div class="log-line"><span class="log-ts">14:23:18.203</span><span class="log-level ERR">ERR</span><span class="log-msg"><span class="hl">Connection is not available, request timed out after 30s</span></span></div>
+                    <div class="log-line"><span class="log-ts">14:23:20.445</span><span class="log-level ERR">ERR</span><span class="log-msg">java.sql.SQLTransientConnectionException: <span class="hl">HikariPool-1 - Connection is not available</span></span></div>
+                    <div class="log-line"><span class="log-ts">14:23:22.017</span><span class="log-level WARN">WARN</span><span class="log-msg"><span class="hl-warn">Pool stats (total=10, active=10, idle=0, waiting=89)</span></span></div>
+                    <div class="log-line"><span class="log-ts">14:23:25.334</span><span class="log-level ERR">ERR</span><span class="log-msg"><span class="hl">database connection timeout</span>: mysql.payment-db.svc:3306</span></div>
+                  </div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">命中日志</span><span class="result-value alert">847 条</span><span class="result-label" style="min-width:auto">时间窗口</span><span class="result-value">14:23 ~ 14:31</span></div>
+                  <div class="result-row"><span class="result-label">高频模式</span><span class="result-value" style="font-size:11.5px;color:var(--err)">database connection timeout: mysql.payment-db.svc:3306</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">04</span>
+                <div class="probe-icon tempo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Tempo · 慢链路下钻</div><div class="step-subtitle">定位到 DB 查询 Span 耗时 2.3s，连接池等待占 95%</div></div>
+                <div class="step-meta"><span class="latency-badge">680ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">TraceQL</span><button class="code-copy"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 复制</button></div>
+                  <div class="code-body">{ <span class="kw">resource.service.name</span> = <span class="str">"payment-service"</span> <span class="op">&&</span> <span class="kw">span.http.status_code</span> <span class="op">>=</span> <span class="num">500</span> } <span class="op">|</span> <span class="fn">count</span>() <span class="op">></span> <span class="num">3</span></div>
+                </div>
+                <div class="trace-waterfall">
+                  <div class="trace-waterfall-header"><span class="trace-id">TraceID: 4f8a2b1c3d5e6f7a</span><span class="trace-total">总耗时 2.84s</span></div>
+                  <div class="trace-spans">
+                    <div class="trace-span"><span class="span-label">POST /api/orders</span><div class="span-bar-container"><div class="span-bar slow" style="width:100%;margin-left:0%">2.84s</div></div><span class="span-duration">2.84s</span></div>
+                    <div class="trace-span"><span class="span-label">  auth.verifyToken</span><div class="span-bar-container"><div class="span-bar ok" style="width:3%;margin-left:0%">12ms</div></div><span class="span-duration">12ms</span></div>
+                    <div class="trace-span"><span class="span-label">  order.validate</span><div class="span-bar-container"><div class="span-bar ok" style="width:4%;margin-left:3%">18ms</div></div><span class="span-duration">18ms</span></div>
+                    <div class="trace-span"><span class="span-label">  db.pool.wait</span><div class="span-bar-container"><div class="span-bar critical" style="width:20%;margin-left:7%">570ms</div></div><span class="span-duration">570ms</span></div>
+                    <div class="trace-span"><span class="span-label">  mysql.query (SELECT)</span><div class="span-bar-container"><div class="span-bar critical" style="width:65%;margin-left:27%">2.3s 全表扫描</div></div><span class="span-duration">2.3s</span></div>
+                    <div class="trace-span"><span class="span-label">  response.send</span><div class="span-bar-container"><div class="span-bar ok" style="width:2%;margin-left:92%">5ms</div></div><span class="span-duration">5ms</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rca-report">
+          <div class="rca-header">
+            <div><div class="rca-title">RCA: payment-service HTTP 500 Surge</div><div class="rca-subtitle">2026-07-10 14:23 ~ 14:31 CST · 排查耗时 47s · token 4,200</div></div>
+            <div class="rca-sev p1">P1</div>
+          </div>
+          <div class="rca-nav"><div class="rca-nav-item active">服务与问题</div><div class="rca-nav-item">时间线</div><div class="rca-nav-item">证据链</div><div class="rca-nav-item">根因与建议</div></div>
+          <div class="rca-body">
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> 服务与问题概述</h3>
+              <p><code>payment-service</code> 在 <code>14:23 ~ 14:31 CST</code> 期间出现大量 HTTP 500，错误率从 <code>0.1%</code> 飙升至峰值 <code>12.3%</code>，P99 延迟从 <code>180ms</code> 升至 <code>2.8s</code>。约 <code>3,200</code> 笔交易失败。</p>
+              <div class="metric-grid">
+                <div class="metric-card"><div class="metric-label">错误率峰值</div><div class="metric-value alert">12.3%</div><div class="metric-delta up">+ 12.2pp vs baseline</div></div>
+                <div class="metric-card"><div class="metric-label">P99 延迟</div><div class="metric-value alert">2.8s</div><div class="metric-delta up">15.6x vs baseline</div></div>
+                <div class="metric-card"><div class="metric-label">影响交易</div><div class="metric-value">3,200</div><div class="metric-delta">14:23 ~ 14:31</div></div>
+              </div>
+            </div>
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H1l3-3-3-3"/><path d="M22 12A10 10 0 1 1 12 2"/><path d="M16 6l-4 4-4-4"/><path d="M8 18l4-4 4 4"/></svg> 证据链 <span class="confidence-badge high">置信度: 高</span></h3>
+              <div class="evidence-list">
+                <div class="evidence-item"><span class="evidence-num">01</span><span class="evidence-text">Mimir: <code>5xx</code> 错误率在 <code>14:23</code> 突然飙升至 <code>12.3%</code></span></div>
+                <div class="evidence-item"><span class="evidence-num">02</span><span class="evidence-text">Mimir: P99 延迟同步升至 <code>2.8s</code>，时间窗口重合</span></div>
+                <div class="evidence-item"><span class="evidence-num">03</span><span class="evidence-text">Loki: <code>847</code> 条 <code>HikariPool connection timeout</code> 错误日志</span></div>
+                <div class="evidence-item"><span class="evidence-num">04</span><span class="evidence-text">Tempo: 慢 Trace <code>4f8a2b...</code> 显示 <code>mysql.query</code> 等待 <code>2.3s</code></span></div>
+              </div>
+            </div>
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 根因分析 <span class="confidence-badge high">置信度: 高</span></h3>
+              <p><strong style="color:var(--text-1)">MySQL 连接池耗尽导致级联超时。</strong> HikariCP 连接池上限 <code>maximum-pool-size: 10</code>，支付高峰期并发激增，连接池被快速耗尽。后续请求在 <code>connectionTimeout: 30s</code> 内无法获取连接，触发 <code>SQLTransientConnectionException</code>。</p>
+              <p>慢查询 <code>SELECT * FROM orders WHERE created_at > ?</code> 缺少索引，单次执行 <code>800ms+</code>，加剧连接占用，形成恶性循环。</p>
+            </div>
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> 修复建议</h3>
+              <div class="rec-list">
+                <div class="rec-item"><span class="rec-priority p0">P0 立即</span><span class="rec-text">将 HikariCP <code>maximum-pool-size</code> 从 <code>10</code> 提升至 <code>30</code>，<code>connectionTimeout</code> 从 <code>30s</code> 降至 <code>5s</code></span></div>
+                <div class="rec-item"><span class="rec-priority p0">P0 立即</span><span class="rec-text">为 <code>orders.created_at</code> 添加索引，消除全表扫描</span></div>
+                <div class="rec-item"><span class="rec-priority p1">短期</span><span class="rec-text">引入熔断器（Resilience4j），DB 连接获取失败率超过 <code>10%</code> 时自动降级</span></div>
+                <div class="rec-item"><span class="rec-priority p2">长期</span><span class="rec-text">评估读写分离方案，将报表类慢查询路由至只读副本</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCENARIO 2: Pod OOM Kill ========== -->
+      <div class="scenario-panel" data-sc="sc2">
+        <div class="incident">
+          <div class="incident-header">
+            <div class="incident-avatar">L</div>
+            <span class="incident-author">luwei</span>
+            <span class="incident-time">13:02 CST</span>
+          </div>
+          <div class="incident-text">order-processor 的 Pod 一直在被 OOM Kill，循环重启了好几次</div>
+          <div class="incident-tags">
+            <span class="tag">order-processor</span><span class="tag">OOM Killed</span><span class="tag">P2</span>
+          </div>
+        </div>
+
+        <div class="budget-bar">
+          <div class="budget-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="budget-info">
+            <div class="budget-label">SafeToolExecutor · 查询预算</div>
+            <div class="budget-track"><div class="budget-fill normal" style="width:50%"></div></div>
+          </div>
+          <div class="budget-stats">5 / 10 查询 · <span>2,500 / 5,000 token</span></div>
+        </div>
+
+        <div>
+          <div class="panel-header">
+            <div class="panel-title">排查时间线 <span class="badge ok">5 步完成</span></div>
+            <button class="ghost-btn">全部展开</button>
+          </div>
+          <div class="timeline">
+
+            <div class="step-card ok expanded" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">01</span>
+                <div class="probe-icon mimir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Mimir · Pod 重启次数</div><div class="step-subtitle">order-processor 在 1 小时内重启 7 次，OOM 退出码 137</div></div>
+                <div class="step-meta"><span class="latency-badge">150ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">PromQL</span><button class="code-copy">复制</button></div>
+                  <div class="code-body"><span class="fn">increase</span>(<span class="kw">kube_pod_container_status_restarts_total</span>{<span class="str">container</span>=<span class="str">"order-processor"</span>}[<span class="num">1h</span>])</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">重启次数</span><span class="result-value alert">7 次 / 1h</span><span class="result-label" style="min-width:auto">退出码</span><span class="result-value alert">137 (OOM)</span></div>
+                  <div class="result-row"><span class="result-label">首次重启</span><span class="result-value">12:48 CST</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">02</span>
+                <div class="probe-icon mimir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Mimir · 容器内存使用趋势</div><div class="step-subtitle">内存从 512MB 线性增长至 1Gi limit，呈内存泄漏特征</div></div>
+                <div class="step-meta"><span class="latency-badge">220ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">PromQL</span><button class="code-copy">复制</button></div>
+                  <div class="code-body"><span class="kw">container_memory_working_set_bytes</span>{<span class="str">container</span>=<span class="str">"order-processor"</span>}</div>
+                </div>
+                <div class="sparkline-block">
+                  <div class="sparkline-header"><span class="sparkline-label">内存使用 · 最近 2 小时</span><span class="sparkline-range">limit: 1Gi</span></div>
+                  <div class="sparkline">
+                    <div class="spark-bar ok" style="height:38%"></div><div class="spark-bar ok" style="height:42%"></div><div class="spark-bar ok" style="height:45%"></div><div class="spark-bar ok" style="height:48%"></div><div class="spark-bar ok" style="height:52%"></div><div class="spark-bar ok" style="height:55%"></div><div class="spark-bar ok" style="height:58%"></div><div class="spark-bar ok" style="height:62%"></div><div class="spark-bar ok" style="height:65%"></div><div class="spark-bar ok" style="height:68%"></div><div class="spark-bar ok" style="height:72%"></div><div class="spark-bar ok" style="height:75%"></div><div class="spark-bar warn" style="height:78%"></div><div class="spark-bar warn" style="height:82%"></div><div class="spark-bar warn" style="height:85%"></div><div class="spark-bar warn" style="height:88%"></div><div class="spark-bar warn" style="height:91%"></div><div class="spark-bar spike" style="height:95%"></div><div class="spark-bar spike" style="height:98%"></div><div class="spark-bar spike" style="height:100%"></div><div class="spark-bar" style="height:40%;background:rgba(56,189,248,.3)"></div><div class="spark-bar ok" style="height:44%"></div><div class="spark-bar ok" style="height:48%"></div><div class="spark-bar ok" style="height:52%"></div><div class="spark-bar ok" style="height:55%"></div><div class="spark-bar ok" style="height:58%"></div><div class="spark-bar ok" style="height:62%"></div><div class="spark-bar ok" style="height:66%"></div><div class="spark-bar warn" style="height:70%"></div><div class="spark-bar warn" style="height:74%"></div><div class="spark-bar warn" style="height:78%"></div><div class="spark-bar warn" style="height:82%"></div><div class="spark-bar warn" style="height:86%"></div><div class="spark-bar spike" style="height:90%"></div><div class="spark-bar spike" style="height:95%"></div><div class="spark-bar spike" style="height:100%"></div><div class="spark-bar" style="height:42%;background:rgba(56,189,248,.3)"></div><div class="spark-bar ok" style="height:46%"></div><div class="spark-bar ok" style="height:50%"></div>
+                  </div>
+                  <div class="sparkline-axis"><span>11:00</span><span>锯齿状增长</span><span>12:00</span><span>13:00</span></div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">内存 limit</span><span class="result-value warn">1 GiB</span><span class="result-label" style="min-width:auto">增长速率</span><span class="result-value alert">+12 MB/min</span></div>
+                  <div class="result-row"><span class="result-label">泄漏特征</span><span class="result-value warn">线性增长 + OOM 后重置，锯齿模式重复 7 次</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">03</span>
+                <div class="probe-icon loki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Loki · OOM Kill 日志</div><div class="step-subtitle">kubelet 日志确认 OOMKilled，Java Heap 占比 89%</div></div>
+                <div class="step-meta"><span class="latency-badge">410ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">LogQL</span><button class="code-copy">复制</button></div>
+                  <div class="code-body">{<span class="str">container</span>=<span class="str">"order-processor"</span>} <span class="op">|=</span> <span class="str">"OOMKilled"</span> <span class="op">||</span> <span class="str">"OutOfMemoryError"</span></div>
+                </div>
+                <div class="log-viewer">
+                  <div class="log-viewer-header"><span class="code-lang">OOM 日志 · 3 个周期</span><span class="code-copy">47 条命中</span></div>
+                  <div class="log-viewer-body">
+                    <div class="log-line"><span class="log-ts">12:48:03.112</span><span class="log-level ERR">ERR</span><span class="log-msg">java.lang.<span class="hl">OutOfMemoryError: Java heap space</span></span></div>
+                    <div class="log-line"><span class="log-ts">12:48:03.118</span><span class="log-level ERR">ERR</span><span class="log-msg">at java.util.HashMap.resize(<span class="hl">HashMap.java:703</span>)</span></div>
+                    <div class="log-line"><span class="log-ts">12:48:03.119</span><span class="log-level ERR">ERR</span><span class="log-msg">at com.order.cache.OrderCache.putAll(<span class="hl">OrderCache.java:88</span>)</span></div>
+                    <div class="log-line"><span class="log-ts">12:48:03.121</span><span class="log-level WARN">WARN</span><span class="log-msg"><span class="hl-warn">Heap usage: 89% (911MB / 1024MB) before OOM</span></span></div>
+                    <div class="log-line"><span class="log-ts">12:48:05.332</span><span class="log-level ERR">ERR</span><span class="log-msg"><span class="hl">Container OOMKilled (exit code 137)</span> — Restarting pod</span></div>
+                    <div class="log-line"><span class="log-ts">12:54:18.443</span><span class="log-level ERR">ERR</span><span class="log-msg">java.lang.<span class="hl">OutOfMemoryError: Java heap space</span></span></div>
+                    <div class="log-line"><span class="log-ts">12:54:18.445</span><span class="log-level ERR">ERR</span><span class="log-msg">at com.order.cache.<span class="hl">OrderCache.putAll(OrderCache.java:88)</span></span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">04</span>
+                <div class="probe-icon tempo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Tempo · GC 压力追踪</div><div class="step-subtitle">Full GC 频率从 1 次/分钟升至 8 次/分钟，每次 STW 2.1s</div></div>
+                <div class="step-meta"><span class="latency-badge">520ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">TraceQL</span><button class="code-copy">复制</button></div>
+                  <div class="code-body">{ <span class="kw">resource.service.name</span> = <span class="str">"order-processor"</span> <span class="op">&&</span> <span class="kw">span.gc.type</span> = <span class="str">"FullGC"</span> }</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">Full GC 频率</span><span class="result-value alert">8 次/min</span><span class="result-label" style="min-width:auto">STW</span><span class="result-value alert">2.1s/次</span></div>
+                  <div class="result-row"><span class="result-label">GC 前堆</span><span class="result-value alert">911 MB</span><span class="result-label" style="min-width:auto">GC 后堆</span><span class="result-value warn">780 MB</span></div>
+                  <div class="result-row"><span class="result-label">根因定位</span><span class="result-value" style="font-size:11.5px;color:var(--warn)">GC 后堆仅回收 131MB，存活对象持续增长 → 内存泄漏</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">05</span>
+                <div class="probe-icon brain"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2z"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Agent · 堆内存下钻推理</div><div class="step-subtitle">推断 OrderCache 无淘汰策略导致 HashMap 无限增长</div></div>
+                <div class="step-meta"><span class="latency-badge">1.8s</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">Agent 推理</span><button class="code-copy">查看完整推理链</button></div>
+                  <div class="code-body"><span class="cmt">// 证据关联推理</span>
+1. OOM 栈: <span class="str">HashMap.resize</span> → <span class="str">OrderCache.putAll</span>
+2. GC 后堆仅回收 <span class="num">131MB</span>（存活对象 ~<span class="num">780MB</span>）
+3. <span class="str">OrderCache</span> 是 <span class="kw">HashMap</span>，无 maxSize / TTL 淘汰
+4. 每分钟新增 ~<span class="num">12MB</span> 且不释放 → <span class="fn">内存泄漏确认</span>
+<span class="cmt">// 建议下一步</span>
+<span class="fn">检查</span> OrderCache 是否配置了 <span class="kw">evictionPolicy</span></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="rca-report">
+          <div class="rca-header">
+            <div><div class="rca-title">RCA: order-processor Pod OOM Kill</div><div class="rca-subtitle">2026-07-10 12:48 ~ 13:02 CST · 排查耗时 62s · token 2,500</div></div>
+            <div class="rca-sev p2">P2</div>
+          </div>
+          <div class="rca-nav"><div class="rca-nav-item active">服务与问题</div><div class="rca-nav-item">证据链</div><div class="rca-nav-item">根因与建议</div></div>
+          <div class="rca-body">
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> 服务与问题概述</h3>
+              <p><code>order-processor</code> 在 1 小时内被 OOM Kill 重启 <code>7</code> 次。容器内存 limit 为 <code>1GiB</code>，实际使用呈锯齿状增长：每次重启后从 ~<code>400MB</code> 线性增长至 limit，触发 OOM。每次存活约 <code>6 ~ 8</code> 分钟。</p>
+              <div class="metric-grid">
+                <div class="metric-card"><div class="metric-label">OOM 重启</div><div class="metric-value alert">7 次</div><div class="metric-delta">最近 1 小时</div></div>
+                <div class="metric-card"><div class="metric-label">内存增长率</div><div class="metric-value alert">+12 MB/min</div><div class="metric-delta">线性增长，无收敛</div></div>
+                <div class="metric-card"><div class="metric-label">Full GC STW</div><div class="metric-value warn">2.1s</div><div class="metric-delta">8 次/min</div></div>
+              </div>
+            </div>
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H1l3-3-3-3"/><path d="M22 12A10 10 0 1 1 12 2"/><path d="M16 6l-4 4-4-4"/><path d="M8 18l4-4 4 4"/></svg> 根因分析 <span class="confidence-badge high">置信度: 高</span></h3>
+              <p><strong style="color:var(--text-1)">OrderCache 内存泄漏。</strong> <code>OrderCache</code> 类使用 <code>HashMap</code> 缓存订单数据，但未配置任何淘汰策略（无 maxSize / TTL）。每次 <code>putAll</code> 调用持续往 HashMap 写入数据，而旧数据永不移除。</p>
+              <p>随着订单量增长，HashMap 持续 <code>resize</code>，堆内存从 <code>400MB</code> 线性增长至 <code>1GiB</code> limit。Full GC 无法回收（存活对象 ~<code>780MB</code>），最终触发 <code>OutOfMemoryError</code>。</p>
+            </div>
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> 修复建议</h3>
+              <div class="rec-list">
+                <div class="rec-item"><span class="rec-priority p0">P0 立即</span><span class="rec-text">将 <code>OrderCache</code> 从 <code>HashMap</code> 替换为 <code>Caffeine</code>，设置 <code>maximumSize(10000)</code> 和 <code>expireAfterWrite(30m)</code></span></div>
+                <div class="rec-item"><span class="rec-priority p1">短期</span><span class="rec-text">临时将容器内存 limit 从 <code>1Gi</code> 提升至 <code>2Gi</code>，为修复赢得窗口期</span></div>
+                <div class="rec-item"><span class="rec-priority p1">短期</span><span class="rec-text">添加 JVM 参数 <code>-XX:MaxHeapFreeRatio=70 -XX:MinHeapFreeRatio=40</code> 优化 GC 行为</span></div>
+                <div class="rec-item"><span class="rec-priority p2">长期</span><span class="rec-text">引入内存使用告警：当 Heap 使用超过 <code>80%</code> 持续 <code>5min</code> 时自动告警</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCENARIO 3: Partial RCA (Budget Exhausted) ========== -->
+      <div class="scenario-panel" data-sc="sc3">
+        <div class="incident">
+          <div class="incident-header">
+            <div class="incident-avatar">L</div>
+            <span class="incident-author">luwei</span>
+            <span class="incident-time">11:40 CST</span>
+          </div>
+          <div class="incident-text">notification-service 发送延迟突然变高，钉钉消息延迟好几分钟</div>
+          <div class="incident-tags">
+            <span class="tag">notification-service</span><span class="tag">延迟升高</span><span class="tag">P3</span>
+          </div>
+        </div>
+
+        <div class="warn-banner">
+          <div class="warn-banner-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="warn-banner-body">
+            <div class="warn-banner-title">部分 RCA — 查询预算耗尽，以下查询未完成</div>
+            <div class="warn-banner-text">本次排查已使用 <code>10/10</code> 次查询和 <code>4,950/5,000</code> token。基于已获取的 2 条证据生成了部分 RCA，根因置信度为<strong style="color:var(--warn)">中</strong>。建议手动执行以下查询补全证据链。</div>
+            <div class="warn-missing">
+              <div class="warn-missing-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Tempo: 未完成 — <code>{ resource.service.name = "notification-service" && duration > 5s }</code></div>
+              <div class="warn-missing-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Loki: 未完成 — <code>rate({service="notification-service"} |= "slow_queue" [10m])</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="budget-bar">
+          <div class="budget-icon" style="color:var(--err)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="budget-info">
+            <div class="budget-label" style="color:var(--err)">SafeToolExecutor · 预算已耗尽</div>
+            <div class="budget-track"><div class="budget-fill err" style="width:99%"></div></div>
+          </div>
+          <div class="budget-stats" style="color:var(--err)">10 / 10 查询 · <span>4,950 / 5,000 token</span></div>
+        </div>
+
+        <div>
+          <div class="panel-header">
+            <div class="panel-title">排查时间线 <span class="badge warn">3 步完成 · 2 步缺失</span></div>
+          </div>
+          <div class="timeline">
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">01</span>
+                <div class="probe-icon mimir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Mimir · 消息发送延迟查询</div><div class="step-subtitle">钉钉消息发送 P99 从 200ms 升至 4.2s</div></div>
+                <div class="step-meta"><span class="latency-badge">180ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">PromQL</span><button class="code-copy">复制</button></div>
+                  <div class="code-body"><span class="fn">histogram_quantile</span>(<span class="num">0.99</span>, <span class="fn">rate</span>(<span class="kw">notification_send_duration_seconds_bucket</span>{<span class="str">channel</span>=<span class="str">"dingtalk"</span>}[<span class="num">5m</span>]))</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">P99 延迟</span><span class="result-value warn">4.2s</span><span class="result-label" style="min-width:auto">基线</span><span class="result-value ok">200ms</span></div>
+                  <div class="result-row"><span class="result-label">突发时间</span><span class="result-value">11:38 CST</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">02</span>
+                <div class="probe-icon mimir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Mimir · 队列积压查询</div><div class="step-subtitle">钉钉发送队列积压 12,000+ 条消息</div></div>
+                <div class="step-meta"><span class="latency-badge">210ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">PromQL</span><button class="code-copy">复制</button></div>
+                  <div class="code-body"><span class="kw">notification_queue_size</span>{<span class="str">channel</span>=<span class="str">"dingtalk"</span>}</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">积压量</span><span class="result-value alert">12,847 条</span><span class="result-label" style="min-width:auto">正常</span><span class="result-value ok">&lt; 100 条</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card err" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">03</span>
+                <div class="probe-icon loki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Loki · 限流日志查询 <span class="confidence-badge low">自修正失败</span></div><div class="step-subtitle">连续 2 次查询语法错误 → 自修正后命中但预算耗尽</div></div>
+                <div class="step-meta"><span class="latency-badge">3.2s</span><div class="status-dot err"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="heal-block">
+                  <div class="heal-row fail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span>第 1 次查询：<code style="font-family:var(--font-mono);opacity:.8">{service="notification-service"} "rate_limit"</code> 缺少管道操作符</span></div>
+                  <div class="heal-row fail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span>第 2 次修正：<code style="font-family:var(--font-mono);opacity:.8">{service="notification"} |= "rate" | json</code> service 名不匹配</span></div>
+                  <div class="heal-row fix"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span>第 3 次修正成功，但消耗了额外预算（剩余查询次数不足）</span></div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">命中日志</span><span class="result-value warn">23 条</span><span class="result-label" style="min-width:auto">注意</span><span class="result-value warn">采样率不足，可能遗漏关键日志</span></div>
+                  <div class="result-row"><span class="result-label">高频模式</span><span class="result-value" style="font-size:11.5px;color:var(--warn)">dingtalk API rate_limit_exceeded (errcode: 130101)</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card" style="border-left:2px dashed var(--warn);opacity:.6">
+              <div class="step-header">
+                <span class="step-num" style="color:var(--warn)">04</span>
+                <div class="probe-icon tempo" style="opacity:.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></div>
+                <div class="step-body-header"><div class="step-title" style="color:var(--text-3)">Tempo · 慢链路下钻 <span style="font:400 11px var(--font-sans);color:var(--warn)">未执行</span></div><div class="step-subtitle">预算耗尽，建议手动执行 TraceQL 查询</div></div>
+                <div class="step-meta"><span class="latency-badge" style="color:var(--warn)">跳过</span><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="rca-report">
+          <div class="rca-header">
+            <div><div class="rca-title">RCA: notification-service 发送延迟升高 <span style="font:500 12px var(--font-sans);color:var(--warn)">(部分)</span></div><div class="rca-subtitle">2026-07-10 11:38 CST · 排查耗时 38s · token 4,950/5,000</div></div>
+            <div class="rca-sev p2">P2</div>
+          </div>
+          <div class="rca-nav"><div class="rca-nav-item active">服务与问题</div><div class="rca-nav-item">证据链</div><div class="rca-nav-item">根因与建议</div></div>
+          <div class="rca-body">
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> 服务与问题概述</h3>
+              <p><code>notification-service</code> 钉钉渠道发送 P99 延迟从 <code>200ms</code> 升至 <code>4.2s</code>，队列积压 <code>12,847</code> 条消息。初步日志显示钉钉 API 返回 <code>rate_limit_exceeded</code>（errcode 130101），但 Tempo 链路和更完整的 Loki 日志因预算耗尽未获取。</p>
+              <div class="metric-grid">
+                <div class="metric-card"><div class="metric-label">P99 延迟</div><div class="metric-value warn">4.2s</div><div class="metric-delta up">21x vs baseline</div></div>
+                <div class="metric-card"><div class="metric-label">队列积压</div><div class="metric-value alert">12,847</div><div class="metric-delta">正常 &lt; 100</div></div>
+                <div class="metric-card"><div class="metric-label">证据完备度</div><div class="metric-value warn">2 / 4</div><div class="metric-delta">Tempo + 部分 Loki 缺失</div></div>
+              </div>
+            </div>
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H1l3-3-3-3"/><path d="M22 12A10 10 0 1 1 12 2"/><path d="M16 6l-4 4-4-4"/><path d="M8 18l4-4 4 4"/></svg> 证据链 <span class="confidence-badge med">置信度: 中</span></h3>
+              <div class="evidence-list">
+                <div class="evidence-item"><span class="evidence-num">01</span><span class="evidence-text">Mimir: 钉钉 P99 从 <code>200ms</code> 升至 <code>4.2s</code></span></div>
+                <div class="evidence-item"><span class="evidence-num">02</span><span class="evidence-text">Mimir: 队列积压 <code>12,847</code> 条（正常 &lt; <code>100</code>）</span></div>
+                <div class="evidence-item missing"><span class="evidence-num">03</span><span class="evidence-text">Loki: 仅采样到 <code>23</code> 条 rate_limit 日志，证据不充分</span></div>
+                <div class="evidence-item missing"><span class="evidence-num">04</span><span class="evidence-text">Tempo: 未执行 — 缺少慢链路证据</span></div>
+              </div>
+            </div>
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 初步根因分析 <span class="confidence-badge med">置信度: 中</span></h3>
+              <p><strong style="color:var(--text-1)">疑似钉钉 API 限流导致消息积压。</strong> 日志中出现 <code>rate_limit_exceeded (errcode: 130101)</code>，队列积压量异常。但缺少 Tempo 链路证据和完整日志采样，无法确认是钉钉侧限流还是本地发送逻辑问题。</p>
+              <p style="color:var(--warn);font-size:12px;margin-top:8px">建议手动执行以下查询以补全证据链后确认根因。</p>
+            </div>
+            <div class="rca-section">
+              <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> 修复建议（初步）</h3>
+              <div class="rec-list">
+                <div class="rec-item"><span class="rec-priority p1">短期</span><span class="rec-text">检查钉钉企业版 API 调用频率限制，确认是否触发 <code>rate_limit_exceeded</code></span></div>
+                <div class="rec-item"><span class="rec-priority p1">短期</span><span class="rec-text">临时增加发送队列 consumer 并发数，加快积压消息消费</span></div>
+                <div class="rec-item"><span class="rec-priority p2">长期</span><span class="rec-text">引入钉钉 API 令牌桶限流，在客户端侧主动控制发送速率</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== STATE 1: Investigation In-Progress ========== -->
+      <div class="scenario-panel" data-sc="st1">
+        <div class="incident">
+          <div class="incident-header">
+            <div class="incident-avatar">L</div>
+            <span class="incident-author">luwei</span>
+            <span class="incident-time">刚刚</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:9999px;background:var(--info-bg);color:var(--info);font:500 11px var(--font-sans);margin-left:auto">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--info);animation:pulse 1.5s ease-in-out infinite"></span>
+              排查进行中
+            </span>
+          </div>
+          <div class="incident-text">search-service 搜索延迟突然变高，很多请求超时</div>
+          <div class="incident-tags">
+            <span class="tag">search-service</span><span class="tag">延迟</span><span class="tag">超时</span>
+          </div>
+        </div>
+
+        <div class="budget-bar">
+          <div class="budget-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="budget-info">
+            <div class="budget-label">SafeToolExecutor · 查询预算</div>
+            <div class="budget-track"><div class="budget-fill normal" style="width:30%"></div></div>
+          </div>
+          <div class="budget-stats">3 / 10 查询 · <span>1,500 / 5,000 token</span></div>
+        </div>
+
+        <div>
+          <div class="panel-header">
+            <div class="panel-title">排查时间线 <span class="badge info">3/5 步 · 进行中</span></div>
+          </div>
+          <div class="timeline">
+
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">01</span>
+                <div class="probe-icon mimir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Mimir · 搜索延迟查询</div><div class="step-subtitle">搜索 P99 从 50ms 升至 3.5s，11:38 突发</div></div>
+                <div class="step-meta"><span class="latency-badge">160ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">PromQL</span><button class="code-copy">复制</button></div>
+                  <div class="code-body"><span class="fn">histogram_quantile</span>(<span class="num">0.99</span>, <span class="fn">rate</span>(<span class="kw">search_duration_seconds_bucket</span>{<span class="str">service</span>=<span class="str">"search-service"</span>}[<span class="num">5m</span>]))</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">P99 峰值</span><span class="result-value alert">3.5s</span><span class="result-label" style="min-width:auto">基线</span><span class="result-value ok">50ms</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">02</span>
+                <div class="probe-icon mimir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div class="step-body-header"><div class="step-title">Mimir · JVM GC 停顿查询</div><div class="step-subtitle">Full GC STW 时间从 50ms 飙升至 2.8s/次</div></div>
+                <div class="step-meta"><span class="latency-badge">195ms</span><div class="status-dot ok"></div><svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="step-content">
+                <div class="code-block"><div class="code-header"><span class="code-lang">PromQL</span><button class="code-copy">复制</button></div>
+                  <div class="code-body"><span class="fn">rate</span>(<span class="kw">jvm_gc_pause_seconds_sum</span>{<span class="str">service</span>=<span class="str">"search-service"</span>,<span class="str">action</span>=<span class="str">"end of major GC"</span>}[<span class="num">5m</span>])</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row"><span class="result-label">GC STW</span><span class="result-value alert">2.8s/次</span><span class="result-label" style="min-width:auto">频率</span><span class="result-value warn">12 次/min</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-card running" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">03</span>
+                <div class="probe-icon loki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                <div class="step-body-header">
+                  <div class="step-title">Loki · GC 日志检索 <span class="confidence-badge med" style="background:var(--info-bg);color:var(--info)">执行中</span></div>
+                  <div class="step-subtitle">正在查询 GC 日志和堆内存 dump 信息...</div>
+                </div>
+                <div class="step-meta">
+                  <span class="latency-badge" style="color:var(--info)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--info);animation:pulse 1s infinite;margin-right:4px"></span>1.2s</span>
+                  <div class="status-dot running"></div>
+                  <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
+              <div class="step-content" style="display:block">
+                <div class="code-block"><div class="code-header"><span class="code-lang">LogQL</span><span style="font:400 10px var(--font-mono);color:var(--info)">streaming...</span></div>
+                  <div class="code-body"><span class="fn">rate</span>({<span class="str">service</span>=<span class="str">"search-service"</span>} <span class="op">|=</span> <span class="str">"GC"</span> <span class="op">|</span> <span class="kw">json</span> <span class="op">|</span> <span class="str">"Full"</span> [<span class="num">5m</span>])<span class="cmt">  // 执行中...</span></div>
+                </div>
+                <div class="skeleton-card" style="margin-top:10px;border-left:2px solid var(--info)">
+                  <div class="skeleton-thinking">
+                    <div class="thinking-dots"><div class="thinking-dot"></div><div class="thinking-dot"></div><div class="thinking-dot"></div></div>
+                    <span style="font:400 12px var(--font-sans);color:var(--text-3)">Agent 正在等待 Loki 返回结果...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="skeleton-card">
+              <div class="skeleton-thinking">
+                <div class="thinking-dots"><div class="thinking-dot"></div><div class="thinking-dot"></div><div class="thinking-dot"></div></div>
+                <span style="font:400 12px var(--font-sans);color:var(--text-3)">Agent 正在思考下一步：基于 GC 停顿数据，准备查询堆内存详情和索引大小...</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== STATE 2: Conversation Follow-up ========== -->
+      <div class="scenario-panel" data-sc="st2">
+
+        <div class="rca-report" style="margin-bottom:4px">
+          <div class="rca-header">
+            <div>
+              <div class="rca-title" style="font-size:15px">RCA: user-service DB 连接池耗尽 <span class="confidence-badge high">已完成</span></div>
+              <div class="rca-subtitle">昨天 16:20 · 排查耗时 51s</div>
+            </div>
+            <div class="rca-sev p2">P2</div>
+          </div>
+          <div class="rca-body" style="padding:16px">
+            <div class="rca-section">
+              <p>HikariCP 连接池上限 <code>10</code> 不够用，慢查询 <code>SELECT * FROM users WHERE email LIKE '%...%'</code> 全表扫描加剧连接占用。建议提升至 <code>30</code> 并为 <code>email</code> 列加索引。</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:0">
+
+          <div class="conv-message user">
+            <div class="conv-avatar user">L</div>
+            <div class="conv-bubble">把 email 慢查询的时间窗口拉长到最近 24 小时，看看是不是一直存在</div>
+          </div>
+
+          <div class="conv-message ai">
+            <div class="conv-avatar ai"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H1l3-3-3-3"/><path d="M22 12A10 10 0 1 1 12 2"/><path d="M16 6l-4 4-4-4"/><path d="M8 18l4-4 4 4"/></svg></div>
+            <div class="conv-bubble">
+              复用已有上下文，扩展时间窗口至 <code>24h</code>。查询命中缓存（相同 PromQL 仅时间范围变化），结果如下：
+              <div class="mini-evidence">
+<span class="hl">users.email LIKE 慢查询 · 最近 24h</span>
+P95 执行耗时: <span style="color:var(--warn)">1.2s</span> (基线 <span style="color:var(--ok)">8ms</span>)
+出现时段: 14:00-16:00, 20:00-22:00 (每日高峰)
+累计执行次数: <span style="color:var(--err)">47,832 次</span>
+影响: 每次占用 DB 连接 <span style="color:var(--warn)">1.2s</span>，高峰期连接池利用率 &gt; 95%
+<span style="color:var(--info)">→ 确认：慢查询在高峰时段持续存在，并非偶发。P0 加索引刻不容缓。</span>
+              </div>
+              <div style="margin-top:8px;font:400 12px var(--font-sans);color:var(--text-3)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px;color:var(--ok)"><polyline points="20 6 9 17 4 12"/></svg>
+                查询缓存命中，未消耗额外预算 · 耗时 80ms
+              </div>
+            </div>
+          </div>
+
+          <div class="conv-message user">
+            <div class="conv-avatar user">L</div>
+            <div class="conv-bubble">有没有类似的历史故障可以参考？上次 inventory-service 是不是也这样？</div>
+          </div>
+
+          <div class="conv-message ai">
+            <div class="conv-avatar ai"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H1l3-3-3-3"/><path d="M22 12A10 10 0 1 1 12 2"/><path d="M16 6l-4 4-4-4"/><path d="M8 18l4-4 4 4"/></svg></div>
+            <div class="conv-bubble">
+              从 RCA 知识库中检索到 <code>2</code> 条高度相似的历史故障：
+              <div class="mini-evidence">
+<span style="color:var(--accent)">命中历史模式 · 相似度 92%</span>
+1. inventory-service DB 连接池耗尽 (06-28)
+   根因: orders 表全表扫描 → 连接池打满 → 级联超时
+   修复: 加索引 + 连接池 10→30 → <span style="color:var(--ok)">MTTR 下降 73%</span>
+
+<span style="color:var(--accent)">命中历史模式 · 相似度 87%</span>
+2. auth-service DB 连接池耗尽 (06-15)
+   根因: sessions 表 LIKE 查询无索引 → 连接池耗尽
+   修复: 加索引 + 连接池扩容 → <span style="color:var(--ok)">未再复发</span>
+              </div>
+              <div style="margin-top:8px;font:400 13px var(--font-sans);color:var(--text-2)">
+                <strong style="color:var(--text-1)">模式分析：</strong>这是本月第 <code>3</code> 次"DB 慢查询 → 连接池耗尽"故障。根因高度一致：缺索引的 <code>LIKE</code> 查询 + 连接池配置过小。建议在数据库层面统一审计所有 <code>LIKE '%...%'</code> 查询的索引覆盖情况。
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="quick-templates" style="margin-top:8px">
+          <button class="quick-tmpl">导出更新后的 RCA</button>
+          <button class="quick-tmpl">创建 Jira 工单：审计 LIKE 查询索引</button>
+          <button class="quick-tmpl">分享给 DBA 团队</button>
+        </div>
+
+      </div>
+
+      <!-- ========== STATE 3: Onboarding ========== -->
+      <div class="scenario-panel" data-sc="st3">
+        <div class="onboarding-hero">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:var(--accent-muted);border-radius:14px;margin-bottom:16px">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M9 11H1l3-3-3-3"/><path d="M22 12A10 10 0 1 1 12 2"/><path d="M16 6l-4 4-4-4"/><path d="M8 18l4-4 4 4"/></svg>
+          </div>
+          <h1>欢迎使用 AI SRE Investigator</h1>
+          <p>用大白话描述故障，AI 自动查询 Mimir / Loki / Tempo 并生成 RCA 报告。<br>选择一个模拟故障，2 分钟体验完整排查流程。</p>
+        </div>
+
+        <div class="demo-grid">
+
+          <div class="demo-card" data-sc="sc1">
+            <div class="demo-card-time">~47s</div>
+            <div class="demo-card-header">
+              <div class="demo-card-icon err"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+              <div class="demo-card-title">HTTP 500 错误率飙升</div>
+            </div>
+            <div class="demo-card-desc">payment-service 突发大量 500 错误。体验完整的指标→日志→链路排查流程，含 QL 自修正演示。</div>
+            <div class="demo-card-meta">
+              <span class="demo-card-tag">PromQL</span><span class="demo-card-tag">LogQL</span><span class="demo-card-tag">TraceQL</span><span class="demo-card-tag">自修正</span>
+            </div>
+          </div>
+
+          <div class="demo-card" data-sc="sc2">
+            <div class="demo-card-time">~62s</div>
+            <div class="demo-card-header">
+              <div class="demo-card-icon err"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+              <div class="demo-card-title">Pod OOM 循环重启</div>
+            </div>
+            <div class="demo-card-desc">order-processor 内存泄漏导致 OOM Kill。体验内存趋势分析、GC 压力追踪和泄漏根因推理。</div>
+            <div class="demo-card-meta">
+              <span class="demo-card-tag">内存分析</span><span class="demo-card-tag">GC 追踪</span><span class="demo-card-tag">推理链</span>
+            </div>
+          </div>
+
+          <div class="demo-card" data-sc="sc3">
+            <div class="demo-card-time">~38s</div>
+            <div class="demo-card-header">
+              <div class="demo-card-icon warn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+              <div class="demo-card-title">部分 RCA（预算耗尽）</div>
+            </div>
+            <div class="demo-card-desc">notification-service 延迟升高，但查询预算耗尽。体验优雅收尾：部分证据 + 置信度标注 + 缺失查询建议。</div>
+            <div class="demo-card-meta">
+              <span class="demo-card-tag">预算管理</span><span class="demo-card-tag">部分RCA</span><span class="demo-card-tag">置信度</span>
+            </div>
+          </div>
+
+          <div class="demo-card" data-sc="st1">
+            <div class="demo-card-time">实时</div>
+            <div class="demo-card-header">
+              <div class="demo-card-icon info"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div class="demo-card-title">实时排查进行中</div>
+            </div>
+            <div class="demo-card-desc">查看 Agent 正在工作的状态：SSE 流式推送、脉冲动画、步骤逐个出现、思考中加载态。</div>
+            <div class="demo-card-meta">
+              <span class="demo-card-tag">SSE 流式</span><span class="demo-card-tag">实时</span><span class="demo-card-tag">加载态</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="text-align:center;margin-top:32px;padding:20px;background:var(--bg-surface1);border:1px dashed var(--border-std);border-radius:8px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="vertical-align:-4px;margin-right:6px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span style="font:400 13px var(--font-sans);color:var(--text-2)">或者直接在下方输入框描述你遇到的故障，开始真实排查</span>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrapper">
+        <div class="input-box">
+          <textarea rows="1" placeholder="输入追问或新的故障描述..."></textarea>
+          <button class="send-btn" title="发送"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        </div>
+        <div class="quick-templates">
+          <button class="quick-tmpl">把 p99 拉长 3 小时</button>
+          <button class="quick-tmpl">展开 TraceID 4f8a2b 的下游</button>
+          <button class="quick-tmpl">对比上次类似故障</button>
+          <button class="quick-tmpl">导出 RCA 为 Markdown</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function toggleStep(card){card.classList.toggle('expanded');}
+document.querySelectorAll('.sc-tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    var target=this.dataset.target;
+    document.querySelectorAll('.sc-tab').forEach(function(t){t.classList.remove('active');});
+    this.classList.add('active');
+    document.querySelectorAll('.scenario-panel').forEach(function(p){p.classList.remove('active');});
+    var panel=document.querySelector('.scenario-panel[data-sc="'+target+'"]');
+    if(panel)panel.classList.add('active');
+    document.querySelector('.scroll-area').scrollTop=0;
+  });
+});
+document.querySelectorAll('.rca-nav-item').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    this.parentElement.querySelectorAll('.rca-nav-item').forEach(function(t){t.classList.remove('active');});
+    this.classList.add('active');
+  });
+});
+var textarea=document.querySelector('.input-box textarea');
+if(textarea){textarea.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});}
+var mt=document.querySelector('.mobile-toggle');
+if(mt)mt.addEventListener('click',function(){document.querySelector('.sidebar').classList.toggle('open');});
+document.querySelectorAll('.session-item').forEach(function(item){
+  item.addEventListener('click',function(){
+    document.querySelectorAll('.session-item').forEach(function(i){i.classList.remove('active');});
+    this.classList.add('active');
+    var sc=this.dataset.sc;
+    if(sc){document.querySelectorAll('.sc-tab').forEach(function(t){t.classList.remove('active');});
+    var tab=document.querySelector('.sc-tab[data-target="'+sc+'"]');
+    if(tab){tab.classList.add('active');tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}
+    document.querySelectorAll('.scenario-panel').forEach(function(p){p.classList.remove('active');});
+    var panel=document.querySelector('.scenario-panel[data-sc="'+sc+'"]');
+    if(panel)panel.classList.add('active');}
+  });
+});
+document.querySelectorAll('.demo-card').forEach(function(card){
+  card.addEventListener('click',function(){
+    var sc=this.dataset.sc;
+    if(!sc)return;
+    document.querySelectorAll('.sc-tab').forEach(function(t){t.classList.remove('active');});
+    var tab=document.querySelector('.sc-tab[data-target="'+sc+'"]');
+    if(tab){tab.classList.add('active');tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}
+    document.querySelectorAll('.scenario-panel').forEach(function(p){p.classList.remove('active');});
+    var panel=document.querySelector('.scenario-panel[data-sc="'+sc+'"]');
+    if(panel)panel.classList.add('active');
+    document.querySelector('.scroll-area').scrollTop=0;
+  });
+});
+</script>
+</body>
+</html>

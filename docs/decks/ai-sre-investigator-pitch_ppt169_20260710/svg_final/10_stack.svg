@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" />
+
+  
+  <rect x="56" y="48" width="6" height="32" fill="#00A6A6" />
+  <text x="74" y="72" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">10 · 技术栈</text>
+  <text x="56" y="118" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="37" font-weight="bold" fill="#0F2A44">轻量 · 原生 · 可演进（ADR-006）</text>
+  <text x="56" y="156" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5A6B7E">与 ADR-001 一致：拒绝臃肿框架；强类型 + 异步 + 云原生</text>
+
+  
+  <g id="badges">
+    <g transform="translate(56,196)">
+      <path fill="#0F2A44" d="M6,0 H274 A6,6 0 0 1 280,6 V50 A6,6 0 0 1 274,56 H6 A6,6 0 0 1 0,50 V6 A6,6 0 0 1 6,0 Z" />
+      
+  <g transform="translate(20.0, 16.0) scale(1.5)" fill="#00A6A6">
+    <path d="M9 7L10 0H8L2 7V9H7L6 16H8L14 9L14 7H9Z" />
+  </g>
+      <text x="56" y="34" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" font-weight="bold" fill="#FFFFFF">异步优先 async-first</text>
+    </g>
+    <g transform="translate(348,196)">
+      <path fill="#0F2A44" d="M6,0 H274 A6,6 0 0 1 280,6 V50 A6,6 0 0 1 274,56 H6 A6,6 0 0 1 0,50 V6 A6,6 0 0 1 6,0 Z" />
+      
+  <g transform="translate(20.0, 16.0) scale(1.5)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M15 1H1V15H15V1ZM6 5L7.41421 6.41421L5.82843 8L7.41421 9.58579L6 11L3 8L6 5ZM10 5L8.58579 6.41421L10.1716 8L8.58579 9.58579L10 11L13 8L10 5Z" />
+  </g>
+      <text x="56" y="34" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" font-weight="bold" fill="#FFFFFF">强类型 · mypy 开启</text>
+    </g>
+    <g transform="translate(640,196)">
+      <path fill="#0F2A44" d="M6,0 H274 A6,6 0 0 1 280,6 V50 A6,6 0 0 1 274,56 H6 A6,6 0 0 1 0,50 V6 A6,6 0 0 1 6,0 Z" />
+      
+  <g transform="translate(20.0, 16.0) scale(1.5)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M16 2H0V7H16V2ZM4 4.5C4 5.05228 3.55228 5.5 3 5.5C2.44772 5.5 2 5.05228 2 4.5C2 3.94772 2.44772 3.5 3 3.5C3.55228 3.5 4 3.94772 4 4.5Z" />
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M16 9H0V14H16V9ZM3 12.5C3.55228 12.5 4 12.0523 4 11.5C4 10.9477 3.55228 10.5 3 10.5C2.44772 10.5 2 10.9477 2 11.5C2 12.0523 2.44772 12.5 3 12.5Z" />
+  </g>
+      <text x="56" y="34" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" font-weight="bold" fill="#FFFFFF">无状态 · 云原生</text>
+    </g>
+    <g transform="translate(932,196)">
+      <path fill="#0F2A44" d="M6,0 H286 A6,6 0 0 1 292,6 V50 A6,6 0 0 1 286,56 H6 A6,6 0 0 1 0,50 V6 A6,6 0 0 1 6,0 Z" />
+      
+  <g transform="translate(20.0, 16.0) scale(1.5)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5.5C16 8.53757 13.5376 11 10.5 11H7V13H5V15L4 16H0V12L5.16351 6.83649C5.0567 6.40863 5 5.96094 5 5.5C5 2.46243 7.46243 0 10.5 0C13.5376 0 16 2.46243 16 5.5ZM13 4C13 4.55228 12.5523 5 12 5C11.4477 5 11 4.55228 11 4C11 3.44772 11.4477 3 12 3C12.5523 3 13 3.44772 13 4Z" />
+  </g>
+      <text x="56" y="34" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" font-weight="bold" fill="#FFFFFF">Pydantic Schema → tools</text>
+    </g>
+  </g>
+
+  
+  <g id="backend">
+    <path fill="#F4F6FA" stroke="#E2E8F0" d="M64,288 H632 A8,8 0 0 1 640,296 V620 A8,8 0 0 1 632,628 H64 A8,8 0 0 1 56,620 V296 A8,8 0 0 1 64,288 Z" />
+    <rect x="56" y="288" width="6" height="340" fill="#00A6A6" />
+    <text x="84" y="324" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">BACKEND</text>
+    <text x="84" y="356" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#0F2A44">Python 3.12 + FastAPI</text>
+    <text x="84" y="382" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">Agent 推理与函数调用 · 工具统一契约</text>
+
+    <g transform="translate(84,406)">
+      <path fill="#FFFFFF" stroke="#00A6A6" d="M4,0 H196 A4,4 0 0 1 200,4 V36 A4,4 0 0 1 196,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="100" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">FastAPI</text>
+    </g>
+    <g transform="translate(296,406)">
+      <path fill="#FFFFFF" stroke="#00A6A6" d="M4,0 H196 A4,4 0 0 1 200,4 V36 A4,4 0 0 1 196,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="100" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">Pydantic v2</text>
+    </g>
+    <g transform="translate(84,460)">
+      <path fill="#FFFFFF" stroke="#00A6A6" d="M4,0 H196 A4,4 0 0 1 200,4 V36 A4,4 0 0 1 196,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="100" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">HTTPX (async)</text>
+    </g>
+    <g transform="translate(296,460)">
+      <path fill="#FFFFFF" stroke="#00A6A6" d="M4,0 H196 A4,4 0 0 1 200,4 V36 A4,4 0 0 1 196,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="100" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">openai SDK</text>
+    </g>
+    <g transform="translate(84,514)">
+      <path fill="#FFFFFF" stroke="#00A6A6" d="M4,0 H408 A4,4 0 0 1 412,4 V36 A4,4 0 0 1 408,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="206" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">pydantic-settings</text>
+    </g>
+
+    <text x="84" y="588" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">目录：app/main.py · app/api/chat.py · app/agent/loop.py · app/tools/</text>
+    <text x="84" y="608" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">拒绝 LangChain · 直接 tool_calls · SafeToolExecutor 四层包装</text>
+  </g>
+
+  
+  <g id="frontend">
+    <path fill="#F4F6FA" stroke="#E2E8F0" d="M672,288 H1216 A8,8 0 0 1 1224,296 V620 A8,8 0 0 1 1216,628 H672 A8,8 0 0 1 664,620 V296 A8,8 0 0 1 672,288 Z" />
+    <rect x="664" y="288" width="6" height="340" fill="#4A6FA5" />
+    <text x="692" y="324" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#4A6FA5" letter-spacing="2">FRONTEND</text>
+    <text x="692" y="356" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#0F2A44">Next.js (App Router)</text>
+    <text x="692" y="382" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">对话界面 · 实时时间线 · Markdown 报告渲染</text>
+
+    <g transform="translate(692,406)">
+      <path fill="#FFFFFF" stroke="#4A6FA5" d="M4,0 H216 A4,4 0 0 1 220,4 V36 A4,4 0 0 1 216,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="110" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">Next.js App Router</text>
+    </g>
+    <g transform="translate(692,460)">
+      <path fill="#FFFFFF" stroke="#4A6FA5" d="M4,0 H216 A4,4 0 0 1 220,4 V36 A4,4 0 0 1 216,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="110" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">Tailwind CSS</text>
+    </g>
+    <g transform="translate(924,406)">
+      <path fill="#FFFFFF" stroke="#4A6FA5" d="M4,0 H236 A4,4 0 0 1 240,4 V36 A4,4 0 0 1 236,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="120" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">React Markdown</text>
+    </g>
+    <g transform="translate(924,460)">
+      <path fill="#FFFFFF" stroke="#4A6FA5" d="M4,0 H236 A4,4 0 0 1 240,4 V36 A4,4 0 0 1 236,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="120" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">SSE 流式客户端</text>
+    </g>
+    <g transform="translate(692,514)">
+      <path fill="#FFFFFF" stroke="#4A6FA5" d="M4,0 H468 A4,4 0 0 1 472,4 V36 A4,4 0 0 1 468,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="236" y="25" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#0F2A44" text-anchor="middle">证据可下钻 Timeline · 可分享 RCA 链接</text>
+    </g>
+
+    <text x="692" y="588" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">极简交互界面 · Chat Input / Timeline / RCA View</text>
+    <text x="692" y="608" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">D-1 信任优先的证据可下钻 · D-2 对话式追问</text>
+  </g>
+
+  
+  <g id="bottom-strip">
+    <rect x="56" y="640" width="1168" height="22" fill="none" />
+    <text x="56" y="658" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">无状态 · 云原生 · 易部署到私有数据中心 · 与 MCP 演进对齐</text>
+  </g>
+
+  <line x1="56" y1="676" x2="1224" y2="676" stroke="#E2E8F0" />
+  <text x="56" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">ADR-006 · PRD §6</text>
+  <text x="1224" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6" text-anchor="end">P10 / 12</text>
+</svg>

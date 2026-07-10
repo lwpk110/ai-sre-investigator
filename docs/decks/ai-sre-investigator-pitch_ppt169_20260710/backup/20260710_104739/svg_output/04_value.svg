@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <!-- top label + hero -->
+  <g id="header">
+    <rect x="56" y="48" width="6" height="32" fill="#00A6A6"/>
+    <text x="74" y="72" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">04 · 价值主张</text>
+    <text x="56" y="180" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="50" font-weight="bold" fill="#0F2A44">让开发用"大白话"</text>
+    <text x="56" y="240" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="50" font-weight="bold" fill="#0F2A44">调动所有观测后端</text>
+    <text x="56" y="288" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="20" fill="#5A6B7E">不是替代 SRE，而是让一线开发具备独立闭环能力，把 SRE 拉回真正的平台工程</text>
+  </g>
+
+  <!-- subtle rule line under hero -->
+  <g id="rule-line">
+    <line x1="56" y1="320" x2="1224" y2="320" stroke="#E2E8F0"/>
+    <rect x="56" y="318" width="280" height="4" fill="#00A6A6"/>
+  </g>
+
+  <!-- three support blocks -->
+  <g id="blocks">
+    <!-- block 1 -->
+    <g transform="translate(56,360)">
+      <rect x="0" y="0" width="380" height="220" rx="6" fill="#F4F6FA"/>
+      <rect x="0" y="0" width="6" height="220" fill="#00A6A6"/>
+      <use data-icon="chunk-filled/bolt" x="28" y="28" width="44" height="44" fill="#00A6A6"/>
+      <text x="92" y="50" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#0F2A44">独立闭环</text>
+      <text x="28" y="100" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#0F2A44">自己的服务故障自己查</text>
+      <text x="28" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">一线开发无需学习 PromQL/LogQL/TraceQL，</text>
+      <text x="28" y="160" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">用大白话申告即可拿到一份 RCA</text>
+      <text x="28" y="190" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#8896A6">→ 解放 SRE 的"客服"角色</text>
+    </g>
+
+    <!-- block 2 -->
+    <g transform="translate(450,360)">
+      <rect x="0" y="0" width="380" height="220" rx="6" fill="#F4F6FA"/>
+      <rect x="0" y="0" width="6" height="220" fill="#0F2A44"/>
+      <use data-icon="chunk-filled/database" x="28" y="28" width="44" height="44" fill="#0F2A44"/>
+      <text x="92" y="50" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#0F2A44">沉淀组织资产</text>
+      <text x="28" y="100" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#0F2A44">每次 RCA 都进入知识库</text>
+      <text x="28" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">少数 SRE 的肌肉记忆转化为</text>
+      <text x="28" y="160" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">全员可调用的故障图谱（脑暴 PM-1）</text>
+      <text x="28" y="190" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#8896A6">→ 数据飞轮，越用越聪明</text>
+    </g>
+
+    <!-- block 3 -->
+    <g transform="translate(844,360)">
+      <rect x="0" y="0" width="380" height="220" rx="6" fill="#F4F6FA"/>
+      <rect x="0" y="0" width="6" height="220" fill="#4A6FA5"/>
+      <use data-icon="chunk-filled/users" x="28" y="28" width="44" height="44" fill="#4A6FA5"/>
+      <text x="92" y="50" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#0F2A44">解放 SRE</text>
+      <text x="28" y="100" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#0F2A44">从查日志客服 → 平台工程师</text>
+      <text x="28" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">SRE 团队回归 SLO / 容量规划 /</text>
+      <text x="28" y="160" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">可观测性平台本身的高阶工作</text>
+      <text x="28" y="190" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#8896A6">→ 让人效回到组织最有杠杆的地方</text>
+    </g>
+  </g>
+
+  <!-- bottom rule line: read-only -->
+  <g id="bottom-rule">
+    <rect x="56" y="612" width="1168" height="56" rx="6" fill="#0F2A44"/>
+    <use data-icon="chunk-filled/shield-check" x="80" y="624" width="32" height="32" fill="#00A6A6"/>
+    <text x="128" y="646" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#FFFFFF">边界声明</text>
+    <text x="232" y="646" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#A8C0DA">·</text>
+    <text x="256" y="646" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#FFFFFF">只读排查，绝不修改线上状态（ADR-002）· 信任未建立前，不开任何写权限</text>
+  </g>
+
+  <line x1="56" y1="676" x2="1224" y2="676" stroke="#E2E8F0"/>
+  <text x="56" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">PRD §2 · brainstorm PM-1 / D-5 · ADR-002</text>
+  <text x="1224" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6" text-anchor="end">P04 / 12</text>
+</svg>

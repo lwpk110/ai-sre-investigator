@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" />
+
+  
+  <rect x="56" y="48" width="6" height="32" fill="#00A6A6" />
+  <text x="74" y="72" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">11 · Roadmap &amp; 风险</text>
+  <text x="56" y="118" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="37" font-weight="bold" fill="#0F2A44">从 MVP 到 MCP：阶段路线与前置风险</text>
+  <text x="56" y="156" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5A6B7E">每个阶段都回答"为什么是这一步" · 不在信任未建立前开放写权限</text>
+
+  
+  <g id="gantt">
+    <text x="56" y="208" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44" letter-spacing="2">阶段路线</text>
+    <line x1="56" y1="218" x2="1224" y2="218" stroke="#00A6A6" stroke-width="2" />
+
+    
+    <g transform="translate(56,242)">
+      
+      <path fill="#00A6A6" d="M4,0 H228 A4,4 0 0 1 232,4 V64 A4,4 0 0 1 228,68 H4 A4,4 0 0 1 0,64 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="16" y="26" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">V1.0 MVP</text>
+      <text x="16" y="48" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#FFFFFF">本季度</text>
+      <text x="16" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#E6F4F4">原生 Tool-Calling · SafeToolExecutor · 三工具</text>
+    </g>
+
+    
+    <g transform="translate(312,242)">
+      <path fill="#4A6FA5" d="M4,0 H228 A4,4 0 0 1 232,4 V64 A4,4 0 0 1 228,68 H4 A4,4 0 0 1 0,64 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="16" y="26" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">V1.1</text>
+      <text x="16" y="48" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#FFFFFF">次季度</text>
+      <text x="16" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#A8C0DA">RCA 知识库 · 黄金路径剧本 · 证据可下钻</text>
+    </g>
+
+    
+    <g transform="translate(568,242)">
+      <path fill="#0F2A44" d="M4,0 H276 A4,4 0 0 1 280,4 V64 A4,4 0 0 1 276,68 H4 A4,4 0 0 1 0,64 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="16" y="26" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">V2.0</text>
+      <text x="16" y="48" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#FFFFFF">半年+</text>
+      <text x="16" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#A8C0DA">置信度升级机制 · MCP/GOAP 迁移 · 多源工具</text>
+    </g>
+
+    
+    <g transform="translate(872,242)">
+      <path fill="#FFFFFF" stroke="#C62828" stroke-width="1.4" stroke-dasharray="6 4" d="M4,0 H292 A4,4 0 0 1 296,4 V64 A4,4 0 0 1 292,68 H4 A4,4 0 0 1 0,64 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="16" y="26" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#C62828">远期</text>
+      <text x="16" y="48" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">处置类操作（仅在以下前提满足时）</text>
+      <text x="16" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">前置：置信度体系 + 人工闸门 + ADR-005</text>
+    </g>
+
+    
+    <line x1="288" y1="276" x2="312" y2="276" stroke="#0F2A44" stroke-width="2" />
+    <line x1="544" y1="276" x2="568" y2="276" stroke="#0F2A44" stroke-width="2" />
+    <line x1="848" y1="276" x2="872" y2="276" stroke="#C62828" stroke-width="2" stroke-dasharray="4 4" />
+  </g>
+
+  
+  <g id="hypotheses">
+    <text x="56" y="350" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44" letter-spacing="2">MVP 假设（待验证）</text>
+    <line x1="56" y1="360" x2="280" y2="360" stroke="#00A6A6" stroke-width="2" />
+
+    <g transform="translate(56,378)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.5)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M5 11.5V14.5L6.5 16H9.5L11 14.5V11.5L12.2396 10.2604C13.3668 9.13324 14 7.60141 14 6.00736C14 2.69365 11.3137 0 8 0C4.68629 0 2 2.69365 2 6.00736C2 7.60141 2.63324 9.13324 3.76041 10.2604L5 11.5ZM7 9.87398V6H9V9.87398C10.7252 9.42994 12 7.86384 12 6C12 3.79086 10.2091 2 8 2C5.79086 2 4 3.79086 4 6C4 7.86384 5.27477 9.42994 7 9.87398Z" />
+  </g>
+      <text x="36" y="18" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#0F2A44">H1 · LLM 拿到结构化错误后单轮自修正成功率 ≥ 70%</text>
+    </g>
+    <g transform="translate(56,410)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.5)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M5 11.5V14.5L6.5 16H9.5L11 14.5V11.5L12.2396 10.2604C13.3668 9.13324 14 7.60141 14 6.00736C14 2.69365 11.3137 0 8 0C4.68629 0 2 2.69365 2 6.00736C2 7.60141 2.63324 9.13324 3.76041 10.2604L5 11.5ZM7 9.87398V6H9V9.87398C10.7252 9.42994 12 7.86384 12 6C12 3.79086 10.2091 2 8 2C5.79086 2 4 3.79086 4 6C4 7.86384 5.27477 9.42994 7 9.87398Z" />
+  </g>
+      <text x="36" y="18" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#0F2A44">H2 · 单次排查查询去重率足够，缓存收益 &gt; 复杂度成本</text>
+    </g>
+  </g>
+
+  
+  <g id="risks">
+    <path fill="#F4F6FA" stroke="#C62828" stroke-width="1.4" d="M64,448 H748 A8,8 0 0 1 756,456 V648 A8,8 0 0 1 748,656 H64 A8,8 0 0 1 56,648 V456 A8,8 0 0 1 64,448 Z" />
+    <rect x="56" y="448" width="700" height="6" fill="#C62828" />
+    
+  <g transform="translate(76.0, 476.0) scale(2.0)" fill="#C62828">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 11.25L4.75 16H11.25L16 11.25V4.75L11.25 0H4.75L0 4.75V11.25ZM7 3V9H9V3H7ZM7 11V13H9V11H7Z" />
+  </g>
+    <text x="120" y="498" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#C62828" letter-spacing="2">RISK · 前置风险与应对</text>
+
+    <g transform="translate(76,524)">
+      <text x="0" y="0" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44">LLM 生成 QL 首次错误率高</text>
+      <text x="0" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">→ SafeToolExecutor 自修正闭环（最多 3 次回灌）+ 元数据缓存 L2 校验</text>
+    </g>
+
+    <g transform="translate(76,572)">
+      <text x="0" y="0" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44">观测后端 5xx / 超时 / 429</text>
+      <text x="0" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">→ timeout + 指数退避 + 失败自修正 + 部分 RCA 优雅收尾（ADR-005）</text>
+    </g>
+
+    <g transform="translate(76,620)">
+      <text x="0" y="0" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44">组织信任建立曲线</text>
+      <text x="0" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">→ 2 分钟模拟故障上手引导（D-3）+ 置信度升级机制（PM-2）</text>
+    </g>
+  </g>
+
+  
+  <g id="success">
+    <path fill="#0F2A44" d="M788,448 H1216 A8,8 0 0 1 1224,456 V648 A8,8 0 0 1 1216,656 H788 A8,8 0 0 1 780,648 V456 A8,8 0 0 1 788,448 Z" />
+    <text x="804" y="478" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">SUCCESS · MVP 成功标准</text>
+    <line x1="804" y1="486" x2="924" y2="486" stroke="#00A6A6" stroke-width="2" />
+
+    <g transform="translate(804,510)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.5)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 4C5.79086 4 4 5.79086 4 8C4 10.2091 5.79086 12 8 12C10.2091 12 12 10.2091 12 8C12 5.79086 10.2091 4 8 4ZM6 8C6 6.89543 6.89543 6 8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8Z" />
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0ZM2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8Z" />
+  </g>
+      <text x="36" y="18" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#FFFFFF">自闭环率（deflection rate）</text>
+      <text x="36" y="40" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#A8C0DA">开发能独立闭环 ≥ 60% 排查请求</text>
+    </g>
+
+    <g transform="translate(804,572)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.5)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16ZM7 3V8.41421L10.2929 11.7071L11.7071 10.2929L9 7.58579V3H7Z" />
+  </g>
+      <text x="36" y="18" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#FFFFFF">平均排查时长（MTTR-Invest）</text>
+      <text x="36" y="40" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#A8C0DA">从"找 SRE 等回复"压缩至 ≤ 5 分钟</text>
+    </g>
+
+    <g transform="translate(804,634)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.5)" fill="#00A6A6">
+    <path d="M8 3.5C8 4.88071 6.88071 6 5.5 6C4.11929 6 3 4.88071 3 3.5C3 2.11929 4.11929 1 5.5 1C6.88071 1 8 2.11929 8 3.5Z" />
+    <path d="M3 8C1.34315 8 0 9.34315 0 11V15H8V8H3Z" />
+    <path d="M13 8H10V15H16V11C16 9.34315 14.6569 8 13 8Z" />
+    <path d="M12 6C13.1046 6 14 5.10457 14 4C14 2.89543 13.1046 2 12 2C10.8954 2 10 2.89543 10 4C10 5.10457 10.8954 6 12 6Z" />
+  </g>
+      <text x="36" y="18" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" font-weight="bold" fill="#FFFFFF">SRE 被打扰次数</text>
+      <text x="36" y="40" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#A8C0DA">下降 ≥ 50%，On-call 可专注高阶工作</text>
+    </g>
+  </g>
+
+  <line x1="56" y1="676" x2="1224" y2="676" stroke="#E2E8F0" />
+  <text x="56" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">tech-design-ql-selfheal §1 · brainstorm Top 5</text>
+  <text x="1224" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6" text-anchor="end">P11 / 12</text>
+</svg>

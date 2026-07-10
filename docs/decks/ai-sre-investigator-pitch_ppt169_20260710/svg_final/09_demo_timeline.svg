@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" />
+
+  
+  <rect x="56" y="48" width="6" height="32" fill="#00A6A6" />
+  <text x="74" y="72" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">09 · 端到端演示</text>
+  <text x="56" y="118" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0F2A44">`payment-service 刚才为什么大量 500？`</text>
+  <text x="56" y="156" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5A6B7E">从用户提问到 RCA 报告的完整六步链路 · 每次排查的样本案例</text>
+
+  
+  <g id="timeline">
+    
+    <line x1="120" y1="260" x2="1160" y2="260" stroke="#0F2A44" stroke-width="2" />
+
+    
+    <g transform="translate(120,260)">
+      <circle cx="0" cy="0" r="14" fill="#00A6A6" />
+      <text x="0" y="5" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">1</text>
+      <text x="0" y="-32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#00A6A6" text-anchor="middle">用户提问</text>
+      <text x="0" y="40" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#0F2A44" text-anchor="middle">"为什么大量 500？"</text>
+      <text x="0" y="58" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">自然语言</text>
+    </g>
+
+    
+    <g transform="translate(320,260)">
+      <circle cx="0" cy="0" r="14" fill="#00A6A6" />
+      <text x="0" y="5" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">2</text>
+      <text x="0" y="-32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#00A6A6" text-anchor="middle">查 Mimir</text>
+      <text x="0" y="40" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#0F2A44" text-anchor="middle">5xx 错误率</text>
+      <text x="0" y="58" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">PromQL · 指标</text>
+    </g>
+
+    
+    <g transform="translate(520,260)">
+      <circle cx="0" cy="0" r="14" fill="#00A6A6" />
+      <text x="0" y="5" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">3</text>
+      <text x="0" y="-32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#00A6A6" text-anchor="middle">异常窗</text>
+      <text x="0" y="40" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#0F2A44" text-anchor="middle">14:23 - 14:35</text>
+      <text x="0" y="58" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">锁定时间窗</text>
+    </g>
+
+    
+    <g transform="translate(720,260)">
+      <circle cx="0" cy="0" r="14" fill="#00A6A6" />
+      <text x="0" y="5" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">4</text>
+      <text x="0" y="-32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#00A6A6" text-anchor="middle">查 Loki</text>
+      <text x="0" y="40" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#0F2A44" text-anchor="middle">异常堆栈</text>
+      <text x="0" y="58" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">LogQL · 日志</text>
+    </g>
+
+    
+    <g transform="translate(920,260)">
+      <circle cx="0" cy="0" r="14" fill="#00A6A6" />
+      <text x="0" y="5" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">5</text>
+      <text x="0" y="-32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#00A6A6" text-anchor="middle">查 Tempo</text>
+      <text x="0" y="40" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#0F2A44" text-anchor="middle">慢 TraceID</text>
+      <text x="0" y="58" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">TraceQL · 链路</text>
+    </g>
+
+    
+    <g transform="translate(1120,260)">
+      <circle cx="0" cy="0" r="14" fill="#0F2A44" />
+      <text x="0" y="5" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">6</text>
+      <text x="0" y="-32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#0F2A44" text-anchor="middle">结构化 RCA</text>
+      <text x="0" y="40" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#0F2A44" text-anchor="middle">报告输出</text>
+      <text x="0" y="58" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">Markdown</text>
+    </g>
+
+    
+    <line x1="140" y1="260" x2="300" y2="260" stroke="#0F2A44" stroke-width="1.4" />
+    <line x1="340" y1="260" x2="500" y2="260" stroke="#0F2A44" stroke-width="1.4" />
+    <line x1="540" y1="260" x2="700" y2="260" stroke="#0F2A44" stroke-width="1.4" />
+    <line x1="740" y1="260" x2="900" y2="260" stroke="#0F2A44" stroke-width="1.4" />
+    <line x1="940" y1="260" x2="1100" y2="260" stroke="#0F2A44" stroke-width="1.4" />
+  </g>
+
+  
+  <g id="wave">
+    <path d="M 120 360 Q 200 340 280 360 T 440 360 T 600 360 T 760 360 T 920 360 T 1080 360 T 1160 360" fill="none" stroke="#00A6A6" stroke-width="1.4" stroke-opacity="0.6" />
+    <path d="M 120 376 Q 200 360 280 380 T 440 372 T 600 386 T 760 360 T 920 376 T 1080 360 T 1160 380" fill="none" stroke="#4A6FA5" stroke-width="1" stroke-opacity="0.5" />
+  </g>
+
+  
+  <g id="report-sample">
+    <path fill="#F4F6FA" stroke="#E2E8F0" d="M64,412 H1216 A8,8 0 0 1 1224,420 V652 A8,8 0 0 1 1216,660 H64 A8,8 0 0 1 56,652 V420 A8,8 0 0 1 64,412 Z" />
+    <text x="80" y="446" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44" letter-spacing="2">RCA 报告结构</text>
+    <text x="80" y="468" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">由 RCA Generator 基于已收集证据生成，结构稳定可下钻</text>
+    <line x1="80" y1="478" x2="280" y2="478" stroke="#00A6A6" stroke-width="2" />
+
+    
+    <g transform="translate(80,498)">
+      <path fill="#FFFFFF" stroke="#E2E8F0" d="M4,0 H266 A4,4 0 0 1 270,4 V138 A4,4 0 0 1 266,142 H4 A4,4 0 0 1 0,138 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="16" y="28" font-family="Consolas, Courier New, monospace" font-size="13" font-weight="bold" fill="#0F2A44"># 服务与问题</text>
+      <text x="16" y="56" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">payment-service</text>
+      <text x="16" y="76" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">14:23 - 14:35 区间</text>
+      <text x="16" y="96" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">5xx 错误率 8.3%</text>
+      <text x="16" y="120" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">→ 服务范围 · 异常窗口</text>
+    </g>
+
+    <g transform="translate(370,498)">
+      <path fill="#FFFFFF" stroke="#E2E8F0" d="M4,0 H266 A4,4 0 0 1 270,4 V138 A4,4 0 0 1 266,142 H4 A4,4 0 0 1 0,138 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="16" y="28" font-family="Consolas, Courier New, monospace" font-size="13" font-weight="bold" fill="#0F2A44">## 时间线</text>
+      <text x="16" y="56" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">14:23 错误率突破阈值</text>
+      <text x="16" y="76" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">14:25 第一条 5xx 出现</text>
+      <text x="16" y="96" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">14:31 数据库连接池耗尽</text>
+      <text x="16" y="120" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">→ 时间戳化的事件流</text>
+    </g>
+
+    <g transform="translate(660,498)">
+      <path fill="#FFFFFF" stroke="#E2E8F0" d="M4,0 H266 A4,4 0 0 1 270,4 V138 A4,4 0 0 1 266,142 H4 A4,4 0 0 1 0,138 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="16" y="28" font-family="Consolas, Courier New, monospace" font-size="13" font-weight="bold" fill="#0F2A44">## 证据</text>
+      <text x="16" y="56" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">Metrics: error_rate 波形</text>
+      <text x="16" y="76" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">Logs: ConnectionPoolExhausted</text>
+      <text x="16" y="96" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">Trace: 8f3a… 慢 SQL 1.8s</text>
+      <text x="16" y="120" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">→ 三方证据可下钻</text>
+    </g>
+
+    <g transform="translate(950,498)">
+      <path fill="#FFFFFF" stroke="#E2E8F0" d="M4,0 H246 A4,4 0 0 1 250,4 V138 A4,4 0 0 1 246,142 H4 A4,4 0 0 1 0,138 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="16" y="28" font-family="Consolas, Courier New, monospace" font-size="13" font-weight="bold" fill="#0F2A44">## 根因 + 修复建议</text>
+      <text x="16" y="56" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">根因：连接池上限过低</text>
+      <text x="16" y="76" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">建议：扩容至 200 或限流</text>
+      <text x="16" y="96" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">置信度：高（证据闭环）</text>
+      <text x="16" y="120" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">→ 给人执行，不自动处置</text>
+    </g>
+  </g>
+
+  <line x1="56" y1="676" x2="1224" y2="676" stroke="#E2E8F0" />
+  <text x="56" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">示例数据为示意，来源：PRD §5 / §7 Task 3</text>
+  <text x="1224" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6" text-anchor="end">P09 / 12</text>
+</svg>

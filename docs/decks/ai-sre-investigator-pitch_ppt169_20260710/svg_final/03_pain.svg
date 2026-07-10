@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" />
+
+  
+  <rect x="56" y="48" width="6" height="32" fill="#C62828" />
+  <text x="74" y="72" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#C62828" letter-spacing="2">03 · 痛点</text>
+  <text x="56" y="118" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="37" font-weight="bold" fill="#0F2A44">可观测性 QL 认知壁垒 × "多对一"人力灾难</text>
+  <text x="56" y="156" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5A6B7E">PRD §2 三大痛点：QL 学习曲线陡、组织挤兑少数 SRE、RCA 沉淀缺失</text>
+
+  
+  <g id="today-col">
+    <path fill="#F4F6FA" stroke="#E2E8F0" d="M62,200 H610 A6,6 0 0 1 616,206 V574 A6,6 0 0 1 610,580 H62 A6,6 0 0 1 56,574 V206 A6,6 0 0 1 62,200 Z" />
+    <text x="80" y="240" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#5A6B7E" letter-spacing="2">今天</text>
+    <text x="80" y="276" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#0F2A44">开发的处境</text>
+
+    
+    <g transform="translate(80,308)">
+      <path fill="#C62828" fill-opacity="0.12" d="M4,0 H32 A4,4 0 0 1 36,4 V32 A4,4 0 0 1 32,36 H4 A4,4 0 0 1 0,32 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="18" y="24" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#C62828" text-anchor="middle">1</text>
+      <text x="56" y="18" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#0F2A44">QL 认知壁垒高</text>
+      <text x="56" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">PromQL / LogQL / TraceQL 语法陡峭，</text>
+      <text x="56" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">依赖 SRE 预设面板排查；深层问题无从下手</text>
+    </g>
+
+    
+    <g transform="translate(80,402)">
+      <path fill="#C62828" fill-opacity="0.12" d="M4,0 H32 A4,4 0 0 1 36,4 V32 A4,4 0 0 1 32,36 H4 A4,4 0 0 1 0,32 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="18" y="24" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#C62828" text-anchor="middle">2</text>
+      <text x="56" y="18" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#0F2A44">"多对一"挤兑</text>
+      <text x="56" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">全公司向极少数 SRE 求助，</text>
+      <text x="56" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">SRE 疲于充当"查日志客服"</text>
+    </g>
+
+    
+    <g transform="translate(80,496)">
+      <path fill="#C62828" fill-opacity="0.12" d="M4,0 H32 A4,4 0 0 1 36,4 V32 A4,4 0 0 1 32,36 H4 A4,4 0 0 1 0,32 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="18" y="24" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#C62828" text-anchor="middle">3</text>
+      <text x="56" y="18" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#0F2A44">RCA 沉淀缺失</text>
+      <text x="56" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">跨系统排查靠肌肉记忆，事后 RCA</text>
+      <text x="56" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">繁琐耗时，MTTR 居高不下</text>
+    </g>
+  </g>
+
+  
+  <g id="cost-col">
+    <path fill="#FFFFFF" stroke="#C62828" stroke-width="1.4" d="M670,200 H1218 A6,6 0 0 1 1224,206 V574 A6,6 0 0 1 1218,580 H670 A6,6 0 0 1 664,574 V206 A6,6 0 0 1 670,200 Z" />
+    <rect x="664" y="200" width="560" height="6" fill="#C62828" />
+    <text x="688" y="240" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#C62828" letter-spacing="2">代价</text>
+    <text x="688" y="276" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#0F2A44">组织承受的成本</text>
+
+    
+  <g transform="translate(688.0, 312.0) scale(2.75)" fill="#C62828">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 11.25L4.75 16H11.25L16 11.25V4.75L11.25 0H4.75L0 4.75V11.25ZM7 3V9H9V3H7ZM7 11V13H9V11H7Z" />
+  </g>
+
+    <g transform="translate(688,380)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.75)" fill="#5A6B7E">
+    <path d="M1 1V15H15V13H3V1H1Z" />
+    <path d="M5 7L7 5L10 8L15 3V11H5V7Z" />
+  </g>
+      <text x="44" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#0F2A44">MTTR 居高不下，故障影响时长被放大</text>
+    </g>
+    <g transform="translate(688,424)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.75)" fill="#5A6B7E">
+    <path d="M8 3.5C8 4.88071 6.88071 6 5.5 6C4.11929 6 3 4.88071 3 3.5C3 2.11929 4.11929 1 5.5 1C6.88071 1 8 2.11929 8 3.5Z" />
+    <path d="M3 8C1.34315 8 0 9.34315 0 11V15H8V8H3Z" />
+    <path d="M13 8H10V15H16V11C16 9.34315 14.6569 8 13 8Z" />
+    <path d="M12 6C13.1046 6 14 5.10457 14 4C14 2.89543 13.1046 2 12 2C10.8954 2 10 2.89543 10 4C10 5.10457 10.8954 6 12 6Z" />
+  </g>
+      <text x="44" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#0F2A44">SRE 长期过载，On-call 团队流失加剧</text>
+    </g>
+    <g transform="translate(688,468)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.75)" fill="#5A6B7E">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16ZM7 3V8.41421L10.2929 11.7071L11.7071 10.2929L9 7.58579V3H7Z" />
+  </g>
+      <text x="44" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#0F2A44">故障复盘缺乏统一证据链，组织无法学习</text>
+    </g>
+    <g transform="translate(688,512)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.75)" fill="#5A6B7E">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M4 6V4C4 1.79086 5.79086 0 8 0C10.2091 0 12 1.79086 12 4V6H14V16H2V6H4ZM6 4C6 2.89543 6.89543 2 8 2C9.10457 2 10 2.89543 10 4V6H6V4ZM7 13V9H9V13H7Z" />
+  </g>
+      <text x="44" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" fill="#0F2A44">处置类能力被锁死：信任未建立，无人敢开写权限</text>
+    </g>
+  </g>
+
+  
+  <g id="chevron-bridge">
+    <path fill="#F4F6FA" d="M62,612 H1218 A6,6 0 0 1 1224,618 V662 A6,6 0 0 1 1218,668 H62 A6,6 0 0 1 56,662 V618 A6,6 0 0 1 62,612 Z" />
+    <text x="92" y="646" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">本项目主张</text>
+    <text x="208" y="646" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" font-weight="bold" fill="#0F2A44">自然语言</text>
+    <text x="316" y="646" font-family="Consolas, Courier New, monospace" font-size="22" fill="#00A6A6">→</text>
+    <text x="356" y="646" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" font-weight="bold" fill="#0F2A44">自动 QL</text>
+    <text x="464" y="646" font-family="Consolas, Courier New, monospace" font-size="22" fill="#00A6A6">→</text>
+    <text x="504" y="646" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" font-weight="bold" fill="#0F2A44">多步证据链</text>
+    <text x="652" y="646" font-family="Consolas, Courier New, monospace" font-size="22" fill="#00A6A6">→</text>
+    <text x="692" y="646" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="17" font-weight="bold" fill="#0F2A44">结构化 RCA</text>
+    <text x="892" y="646" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="15" fill="#5A6B7E">· 一次排查产生的 RCA 同时是组织级资产</text>
+  </g>
+
+  
+  <line x1="56" y1="676" x2="1224" y2="676" stroke="#E2E8F0" />
+  <text x="56" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">PRD §2 / brainstorm §0 · 来源：项目 PRD</text>
+  <text x="1224" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6" text-anchor="end">P03 / 12</text>
+</svg>

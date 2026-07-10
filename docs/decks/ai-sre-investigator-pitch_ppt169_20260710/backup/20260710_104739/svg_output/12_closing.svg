@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <radialGradient id="bgDecor" cx="82%" cy="18%" r="55%">
+      <stop offset="0%" stop-color="#00A6A6" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#00A6A6" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="consoleGrid" x="0" y="0" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="720" fill="#0F2A44"/>
+  <rect x="0" y="0" width="1280" height="720" fill="url(#consoleGrid)"/>
+  <rect x="0" y="0" width="1280" height="720" fill="url(#bgDecor)"/>
+
+  <!-- top waveform -->
+  <g id="top-wave">
+    <path d="M 0 70 Q 80 50 160 70 T 320 70 T 480 70 T 640 70 T 800 70 T 960 70 T 1120 70 T 1280 70" fill="none" stroke="#00A6A6" stroke-width="1.4" stroke-opacity="0.55"/>
+    <path d="M 0 90 Q 80 76 160 90 T 320 90 T 480 90 T 640 90 T 800 90 T 960 90 T 1120 90 T 1280 90" fill="none" stroke="#4A6FA5" stroke-width="1" stroke-opacity="0.45"/>
+  </g>
+
+  <!-- small label -->
+  <text x="56" y="200" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="3">CLOSING · 立项期望</text>
+  <rect x="56" y="208" width="64" height="3" fill="#00A6A6"/>
+
+  <!-- hero statement -->
+  <text x="56" y="290" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="60" font-weight="bold" fill="#FFFFFF">让每个开发</text>
+  <text x="56" y="360" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="60" font-weight="bold" fill="#FFFFFF">都能独立闭环</text>
+  <text x="56" y="430" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="60" font-weight="bold" fill="#FFFFFF">自己的故障</text>
+
+  <!-- sub-statement -->
+  <text x="56" y="490" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="600" fill="#A8C0DA">SRE 不再是"查日志客服"，而是平台工程师</text>
+
+  <!-- divider line -->
+  <line x1="56" y1="520" x2="1224" y2="520" stroke="#4A6FA5" stroke-opacity="0.6"/>
+
+  <!-- three signposts -->
+  <g id="signposts">
+    <!-- 1 -->
+    <g transform="translate(56,556)">
+      <rect x="0" y="0" width="380" height="100" rx="6" fill="#FFFFFF" fill-opacity="0.06" stroke="#00A6A6" stroke-opacity="0.6"/>
+      <text x="20" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#00A6A6" letter-spacing="2">阅读材料</text>
+      <text x="20" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF">PRD · 6 个 ADR</text>
+      <text x="20" y="80" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF">tech-design-ql-selfheal</text>
+    </g>
+
+    <!-- 2 -->
+    <g transform="translate(450,556)">
+      <rect x="0" y="0" width="380" height="100" rx="6" fill="#FFFFFF" fill-opacity="0.06" stroke="#00A6A6" stroke-opacity="0.6"/>
+      <text x="20" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#00A6A6" letter-spacing="2">立项目标</text>
+      <text x="20" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF">V1.0 完成原生闭环</text>
+      <text x="20" y="80" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF">与可靠性护栏</text>
+    </g>
+
+    <!-- 3 -->
+    <g transform="translate(844,556)">
+      <rect x="0" y="0" width="380" height="100" rx="6" fill="#FFFFFF" fill-opacity="0.06" stroke="#00A6A6" stroke-opacity="0.6"/>
+      <text x="20" y="32" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#00A6A6" letter-spacing="2">期待</text>
+      <text x="20" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF">SRE 团队 · 工程负责人</text>
+      <text x="20" y="80" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF">共同评审 · 共担共建</text>
+    </g>
+  </g>
+
+  <!-- robot motif bottom right -->
+  <use data-icon="chunk-filled/robot" x="1140" y="240" width="80" height="80" fill="#00A6A6" fill-opacity="0.85"/>
+
+  <!-- footer -->
+  <text x="56" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E">AI SRE Investigator · MVP V1.0 内部立项评审 · 2026-07-10</text>
+  <text x="1224" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="end">P12 / 12</text>
+</svg>

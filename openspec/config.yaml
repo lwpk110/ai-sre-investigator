@@ -1,0 +1,45 @@
+schema: spec-driven
+
+# Project context — shown to AI when creating artifacts.
+# Do NOT copy into output files; these are constraints for the AI.
+context: |
+  Tech stack: Python 3.12, FastAPI, Pydantic v2, HTTPX, openai SDK (native Tool-Calling).
+  Backend only (MVP). Frontend (Next.js) deferred.
+
+  Domain: SRE tool that converts natural language into PromQL/LogQL/TraceQL,
+  queries Mimir/Loki/Tempo, and generates RCA (root cause analysis) reports.
+
+  Architecture: Clean Architecture layers — api/ → agent/ → tools/ → config/observability/.
+  Dependencies point inward only. See docs/dev-standards/development-guide.md.
+
+  Red lines (violating = rework):
+  - No agent frameworks (LangChain etc). Use openai SDK native tool_calls only. (ADR-001)
+  - Read-only: never modify live state. (ADR-002)
+  - All tools extend ToolSpec, routed through SafeToolExecutor. (ADR-003/004)
+  - All HTTPX calls need timeout; 5xx caught and fed back to LLM, never throw 500. (ADR-005)
+  - Graceful failure: partial RCA on budget exhaustion, never silent failure. (ADR-005)
+
+  Testing: TDD mandatory (red-green-refactor). Tests mock all backends.
+  Quality gate: ruff + mypy --strict + pytest (>=80% coverage). See docs/dev-standards/quality-gate.md.
+
+  Conventions: Conventional Commits, snake_case functions, PascalCase classes,
+  async-first, Pydantic v2 for all schemas.
+
+# Per-artifact rules (optional)
+rules:
+  proposal:
+    - "Always include a Non-goals section"
+    - "Reference the relevant ADR number if the change touches architecture"
+    - "State whether the change is read-only (must be per ADR-002)"
+  tasks:
+    - "Break tasks into chunks of max 2 hours each"
+    - "Each task must have a corresponding test (TDD)"
+    - "Mark backend-only vs full-stack tasks explicitly"
+  design:
+    - "Show the data flow: which ToolSpec/ToolResult models are involved"
+    - "If new HTTP calls are added, show the timeout/retry strategy"
+    - "If touching SafeToolExecutor, show where in the four-layer pipeline"
+  specs:
+    - "Define input/output as Pydantic models"
+    - "Include error cases (timeout, 5xx, budget exhausted)"
+    - "Note which ADR constraints apply"

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Pre-commit quality gate for AI SRE Investigator
+# Install: git config core.hooksPath .githooks
+
+set -e
+
+echo "▶ Running pre-commit quality gate..."
+
+BACKEND_DIR="backend"
+
+if [ ! -d "$BACKEND_DIR" ]; then
+    echo "  (no backend/ dir, skipping)"
+    exit 0
+fi
+
+cd "$BACKEND_DIR"
+
+# 1. ruff: style + import order
+if command -v ruff &>/dev/null; then
+    echo "  ✓ ruff check"
+    ruff check app/ tests/ || {
+        echo "✖ ruff check failed. Fix with: ruff check --fix"
+        exit 1
+    }
+else
+    echo "  (ruff not installed, skipping style check)"
+fi
+
+# 2. fast unit tests (fail fast, no integration)
+if command -v pytest &>/dev/null; then
+    echo "  ✓ pytest (unit tests)"
+    pytest tests/unit/ -x -q --no-header 2>/dev/null || {
+        echo "✖ unit tests failed. Fix before committing."
+        exit 1
+    }
+else
+    echo "  (pytest not installed, skipping tests)"
+fi
+
+echo "✔ Pre-commit checks passed."
+exit 0

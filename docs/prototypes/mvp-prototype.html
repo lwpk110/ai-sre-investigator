@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI SRE Investigator — MVP Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-app: #0a0c14;
+  --bg-sidebar: #0e1020;
+  --bg-main: #0c0e18;
+  --bg-surface1: #141728;
+  --bg-surface2: #1a1e34;
+  --bg-code: #070912;
+
+  --text-1: #e8eaf0;
+  --text-2: #a0a6b8;
+  --text-3: #6b7088;
+  --text-4: #444962;
+
+  --accent: #5e8aff;
+  --accent-hover: #7aa1ff;
+  --accent-muted: rgba(94,138,255,0.12);
+
+  --ok: #10b981;
+  --ok-bg: rgba(16,185,129,0.10);
+  --warn: #f59e0b;
+  --warn-bg: rgba(245,158,11,0.10);
+  --err: #f43f5e;
+  --err-bg: rgba(244,63,94,0.10);
+  --info: #38bdf8;
+  --info-bg: rgba(56,189,248,0.10);
+
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-std: rgba(255,255,255,0.08);
+  --border-emph: rgba(255,255,255,0.12);
+
+  --font-sans: 'Inter', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  --sidebar-w: 260px;
+  --content-w: 780px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 14px; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-app);
+  color: var(--text-1);
+  font-feature-settings: "cv01";
+  overflow: hidden;
+  height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== App Shell ===== */
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+ background: var(--bg-sidebar);
+ border-right: 1px solid var(--border-subtle);
+ display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.logo-icon {
+  width: 24px; height: 24px;
+  background: var(--accent);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+  letter-spacing: -0.01em;
+}
+
+.logo-sub {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-4);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box svg {
+  position: absolute;
+  left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-4);
+}
+
+.search-box input {
+  width: 100%;
+  background: var(--bg-surface1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 7px 10px 7px 32px;
+  font: 400 13px var(--font-sans);
+  color: var(--text-1);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.search-box input::placeholder { color: var(--text-4); }
+.search-box input:focus { border-color: rgba(94,138,255,0.3); }
+
+.new-session-btn {
+  margin: 12px 16px;
+  padding: 8px 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font: 500 13px var(--font-sans);
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.new-session-btn:hover { background: var(--accent-hover); }
+
+.session-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 8px 8px;
+}
+
+.session-list-label {
+  font: 500 10px var(--font-sans);
+ color: var(--text-4);
+ text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 8px 4px;
+}
+
+.session-item {
+  padding: 9px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  transition: background 0.12s;
+  margin-bottom: 2px;
+}
+
+.session-item:hover { background: rgba(255,255,255,0.04); }
+.session-item.active { background: var(--accent-muted); }
+
+.session-item.active .session-title { color: var(--text-1); }
+
+.session-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.session-dot.ok { background: var(--ok); }
+.session-dot.warn { background: var(--warn); }
+.session-dot.err { background: var(--err); }
+
+.session-body { flex: 1; min-width: 0; }
+
+.session-title {
+  font: 500 12px var(--font-sans);
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-meta {
+  font: 400 10px var(--font-mono);
+  color: var(--text-4);
+  margin-top: 2px;
+}
+
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+ background: linear-gradient(135deg, #5e8aff, #7c3aed);
+ flex-shrink: 0;
+}
+
+.user-info { flex: 1; }
+.user-name { font: 500 12px var(--font-sans); color: var(--text-2); }
+.user-role { font: 400 10px var(--font-sans); color: var(--text-4); }
+
+/* ===== Main Area ===== */
+.main {
+  flex: 1;
+  background: var(--bg-main);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main-header {
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.main-header-title {
+  font: 600 15px var(--font-sans);
+  color: var(--text-1);
+}
+
+.main-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border-std);
+  background: transparent;
+  border-radius: 6px;
+  color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.icon-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-1);
+}
+
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+ padding: 4px 10px;
+ border-radius: 9999px;
+ font: 500 11px var(--font-sans);
+}
+
+.status-pill.ok { background: var(--ok-bg); color: var(--ok); }
+.status-pill.info { background: var(--info-bg); color: var(--info); }
+
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  max-width: var(--content-w);
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ===== Incident Report (User Message) ===== */
+.incident {
+  background: var(--bg-surface1);
+  border: 1px solid var(--border-std);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.incident-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.incident-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #2d3348;
+  display: flex; align-items: center; justify-content: center;
+  font: 500 11px var(--font-sans);
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.incident-author { font: 500 13px var(--font-sans); color: var(--text-1); }
+.incident-time { font: 400 11px var(--font-mono); color: var(--text-4); }
+
+.incident-text {
+  font: 400 14px var(--font-sans);
+  color: var(--text-1);
+  line-height: 1.5;
+}
+
+.incident-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tag {
+  font: 500 11px var(--font-mono);
+  padding: 2px 8px;
+ border-radius: 9999px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-3);
+}
+
+/* ===== Budget Bar ===== */
+.budget-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-surface1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.budget-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.budget-info { flex: 1; }
+
+.budget-label {
+  font: 500 11px var(--font-sans);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.budget-track {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.budget-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.budget-stats {
+  font: 400 12px var(--font-mono);
+  color: var(--text-2);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.budget-stats span { color: var(--text-3); }
+
+/* ===== Timeline Panel ===== */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.panel-title {
+  font: 600 15px var(--font-sans);
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title .badge {
+  font: 500 11px var(--font-mono);
+  padding: 1px 7px;
+  border-radius: 9999px;
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.ghost-btn {
+  font: 500 12px var(--font-sans);
+  color: var(--text-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.12s;
+}
+
+.ghost-btn:hover { color: var(--text-1); background: rgba(255,255,255,0.04); }
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ===== Step Card ===== */
+.step-card {
+  background: var(--bg-surface1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.step-card:hover { border-color: var(--border-std); }
+
+.step-card.ok { border-left: 2px solid var(--ok); }
+.step-card.warn { border-left: 2px solid var(--warn); }
+.step-card.info { border-left: 2px solid var(--info); }
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.step-num {
+  font: 500 11px var(--font-mono);
+  color: var(--text-4);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.probe-icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.probe-icon.mimir { background: rgba(244,162,97,0.12); color: #f4a261; }
+.probe-icon.loki { background: rgba(225,80,80,0.12); color: #e15050; }
+.probe-icon.tempo { background: rgba(0,200,150,0.12); color: #00c896; }
+.probe-icon.shield { background: var(--accent-muted); color: var(--accent); }
+
+.step-body-header { flex: 1; min-width: 0; }
+
+.step-title {
+  font: 500 14px var(--font-sans);
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-subtitle {
+  font: 400 12px var(--font-sans);
+  color: var(--text-3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.step-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.latency-badge {
+  font: 400 11px var(--font-mono);
+  color: var(--text-3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.ok { background: var(--ok); }
+.status-dot.warn { background: var(--warn); }
+.status-dot.info { background: var(--info); }
+
+.chevron {
+  color: var(--text-4);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.step-card.expanded .chevron { transform: rotate(90deg); }
+
+.step-content {
+  display: none;
+  padding: 0 14px 14px 52px;
+}
+
+.step-card.expanded .step-content { display: block; }
+
+/* ===== Code Block ===== */
+.code-block {
+  background: var(--bg-code);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.code-lang {
+  font: 500 10px var(--font-mono);
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.code-copy {
+  font: 400 10px var(--font-sans);
+  color: var(--text-4);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.12s;
+}
+
+.code-copy:hover { color: var(--text-2); }
+
+.code-body {
+  padding: 10px 12px;
+  font: 400 12.5px var(--font-mono);
+  line-height: 1.6;
+  color: var(--text-2);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.code-body .kw { color: #c792ea; }
+.code-body .fn { color: #82aaff; }
+.code-body .str { color: #c3e88d; }
+.code-body .num { color: #f78c6c; }
+.code-body .op { color: #89ddff; }
+.code-body .cmt { color: var(--text-4); font-style: italic; }
+
+/* ===== Self-heal block ===== */
+.heal-block {
+  margin-top: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.heal-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  font: 400 12px var(--font-sans);
+}
+
+.heal-row.fail { background: var(--err-bg); color: var(--err); }
+.heal-row.fix { background: var(--warn-bg); color: var(--warn); }
+
+.heal-row svg { flex-shrink: 0; margin-top: 1px; }
+
+/* ===== Result summary ===== */
+.result-summary {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+}
+
+.result-label {
+  font: 400 12px var(--font-sans);
+  color: var(--text-3);
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.result-value {
+  font: 500 13px var(--font-mono);
+  color: var(--text-1);
+}
+
+.result-value.alert { color: var(--err); }
+.result-value.warn { color: var(--warn); }
+.result-value.ok { color: var(--ok); }
+
+/* Mini sparkline */
+.sparkline {
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.spark-bar {
+  flex: 1;
+  background: var(--text-4);
+  border-radius: 1px;
+  min-height: 2px;
+  transition: opacity 0.2s;
+}
+
+.spark-bar.spike { background: var(--err); }
+
+/* ===== RCA Report ===== */
+.rca-report {
+  background: var(--bg-surface1);
+  border: 1px solid var(--border-std);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rca-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.rca-title {
+  font: 600 18px var(--font-sans);
+  color: var(--text-1);
+  letter-spacing: -0.01em;
+}
+
+.rca-subtitle {
+  font: 400 12px var(--font-mono);
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
+.rca-sev {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: var(--err-bg);
+  color: var(--err);
+  font: 600 12px var(--font-sans);
+}
+
+.rca-nav {
+  display: flex;
+  gap: 0;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+}
+
+.rca-nav-item {
+  font: 500 12px var(--font-sans);
+  color: var(--text-3);
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+
+.rca-nav-item:hover { color: var(--text-1); }
+.rca-nav-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.rca-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rca-section h3 {
+  font: 600 14px var(--font-sans);
+  color: var(--text-1);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rca-section h3 svg { color: var(--accent); }
+
+.rca-section p {
+  font: 400 13.5px var(--font-sans);
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.rca-section p code {
+  font: 400 12px var(--font-mono);
+  background: rgba(255,255,255,0.05);
+ padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--text-1);
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.metric-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.metric-label {
+  font: 500 10px var(--font-sans);
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-value {
+  font: 600 20px var(--font-mono);
+  color: var(--text-1);
+  margin-top: 4px;
+  letter-spacing: -0.02em;
+}
+
+.metric-value.alert { color: var(--err); }
+.metric-delta {
+  font: 400 11px var(--font-mono);
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.metric-delta.up { color: var(--err); }
+
+.evidence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.evidence-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.evidence-item:hover { border-color: var(--border-std); }
+
+.evidence-num {
+  font: 500 11px var(--font-mono);
+  color: var(--accent);
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.evidence-text {
+  font: 400 12.5px var(--font-sans);
+  color: var(--text-2);
+  flex: 1;
+}
+
+.evidence-text code {
+  font: 400 11px var(--font-mono);
+  color: var(--text-1);
+}
+
+.rec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.rec-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+}
+
+.rec-priority {
+  font: 600 10px var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.rec-priority.p0 { background: var(--err-bg); color: var(--err); }
+.rec-priority.p1 { background: var(--warn-bg); color: var(--warn); }
+.rec-priority.p2 { background: var(--info-bg); color: var(--info); }
+
+.rec-text {
+  font: 400 13px var(--font-sans);
+  color: var(--text-2);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.rec-text code {
+  font: 400 12px var(--font-mono);
+  color: var(--text-1);
+  background: rgba(255,255,255,0.05);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 500 11px var(--font-sans);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  margin-left: 8px;
+}
+
+.confidence-badge.high { background: var(--ok-bg); color: var(--ok); }
+.confidence-badge.med { background: var(--warn-bg); color: var(--warn); }
+
+/* ===== Chat Input ===== */
+.input-area {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-main);
+}
+
+.input-wrapper {
+  max-width: var(--content-w);
+  margin: 0 auto;
+}
+
+.input-box {
+  background: var(--bg-surface1);
+  border: 1px solid var(--border-std);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  transition: border-color 0.15s;
+}
+
+.input-box:focus-within { border-color: rgba(94,138,255,0.3); }
+
+.input-box textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font: 400 14px var(--font-sans);
+  color: var(--text-1);
+  line-height: 1.5;
+  min-height: 24px;
+  max-height: 120px;
+}
+
+.input-box textarea::placeholder { color: var(--text-4); }
+
+.send-btn {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.send-btn:hover { background: var(--accent-hover); }
+
+.quick-templates {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.quick-tmpl {
+  font: 400 11px var(--font-sans);
+  color: var(--text-3);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.quick-tmpl:hover {
+  color: var(--text-1);
+  background: rgba(255,255,255,0.06);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+
+/* ===== Animations ===== */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Mobile ===== */
+.mobile-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.2s;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .mobile-toggle { display: flex; }
+  .metric-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-row">
+        <div class="logo-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div>
+          <div class="logo-text">SRE Investigator</div>
+          <div class="logo-sub">v0.1.0 — internal</div>
+        </div>
+      </div>
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" placeholder="搜索历史排查..." />
+      </div>
+    </div>
+
+    <button class="new-session-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      新建排查
+    </button>
+
+    <div class="session-list">
+      <div class="session-list-label">今天</div>
+
+      <div class="session-item active">
+        <div class="session-dot err"></div>
+        <div class="session-body">
+          <div class="session-title">payment-service 大量 500</div>
+          <div class="session-meta">14:31 · RCA 已生成</div>
+        </div>
+      </div>
+
+      <div class="session-item">
+        <div class="session-dot warn"></div>
+        <div class="session-body">
+          <div class="session-title">order-api P99 延迟飙高</div>
+          <div class="session-meta">13:05 · 部分 RCA</div>
+        </div>
+      </div>
+
+      <div class="session-item">
+        <div class="session-dot ok"></div>
+        <div class="session-body">
+          <div class="session-title">gateway 间歇性超时</div>
+          <div class="session-meta">11:42 · 已完成</div>
+        </div>
+      </div>
+
+      <div class="session-list-label">昨天</div>
+
+      <div class="session-item">
+        <div class="session-dot ok"></div>
+        <div class="session-body">
+          <div class="session-title">user-service 内存泄漏排查</div>
+          <div class="session-meta">7/9 · 已完成</div>
+        </div>
+      </div>
+
+      <div class="session-item">
+        <div class="session-dot ok"></div>
+        <div class="session-body">
+          <div class="session-title">redis-cluster 连接池打满</div>
+          <div class="session-meta">7/9 · 已完成</div>
+        </div>
+      </div>
+
+      <div class="session-item">
+        <div class="session-dot warn"></div>
+        <div class="session-body">
+          <div class="session-title">search-api ES 查询慢</div>
+          <div class="session-meta">7/8 · 部分 RCA</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="avatar"></div>
+      <div class="user-info">
+        <div class="user-name">luwei</div>
+        <div class="user-role">Developer · payment-team</div>
+      </div>
+      <button class="icon-btn" style="width:28px;height:28px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN AREA ===== -->
+  <main class="main">
+    <div class="main-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="icon-btn mobile-toggle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="main-header-title">payment-service HTTP 500 Surge</div>
+      </div>
+      <div class="main-header-actions">
+        <div class="status-pill ok">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          排查完成
+        </div>
+        <button class="icon-btn" title="分享 RCA">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="scroll-area">
+      <div class="content-wrapper">
+
+        <!-- ===== INCIDENT REPORT ===== -->
+        <div class="incident">
+          <div class="incident-header">
+            <div class="incident-avatar">L</div>
+            <span class="incident-author">luwei</span>
+            <span class="incident-time">2026-07-10 14:31:02</span>
+          </div>
+          <div class="incident-text">payment-service 刚才为什么大量 500？14:20 左右开始报警，错误率好像飙到 10% 以上了</div>
+          <div class="incident-tags">
+            <span class="tag">payment-service</span>
+            <span class="tag">HTTP 5xx</span>
+            <span class="tag">P1</span>
+          </div>
+        </div>
+
+        <!-- ===== BUDGET BAR ===== -->
+        <div class="budget-bar">
+          <div class="budget-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="budget-info">
+            <div class="budget-label">SafeToolExecutor · 预算与缓存</div>
+            <div class="budget-track">
+              <div class="budget-fill" style="width: 52.5%;"></div>
+            </div>
+          </div>
+          <div class="budget-stats">
+            <span>token</span> 4,200 / 8,000<br>
+            <span>queries</span> 4 / 10 · <span>cache</span> 1 hit · <span>heal</span> 1
+          </div>
+        </div>
+
+        <!-- ===== TIMELINE PANEL ===== -->
+        <div>
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              推理时间线
+              <span class="badge">4 / 4 完成</span>
+            </div>
+            <button class="ghost-btn">全部展开</button>
+          </div>
+
+          <div class="timeline">
+
+            <!-- Step 1: Mimir Error Rate -->
+            <div class="step-card ok expanded" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">01</span>
+                <div class="probe-icon mimir">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div class="step-body-header">
+                  <div class="step-title">Mimir · 错误率查询</div>
+                  <div class="step-subtitle">检测到 payment-service 5xx 错误率飙升至 12.3%</div>
+                </div>
+                <div class="step-meta">
+                  <span class="latency-badge">340ms</span>
+                  <div class="status-dot ok"></div>
+                  <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
+              <div class="step-content">
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="code-lang">PromQL</span>
+                    <button class="code-copy">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      复制
+                    </button>
+                  </div>
+                  <div class="code-body"><span class="fn">rate</span>(<span class="kw">http_requests_total</span>{<span class="str">service</span>=<span class="str">"payment-service"</span>,<span class="str">status</span>=<span class="op">~</span><span class="str">"5.."</span>}[<span class="num">5m</span>])
+/ <span class="fn">rate</span>(<span class="kw">http_requests_total</span>{<span class="str">service</span>=<span class="str">"payment-service"</span>}[<span class="num">5m</span>])</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row">
+                    <span class="result-label">错误率峰值</span>
+                    <span class="result-value alert">12.3%</span>
+                    <div class="sparkline">
+                      <div class="spark-bar" style="height:15%"></div>
+                      <div class="spark-bar" style="height:12%"></div>
+                      <div class="spark-bar" style="height:18%"></div>
+                      <div class="spark-bar" style="height:14%"></div>
+                      <div class="spark-bar" style="height:20%"></div>
+                      <div class="spark-bar" style="height:25%"></div>
+                      <div class="spark-bar spike" style="height:70%"></div>
+                      <div class="spark-bar spike" style="height:95%"></div>
+                      <div class="spark-bar spike" style="height:88%"></div>
+                      <div class="spark-bar spike" style="height:60%"></div>
+                      <div class="spark-bar" style="height:22%"></div>
+                      <div class="spark-bar" style="height:15%"></div>
+                    </div>
+                  </div>
+                  <div class="result-row">
+                    <span class="result-label">正常基线</span>
+                    <span class="result-value ok">0.1%</span>
+                    <span class="result-label" style="min-width:auto">飙升</span>
+                    <span class="result-value warn">123x</span>
+                  </div>
+                  <div class="result-row">
+                    <span class="result-label">异常窗口</span>
+                    <span class="result-value">14:23 ~ 14:31 CST</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Mimir P99 Latency -->
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">02</span>
+                <div class="probe-icon mimir">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div class="step-body-header">
+                  <div class="step-title">Mimir · P99 延迟查询</div>
+                  <div class="step-subtitle">P99 从 180ms 飙升至 2.8s，与错误率时间窗口完全重合</div>
+                </div>
+                <div class="step-meta">
+                  <span class="latency-badge">290ms</span>
+                  <div class="status-dot ok"></div>
+                  <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
+              <div class="step-content">
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="code-lang">PromQL</span>
+                    <button class="code-copy">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      复制
+                    </button>
+                  </div>
+                  <div class="code-body"><span class="fn">histogram_quantile</span>(<span class="num">0.99</span>,
+  <span class="fn">rate</span>(<span class="kw">http_request_duration_seconds_bucket</span>
+    {<span class="str">service</span>=<span class="str">"payment-service"</span>}[<span class="num">5m</span>]))</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row">
+                    <span class="result-label">P99 峰值</span>
+                    <span class="result-value alert">2.8s</span>
+                    <span class="result-label" style="min-width:auto">基线</span>
+                    <span class="result-value ok">180ms</span>
+                  </div>
+                  <div class="result-row">
+                    <span class="result-label">相关性</span>
+                    <span class="result-value warn">与 5xx 错误率时间窗口完全重合</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Loki Logs (Self-healing) -->
+            <div class="step-card warn" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">03</span>
+                <div class="probe-icon loki">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
+                <div class="step-body-header">
+                  <div class="step-title">
+                    Loki · 错误日志检索
+                    <span class="confidence-badge med">自修正</span>
+                  </div>
+                  <div class="step-subtitle">首次 QL 语法错误 → 自动修正后命中 847 条 DB 连接超时日志</div>
+                </div>
+                <div class="step-meta">
+                  <span class="latency-badge">1.2s</span>
+                  <div class="status-dot warn"></div>
+                  <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
+              <div class="step-content">
+                <div class="heal-block">
+                  <div class="heal-row fail">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    <span>首次查询语法错误：<code style="font-family:var(--font-mono);opacity:0.8">select * from logs where...</code> 不是合法 LogQL</span>
+                  </div>
+                  <div class="heal-row fix">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    <span>自动修正为 LogQL 语法，重试成功</span>
+                  </div>
+                </div>
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="code-lang">LogQL</span>
+                    <button class="code-copy">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      复制
+                    </button>
+                  </div>
+                  <div class="code-body"><span class="fn">rate</span>({<span class="str">service</span>=<span class="str">"payment-service"</span>} <span class="op">|=</span> <span class="str">"ERROR"</span> <span class="op">|</span> <span class="kw">json</span> [<span class="num">5m</span>])</div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row">
+                    <span class="result-label">命中日志</span>
+                    <span class="result-value alert">847 条</span>
+                    <span class="result-label" style="min-width:auto">时间窗口</span>
+                    <span class="result-value">14:23 ~ 14:31</span>
+                  </div>
+                  <div class="result-row">
+                    <span class="result-label">高频模式</span>
+                    <span class="result-value" style="font-size:11.5px;color:var(--err)">database connection timeout: mysql.payment-db.svc:3306</span>
+                  </div>
+                  <div class="result-row">
+                    <span class="result-label">Top 异常</span>
+                    <span class="result-value" style="font-size:11px">HikariPool-1 - Connection is not available, request timed out after 30s</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4: Tempo Trace -->
+            <div class="step-card ok" onclick="toggleStep(this)">
+              <div class="step-header">
+                <span class="step-num">04</span>
+                <div class="probe-icon tempo">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+                </div>
+                <div class="step-body-header">
+                  <div class="step-title">Tempo · 慢链路下钻</div>
+                  <div class="step-subtitle">定位到 DB 查询 Span 耗时 2.3s，连接池等待占 95%</div>
+                </div>
+                <div class="step-meta">
+                  <span class="latency-badge">680ms</span>
+                  <div class="status-dot ok"></div>
+                  <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </div>
+              <div class="step-content">
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="code-lang">TraceQL</span>
+                    <button class="code-copy">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      复制
+                    </button>
+                  </div>
+                  <div class="code-body">{ <span class="kw">resource.service.name</span> = <span class="str">"payment-service"</span>
+  <span class="op">&&</span> <span class="kw">span.http.status_code</span> <span class="op">>=</span> <span class="num">500</span> }
+<span class="op">|</span> <span class="fn">count</span>() <span class="op">></span> <span class="num">3</span></div>
+                </div>
+                <div class="result-summary">
+                  <div class="result-row">
+                    <span class="result-label">慢 TraceID</span>
+                    <span class="result-value" style="font-size:11px">4f8a2b1c3d5e6f7a8b9c0d1e</span>
+                  </div>
+                  <div class="result-row">
+                    <span class="result-label">阻塞 Span</span>
+                    <span class="result-value alert" style="font-size:12px">mysql.query: SELECT * FROM orders WHERE... — 2.3s</span>
+                  </div>
+                  <div class="result-row">
+                    <span class="result-label">根因定位</span>
+                    <span class="result-value warn" style="font-size:12px">HikariCP 连接池打满，请求排队等待 30s 超时</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== RCA REPORT ===== -->
+        <div class="rca-report">
+          <div class="rca-header">
+            <div>
+              <div class="rca-title">RCA: payment-service HTTP 500 Surge</div>
+              <div class="rca-subtitle">2026-07-10 14:23 ~ 14:31 CST · 排查耗时 47s · token 4,200</div>
+            </div>
+            <div class="rca-sev">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              P1
+            </div>
+          </div>
+
+          <div class="rca-nav">
+            <div class="rca-nav-item active">服务与问题</div>
+            <div class="rca-nav-item">时间线</div>
+            <div class="rca-nav-item">证据链</div>
+            <div class="rca-nav-item">根因与建议</div>
+          </div>
+
+          <div class="rca-body">
+
+            <!-- Section: Service & Problem -->
+            <div class="rca-section">
+              <h3>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                服务与问题概述
+              </h3>
+              <p><code>payment-service</code> 在 <code>14:23 ~ 14:31 CST</code> 期间出现大量 HTTP 500 响应，错误率从正常基线 <code>0.1%</code> 飙升至峰值 <code>12.3%</code>，同时 P99 延迟从 <code>180ms</code> 升至 <code>2.8s</code>。受影响请求集中在支付下单链路，涉及约 <code>3,200</code> 笔交易失败。</p>
+
+              <div class="metric-grid">
+                <div class="metric-card">
+                  <div class="metric-label">错误率峰值</div>
+                  <div class="metric-value alert">12.3%</div>
+                  <div class="metric-delta up">+ 12.2pp vs baseline</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">P99 延迟</div>
+                  <div class="metric-value alert">2.8s</div>
+                  <div class="metric-delta up">15.6x vs baseline</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">影响交易</div>
+                  <div class="metric-value">3,200</div>
+                  <div class="metric-delta">14:23 ~ 14:31</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section: Evidence Chain -->
+            <div class="rca-section">
+              <h3>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H1l3-3-3-3"/><path d="M22 12A10 10 0 1 1 12 2"/><path d="M16 6l-4 4-4-4"/><path d="M8 18l4-4 4 4"/></svg>
+                证据链
+                <span class="confidence-badge high">置信度: 高</span>
+              </h3>
+              <p>四条证据相互印证，形成完整因果链：</p>
+              <div class="evidence-list">
+                <div class="evidence-item">
+                  <span class="evidence-num">01</span>
+                  <span class="evidence-text">Mimir: <code>5xx</code> 错误率在 <code>14:23</code> 突然飙升至 <code>12.3%</code>，远超 <code>0.1%</code> 基线</span>
+                </div>
+                <div class="evidence-item">
+                  <span class="evidence-num">02</span>
+                  <span class="evidence-text">Mimir: P99 延迟同步升至 <code>2.8s</code>，时间窗口与错误率完全重合</span>
+                </div>
+                <div class="evidence-item">
+                  <span class="evidence-num">03</span>
+                  <span class="evidence-text">Loki: <code>847</code> 条 <code>HikariPool connection timeout</code> 错误日志，指向 DB 连接池耗尽</span>
+                </div>
+                <div class="evidence-item">
+                  <span class="evidence-num">04</span>
+                  <span class="evidence-text">Tempo: 慢 Trace <code>4f8a2b...</code> 显示 <code>mysql.query</code> Span 等待 <code>2.3s</code>，连接池排队占 <code>95%</code></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section: Root Cause -->
+            <div class="rca-section">
+              <h3>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                根因分析
+                <span class="confidence-badge high">置信度: 高</span>
+              </h3>
+              <p><strong style="color:var(--text-1)">MySQL 连接池耗尽导致级联超时。</strong></p>
+              <p><code>payment-service</code> 的 HikariCP 连接池配置上限为 <code>maximum-pool-size: 10</code>，但 <code>14:23</code> 开始的支付高峰期并发请求激增，连接池被快速耗尽。后续请求在 <code>connectionTimeout: 30s</code> 内无法获取连接，触发 <code>SQLTransientConnectionException</code>，最终返回 HTTP 500。</p>
+              <p>慢查询 <code>SELECT * FROM orders WHERE created_at > ?</code> 缺少索引，单次执行耗时 <code>800ms+</code>，进一步加剧了连接占用时间，形成恶性循环。</p>
+            </div>
+
+            <!-- Section: Recommendations -->
+            <div class="rca-section">
+              <h3>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                修复建议
+              </h3>
+              <div class="rec-list">
+                <div class="rec-item">
+                  <span class="rec-priority p0">P0 立即</span>
+                  <span class="rec-text">将 HikariCP <code>maximum-pool-size</code> 从 <code>10</code> 提升至 <code>30</code>，并将 <code>connectionTimeout</code> 从 <code>30s</code> 降低至 <code>5s</code> 以实现快速失败</span>
+                </div>
+                <div class="rec-item">
+                  <span class="rec-priority p0">P0 立即</span>
+                  <span class="rec-text">为 <code>orders.created_at</code> 列添加索引，消除慢查询 <code>SELECT * FROM orders WHERE created_at > ?</code> 的全表扫描</span>
+                </div>
+                <div class="rec-item">
+                  <span class="rec-priority p1">短期</span>
+                  <span class="rec-text">引入熔断器（Resilience4j），当 DB 连接获取失败率超过 <code>10%</code> 时自动降级，避免级联雪崩</span>
+                </div>
+                <div class="rec-item">
+                  <span class="rec-priority p2">长期</span>
+                  <span class="rec-text">评估读写分离方案，将报表类慢查询路由至只读副本，释放主库连接资源</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== CHAT INPUT ===== -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <div class="input-box">
+          <textarea rows="1" placeholder="输入追问或新的故障描述...（如「把 p99 拉长 3 小时」「展开 TraceID 的下游」）"></textarea>
+          <button class="send-btn" title="发送">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="quick-templates">
+          <button class="quick-tmpl">把 p99 拉长 3 小时</button>
+          <button class="quick-tmpl">展开 TraceID 4f8a2b 的下游</button>
+          <button class="quick-tmpl">对比上次类似故障</button>
+          <button class="quick-tmpl">导出 RCA 为 Markdown</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function toggleStep(card) {
+  card.classList.toggle('expanded');
+}
+
+// Auto-resize textarea
+const textarea = document.querySelector('.input-box textarea');
+textarea.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// RCA nav tabs
+document.querySelectorAll('.rca-nav-item').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.rca-nav-item').forEach(function(t) { t.classList.remove('active'); });
+    this.classList.add('active');
+  });
+});
+
+// Mobile sidebar toggle
+document.querySelector('.mobile-toggle').addEventListener('click', function() {
+  document.querySelector('.sidebar').classList.toggle('open');
+});
+
+// Session item click
+document.querySelectorAll('.session-item').forEach(function(item) {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.session-item').forEach(function(i) { i.classList.remove('active'); });
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

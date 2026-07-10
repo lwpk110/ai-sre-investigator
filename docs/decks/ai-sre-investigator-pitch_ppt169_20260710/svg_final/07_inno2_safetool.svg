@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" />
+
+  
+  <rect x="56" y="48" width="6" height="32" fill="#00A6A6" />
+  <text x="74" y="72" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">07 · 核心创新 ②</text>
+  <text x="56" y="118" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="37" font-weight="bold" fill="#0F2A44">ToolSpec + SafeToolExecutor 四层包装</text>
+  <text x="56" y="156" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5A6B7E">所有 Tool 共享同一调度外壳 · 任意新工具零成本继承全部防护（ADR-003 / ADR-004）</text>
+
+  
+  <g id="stack">
+    <text x="60" y="208" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44" letter-spacing="2">SafeToolExecutor · 四道关卡</text>
+    <text x="60" y="232" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">对所有 ToolSpec 透明生效</text>
+
+    
+    <g transform="translate(580,256)">
+      <path fill="#0F2A44" d="M4,0 H116 A4,4 0 0 1 120,4 V34 A4,4 0 0 1 116,38 H4 A4,4 0 0 1 0,34 V4 A4,4 0 0 1 4,0 Z" />
+      
+  <g transform="translate(8.0, 6.0) scale(1.625)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M9 0V2H13L16 8.5L13 15H3L0 8.5L3 2H7V0H9ZM4.59794 11.7384L8 12.2618L11.4021 11.7384L11.0979 9.76163L8 10.2382L4.90206 9.76163L4.59794 11.7384ZM7 6.75C7 7.44036 6.44036 8 5.75 8C5.05964 8 4.5 7.44036 4.5 6.75C4.5 6.05964 5.05964 5.5 5.75 5.5C6.44036 5.5 7 6.05964 7 6.75ZM10.25 8C10.9404 8 11.5 7.44036 11.5 6.75C11.5 6.05964 10.9404 5.5 10.25 5.5C9.55964 5.5 9 6.05964 9 6.75C9 7.44036 9.55964 8 10.25 8Z" />
+  </g>
+      <text x="80" y="24" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">LLM tool_call</text>
+    </g>
+
+    
+    <line x1="640" y1="294" x2="640" y2="314" stroke="#0F2A44" stroke-width="2" />
+    <polygon points="640,322 634,312 646,312" fill="#0F2A44" />
+
+    
+    
+    <g transform="translate(60,328)">
+      <path fill="#F4F6FA" stroke="#00A6A6" d="M4,0 H116 A4,4 0 0 1 120,4 V52 A4,4 0 0 1 116,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="60" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" font-weight="bold" fill="#00A6A6" text-anchor="middle">① 预算预检</text>
+      <text x="60" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">token / tool / 时长</text>
+    </g>
+    
+    <g transform="translate(200,328)">
+      <path fill="#F4F6FA" stroke="#00A6A6" d="M4,0 H116 A4,4 0 0 1 120,4 V52 A4,4 0 0 1 116,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="60" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" font-weight="bold" fill="#00A6A6" text-anchor="middle">② 查询缓存</text>
+      <text x="60" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">去重 · TTL 分级</text>
+    </g>
+    
+    <g transform="translate(340,328)">
+      <path fill="#F4F6FA" stroke="#00A6A6" d="M4,0 H116 A4,4 0 0 1 120,4 V52 A4,4 0 0 1 116,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="60" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" font-weight="bold" fill="#00A6A6" text-anchor="middle">③ QL 预校验</text>
+      <text x="60" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">L1 语法 + L2 作用域</text>
+    </g>
+    
+    <g transform="translate(480,328)">
+      <path fill="#F4F6FA" stroke="#00A6A6" d="M4,0 H156 A4,4 0 0 1 160,4 V52 A4,4 0 0 1 156,56 H4 A4,4 0 0 1 0,52 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="80" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" font-weight="bold" fill="#00A6A6" text-anchor="middle">④ 失败自修正</text>
+      <text x="80" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">结构化错误回灌 · 最多 3 次</text>
+    </g>
+
+    
+    <line x1="640" y1="384" x2="640" y2="408" stroke="#0F2A44" stroke-width="2" />
+    <polygon points="640,416 634,406 646,406" fill="#0F2A44" />
+
+    <g transform="translate(60,420)">
+      <path fill="#0F2A44" d="M4,0 H576 A4,4 0 0 1 580,4 V36 A4,4 0 0 1 576,40 H4 A4,4 0 0 1 0,36 V4 A4,4 0 0 1 4,0 Z" />
+      <text x="290" y="26" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">⑤ 执行（timeout + 指数退避重试） → 结构化结果回灌</text>
+    </g>
+
+    
+    
+  <g transform="translate(20.0, 344.0) scale(1.25)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16ZM7 3V8.41421L10.2929 11.7071L11.7071 10.2929L9 7.58579V3H7Z" />
+  </g>
+    
+  <g transform="translate(160.0, 344.0) scale(1.25)" fill="#00A6A6">
+    <path d="M13.1371 6.91018C13.4184 6.7695 13.7123 6.59981 14 6.40001V8C14 9.65685 11.3137 11 8 11C4.68629 11 2 9.65685 2 8V6.40001C2.28772 6.59981 2.58158 6.7695 2.86293 6.91018C4.28096 7.61919 6.09998 8 8 8C9.90002 8 11.719 7.61919 13.1371 6.91018Z" />
+    <path d="M2 11.4V13C2 14.6569 4.68629 16 8 16C11.3137 16 14 14.6569 14 13V11.4C13.7123 11.5998 13.4184 11.7695 13.1371 11.9102C11.719 12.6192 9.90002 13 8 13C6.09998 13 4.28096 12.6192 2.86293 11.9102C2.58158 11.7695 2.28772 11.5998 2 11.4Z" />
+    <path d="M8 0C11.3137 0 14 1.34315 14 3C14 4.65685 11.3137 6 8 6C4.68629 6 2 4.65685 2 3C2 1.34315 4.68629 0 8 0Z" />
+  </g>
+    
+  <g transform="translate(300.0, 344.0) scale(1.25)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M15 1H1V15H15V1ZM6 5L7.41421 6.41421L5.82843 8L7.41421 9.58579L6 11L3 8L6 5ZM10 5L8.58579 6.41421L10.1716 8L8.58579 9.58579L10 11L13 8L10 5Z" />
+  </g>
+    
+  <g transform="translate(440.0, 344.0) scale(1.25)" fill="#00A6A6">
+    <path d="M5 4.79198C5.88295 4.4062 6.5 3.52516 6.5 2.5C6.5 1.11929 5.38071 0 4 0C2.61929 0 1.5 1.11929 1.5 2.5C1.5 3.52516 2.11705 4.4062 3 4.79198V11.208C2.11705 11.5938 1.5 12.4748 1.5 13.5C1.5 14.8807 2.61929 16 4 16C5.38071 16 6.5 14.8807 6.5 13.5C6.5 12.4748 5.88295 11.5938 5 11.208V9H13V4.79198C13.883 4.4062 14.5 3.52516 14.5 2.5C14.5 1.11929 13.3807 0 12 0C10.6193 0 9.5 1.11929 9.5 2.5C9.5 3.52516 10.117 4.4062 11 4.79198V7H5V4.79198Z" />
+  </g>
+  </g>
+
+  
+  <g id="judgment">
+    <path fill="#F4F6FA" stroke="#E2E8F0" d="M708,200 H1212 A8,8 0 0 1 1220,208 V612 A8,8 0 0 1 1212,620 H708 A8,8 0 0 1 700,612 V208 A8,8 0 0 1 708,200 Z" />
+    <text x="724" y="240" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44" letter-spacing="2">设计意义</text>
+    <line x1="724" y1="252" x2="884" y2="252" stroke="#00A6A6" stroke-width="2" />
+
+    <g transform="translate(724,278)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.75)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M5 11.5V14.5L6.5 16H9.5L11 14.5V11.5L12.2396 10.2604C13.3668 9.13324 14 7.60141 14 6.00736C14 2.69365 11.3137 0 8 0C4.68629 0 2 2.69365 2 6.00736C2 7.60141 2.63324 9.13324 3.76041 10.2604L5 11.5ZM7 9.87398V6H9V9.87398C10.7252 9.42994 12 7.86384 12 6C12 3.79086 10.2091 2 8 2C5.79086 2 4 3.79086 4 6C4 7.86384 5.27477 9.42994 7 9.87398Z" />
+  </g>
+      <text x="40" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0F2A44">四关透明生效</text>
+      <text x="40" y="44" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">Mimir / Loki / Tempo 各自工具实现只关心</text>
+      <text x="40" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">validate / execute，防护逻辑零成本继承</text>
+    </g>
+
+    <g transform="translate(724,360)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.75)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 4C5.79086 4 4 5.79086 4 8C4 10.2091 5.79086 12 8 12C10.2091 12 12 10.2091 12 8C12 5.79086 10.2091 4 8 4ZM6 8C6 6.89543 6.89543 6 8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8Z" />
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0ZM2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8Z" />
+  </g>
+      <text x="40" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0F2A44">可插拔 · 演进无债务</text>
+      <text x="40" y="44" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">新增 Prometheus / ES / k8s 工具</text>
+      <text x="40" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">只需注册 ToolSpec，不动调度层</text>
+    </g>
+
+    <g transform="translate(724,442)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.75)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16L4.35009 13.3929C2.24773 11.8912 1 9.46667 1 6.88306V3L8 0L15 3V6.88306C15 9.46667 13.7523 11.8912 11.6499 13.3929L8 16ZM12.2071 5.70711L10.7929 4.29289L7 8.08579L5.20711 6.29289L3.79289 7.70711L7 10.9142L12.2071 5.70711Z" />
+  </g>
+      <text x="40" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0F2A44">把红线从"不崩"</text>
+      <text x="40" y="44" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">升级为"自愈 + 可控"，</text>
+      <text x="40" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">是产品能上生产的前置工程门槛</text>
+    </g>
+
+    <g transform="translate(724,540)">
+      
+  <g transform="translate(0.0, 0.0) scale(1.75)" fill="#00A6A6">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M6.50001 0H9.50001L10.0939 2.37548C10.7276 2.6115 11.3107 2.95155 11.8223 3.37488L14.1782 2.70096L15.6782 5.29904L13.9173 7.00166C13.9717 7.32634 14 7.65987 14 8C14 8.34013 13.9717 8.67366 13.9173 8.99834L15.6782 10.701L14.1782 13.299L11.8223 12.6251C11.3107 13.0484 10.7276 13.3885 10.0939 13.6245L9.50001 16H6.50001L5.90614 13.6245C5.27242 13.3885 4.68934 13.0484 4.17768 12.6251L1.82181 13.299L0.321808 10.701L2.08269 8.99834C2.02831 8.67366 2.00001 8.34013 2.00001 8C2.00001 7.65987 2.02831 7.32634 2.08269 7.00166L0.321808 5.29904L1.82181 2.70096L4.17768 3.37488C4.68934 2.95155 5.27241 2.6115 5.90614 2.37548L6.50001 0ZM8.00001 10C9.10458 10 10 9.10457 10 8C10 6.89543 9.10458 6 8.00001 6C6.89544 6 6.00001 6.89543 6.00001 8C6.00001 9.10457 6.89544 10 8.00001 10Z" />
+  </g>
+      <text x="40" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#5A6B7E">详见 tech-design-ql-selfheal.md</text>
+    </g>
+  </g>
+
+  <line x1="56" y1="676" x2="1224" y2="676" stroke="#E2E8F0" />
+  <text x="56" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">ADR-003 / ADR-004 · tech-design-ql-selfheal</text>
+  <text x="1224" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6" text-anchor="end">P07 / 12</text>
+</svg>

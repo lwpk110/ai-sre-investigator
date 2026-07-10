@@ -1,0 +1,4 @@
+- Backend：Python 3.12 + FastAPI + Pydantic v2 + HTTPX + openai SDK。
+- Frontend：Next.js App Router + Tailwind + React Markdown + SSE 客户端。
+- 四特质：异步优先、强类型、无状态云原生、Pydantic Schema → tools。
+- 引用：ADR-006、PRD §6。

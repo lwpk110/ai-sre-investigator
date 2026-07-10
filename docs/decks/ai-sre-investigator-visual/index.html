@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SRE Investigator · 图文版 Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ============ 主题色(默认:🖋 墨水经典) ============
+       切换主题:从 references/themes.md 复制对应的 :root 块
+       整体替换这几行(--ink / --ink-rgb / --paper / --paper-rgb)
+       其他地方散落的 rgba() 都走 var(--ink-rgb) / var(--paper-rgb),无需逐处改 */
+    --ink:#0a1f3d;
+    --ink-rgb:10,31,61;
+    --paper:#f1f3f5;
+    --paper-rgb:241,243,245;
+    --paper-tint:#e4e8ec;
+    --ink-tint:#152a4a;
+
+    /* ============ 字体(跨主题固定) ============ */
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display","Source Serif 4",Georgia,serif;
+    --serif-body-en:"Source Serif 4",Georgia,serif;
+    --serif-zh:"Noto Serif SC",source-han-serif-sc,serif;
+    --sans-zh:"Noto Sans SC",source-han-sans-sc,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+  /* ============ WebGL 双背景 ============ */
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  body.low-power canvas.bg{display:none!important}
+
+  /* ============ Deck 容器 + 翻页 ============ */
+  /* width: NSLIDES * 100vw，会在 JS 里动态矫正 */
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+
+  /* 默认页：遮罩较厚，保证文字可读 */
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  /* Hero 页：遮罩大幅降低，让 WebGL 背景明显透出 */
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  /* Hero 页顶底微弱渐隐，保证 chrome/foot 区域可读 */
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  /* ============ Magazine chrome：顶部 meta + 底部 foot ============ */
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .chrome .left,.chrome .right{display:flex;gap:2.4em;align-items:center}
+  .chrome .sep{width:40px;height:1px;background:currentColor;opacity:.4}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .foot .title{font-family:var(--serif-zh);font-weight:400;letter-spacing:.05em;text-transform:none;opacity:.75;font-size:13px}
+
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;padding:6px 14px;border:1px solid currentColor;opacity:.85}
+  .rule{width:100%;height:1px;background:currentColor;opacity:.25;margin:3vh 0}
+  .rule.v{width:1px;height:100%;margin:0}
+
+  /* ============ 字体规则 ============
+     · 衬线（Noto Serif SC / Playfair）：大标题、重点金句、数字
+     · 非衬线（Noto Sans SC）：正文描述、body、补充说明
+     · 等宽（IBM Plex Mono）：kicker、meta 小标签、foot 右侧
+  */
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .display{font-family:var(--serif-en);font-weight:700;font-size:11vw;line-height:.92;letter-spacing:-.025em}
+  .display-zh{font-family:var(--serif-zh);font-weight:700;font-size:7.8vw;line-height:1.04;letter-spacing:-.005em}
+  .h1-zh{font-family:var(--serif-zh);font-weight:700;font-size:4.6vw;line-height:1.12;letter-spacing:-.005em}
+  .h2-zh{font-family:var(--serif-zh);font-weight:600;font-size:3.2vw;line-height:1.2;letter-spacing:0}
+  .h3-zh{font-family:var(--serif-zh);font-weight:500;font-size:1.9vw;line-height:1.35}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82;letter-spacing:.01em}
+  .body-serif{font-family:var(--serif-zh);font-weight:400;font-size:max(15px,1.3vw);line-height:1.65;opacity:.88}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.9vw;line-height:1.4;opacity:.85}
+  .meta{font-family:var(--mono);font-size:max(11px,.88vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .big-num{font-family:var(--serif-en);font-weight:800;font-size:10vw;line-height:.85;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .mid-num{font-family:var(--serif-en);font-weight:700;font-size:5.5vw;line-height:.88;letter-spacing:-.02em;font-feature-settings:"tnum"}
+  .ghost{font-family:var(--serif-en);font-weight:900;font-size:34vw;line-height:.8;opacity:.06;letter-spacing:-.04em;position:absolute;font-feature-settings:"tnum"}
+  em{font-style:italic;font-family:var(--serif-en)}
+  .en{font-family:var(--serif-en);font-style:italic;font-weight:500}
+
+  /* ============ 布局工具 ============ */
+  .col{display:flex;flex-direction:column;gap:2.4vh}
+  .row{display:flex;align-items:center;gap:3vw}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-9{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3vh 4vw;flex:1;align-content:center}
+  .grid-4{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:4vh 6vw;flex:1;align-content:center}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;flex:1;align-content:center}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;align-items:center}
+  .split-55{display:grid;grid-template-columns:55fr 45fr;gap:5vw;flex:1;align-items:stretch}
+  .fill{flex:1}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .bottom-left{position:absolute;left:6vw;bottom:9vh;max-width:50vw}
+  .bottom-right{position:absolute;right:6vw;bottom:9vh;max-width:50vw;text-align:right}
+  .top-right{position:absolute;right:6vw;top:6vh;text-align:right}
+
+  /* ============ Stat（数字矩阵） ============ */
+  .stat{display:flex;flex-direction:column;gap:1vh;align-items:flex-start}
+  .stat .n{font-family:var(--serif-en);font-weight:800;font-size:8vw;line-height:.88;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .stat .l{font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:1vh;font-weight:400;line-height:1.5}
+  .stat .m{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin-bottom:.2vh}
+
+  /* ============ Callout（引用框） ============ */
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;position:relative;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout .cite{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .callout .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  /* ============ Platform（平台卡） ============ */
+  .plat{display:flex;flex-direction:column;justify-content:flex-end;padding:2vh 0;border-top:1px solid currentColor;border-color:rgba(127,127,127,.35)}
+  .plat .name{font-family:var(--serif-zh);font-weight:700;font-size:1.8vw;margin-bottom:.6vh}
+  .plat .nb{font-family:var(--serif-en);font-weight:700;font-size:3.2vw;letter-spacing:-.02em;line-height:1;font-feature-settings:"tnum"}
+  .plat .sub{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.55;margin-top:.6vh}
+  .plat .fill{font-family:var(--sans-zh);font-weight:300;font-size:2.4vw;opacity:.28;letter-spacing:-.01em;line-height:1}
+
+  /* ============ Rowline（表格行） ============ */
+  .rowline{display:grid;grid-template-columns:1fr 2fr 1fr;gap:2vw;padding:2.2vh 0;border-top:1px solid currentColor;align-items:center;border-color:rgba(127,127,127,.25)}
+  .rowline:last-child{border-bottom:1px solid currentColor;border-color:rgba(127,127,127,.25)}
+  .rowline .k{font-family:var(--serif-zh);font-weight:700;font-size:1.7vw}
+  .rowline .v{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.2vw);opacity:.85;line-height:1.55}
+  .rowline .m{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6;justify-self:end}
+
+  /* ============ Pillar（支柱卡片） ============ */
+  .pillar{display:flex;flex-direction:column;gap:1.8vh}
+  .pillar .ic{font-family:var(--serif-en);font-style:italic;font-size:2.6vw;opacity:.45;font-weight:400}
+  .pillar .ic svg{width:2.8vw;height:2.8vw;stroke-width:1.2;opacity:.7}
+  .pillar .t{font-family:var(--serif-zh);font-weight:700;font-size:2.4vw;line-height:1.1}
+  .pillar .d{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.1vw);opacity:.76;line-height:1.6}
+
+  /* ============ Signature / Highlight ============ */
+  .sign{font-family:var(--serif-en);font-style:italic;font-weight:500;font-size:2vw;opacity:.7}
+  .hi{position:relative;display:inline}
+  .slide.dark .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--paper-rgb),.15);z-index:-1}
+  .slide.light .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--ink-rgb),.08);z-index:-1}
+
+  /* ============ Icons（Lucide via CDN） ============ */
+  .ico{width:1em;height:1em;display:inline-block;vertical-align:-.12em;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ico-lg,.ico-md,.ico-sm{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .ico-lg{width:2.6vw;height:2.6vw;stroke-width:1.2;display:inline-block}
+  .ico-md{width:1.8vw;height:1.8vw;stroke-width:1.3;display:inline-block;vertical-align:-.4em}
+  .ico-sm{width:1.1vw;height:1.1vw;stroke-width:1.4;display:inline-block;vertical-align:-.15em;opacity:.7}
+
+  /* ============ 图片占位（虚线框，提示设计师位置） ============ */
+  .img-slot{border:1.5px dashed rgba(127,127,127,.4);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1vh;padding:2vh 2vw;font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;opacity:.55;position:relative;aspect-ratio:16/9;width:100%;max-height:56vh;margin-inline:auto;box-sizing:border-box}
+  .img-slot::before{content:"";position:absolute;inset:8px;border:1px solid currentColor;opacity:.2}
+  .img-slot .plus{font-size:2vw;font-weight:300;opacity:.5;letter-spacing:0}
+  .img-slot .label{position:relative;z-index:2;text-align:center}
+  .img-slot.r-4x3{aspect-ratio:4/3}
+  .img-slot.r-3x2{aspect-ratio:3/2}
+  .img-slot.r-1x1{aspect-ratio:1/1}
+
+  /* ============ 图片实填框（关键：固定高度 + 只裁底部） ============
+     重要约束：高度用内联 height:Nvh 精确控制，不要用 aspect-ratio（会撑破布局）
+     object-position:top center 保证严禁裁剪顶部和左右，只裁剪底部
+  */
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);box-sizing:border-box;width:100%;border-radius:4px}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  .frame-img > img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.fit-contain > img{object-fit:contain;object-position:center center}
+  .frame-img.r-16x9{aspect-ratio:16/9;max-height:64vh}
+  .frame-img.r-16x10{aspect-ratio:16/10;max-height:56vh}
+  .frame-img.r-4x3{aspect-ratio:4/3;max-height:56vh}
+  .frame-img.r-3x2{aspect-ratio:3/2;max-height:46vh}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .frame-img.r-1x1{aspect-ratio:1/1;max-height:50vh}
+  .frame-img.h-16{height:16vh}
+  .frame-img.h-18{height:18vh}
+  .frame-img.h-22{height:22vh}
+  .frame-img.h-26{height:26vh}
+  .frame-img.h-28{height:28vh}
+  .frame-cap{display:flex;justify-content:space-between;align-items:baseline;gap:1vw;margin-top:.8vh;font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.72}
+  .frame-cap .pf{font-family:var(--serif-zh);font-weight:600;font-size:max(13px,1vw);letter-spacing:.04em;text-transform:none;opacity:.94}
+  .frame-cap .nb{font-family:var(--serif-en);font-style:italic;font-size:max(15px,1.2vw);letter-spacing:.02em;text-transform:none;opacity:.88}
+  .frame-cap .idx{font-family:var(--mono);opacity:.5}
+  figure.tile{display:flex;flex-direction:column;margin:0;min-width:0}
+  figure.tile > .frame-img{flex:0 0 auto}
+
+  /* ============ 导航 ============ */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  body.low-power #hint{opacity:.72;color:var(--paper);mix-blend-mode:normal}
+  body.light-bg.low-power #hint{color:var(--ink)}
+
+  /* ============================================================
+     ============ LAYOUTS API · 面向 agent 的类（v2）============
+     所有 layouts.md 中的骨架都基于下面这套命名。
+     如果你在 layouts.md 里看到某个类，它必须在下面有定义。
+     ============================================================ */
+
+  /* ---------- .frame：每页主内容容器 ---------- */
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  /* 当 .frame 同时加了 grid 类时，grid 的 display:grid 覆盖 flex */
+  .frame.grid-2-7-5,
+  .frame.grid-2-6-6,
+  .frame.grid-2-8-4,
+  .frame.grid-3-3,
+  .frame.grid-6{display:grid}
+
+  /* ---------- 标题层级（API 名称，衬线为主） ---------- */
+  .h-hero{
+    font-family:var(--serif-zh);
+    font-weight:900;
+    font-size:10vw;
+    line-height:.96;
+    letter-spacing:-.02em;
+  }
+  .h-xl{
+    font-family:var(--serif-zh);
+    font-weight:700;
+    font-size:6.2vw;
+    line-height:1.08;
+    letter-spacing:-.01em;
+  }
+  .h-sub{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:3.1vw;
+    line-height:1.25;
+    letter-spacing:0;
+    opacity:.7;
+  }
+  .h-md{
+    font-family:var(--serif-zh);
+    font-weight:600;
+    font-size:2.3vw;
+    line-height:1.3;
+  }
+  /* 英文标题专用（Playfair 衬线） */
+  .h-hero-en,.h-xl-en{font-family:var(--serif-en);letter-spacing:-.025em}
+
+  /* ---------- lead 引语 ---------- */
+  .lead{
+    font-family:var(--serif-zh);
+    font-weight:400;
+    font-size:1.75vw;
+    line-height:1.5;
+    opacity:.86;
+  }
+
+  /* ---------- meta-row 底部元数据 ---------- */
+  .meta-row{
+    display:flex;
+    gap:1.2em;
+    align-items:baseline;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:max(12px,.92vw);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- stat-card（数据大字报用） ---------- */
+  .stat-card{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    align-items:flex-start;
+    padding-top:1.6vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.3);
+  }
+  .stat-card .stat-label{
+    font-family:var(--mono);
+    font-size:max(10px,.78vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .stat-card .stat-nb{
+    font-family:var(--serif-en);
+    font-weight:800;
+    font-size:5.8vw;
+    line-height:.9;
+    letter-spacing:-.03em;
+    font-feature-settings:"tnum";
+    margin-top:.4vh;
+  }
+  .stat-card .stat-nb .stat-unit{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:.38em;
+    letter-spacing:0;
+    opacity:.72;
+    margin-left:.14em;
+  }
+  .stat-card .stat-note{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(13px,1.05vw);
+    line-height:1.5;
+    opacity:.72;
+    margin-top:.6vh;
+  }
+  /* 当 stat-card 用于 grid-4（2x2），数字适度放大；若页面有标题+引文在上方，可内联 style 覆盖为更小值 */
+  .grid-4 .stat-card .stat-nb{font-size:5vw}
+  /* 当只有 3 个，字也可以稍大 */
+  .grid-3 .stat-card .stat-nb{font-size:6.8vw}
+
+  /* ---------- pipeline（流水线） ---------- */
+  .pipeline-section{
+    margin-top:4.4vh;
+    padding-top:2.8vh;
+    border-top:1px dashed rgba(127,127,127,.32);
+  }
+  .pipeline-section:first-of-type{
+    border-top:0;
+    padding-top:0;
+    margin-top:3vh;
+  }
+  .pipeline-label{
+    font-family:var(--mono);
+    font-size:max(11px,.85vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.62;
+    margin-bottom:2.2vh;
+  }
+  .pipeline{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:1.2vw;
+  }
+  .pipeline[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+  .pipeline[data-cols="4"]{grid-template-columns:repeat(4,1fr)}
+  .pipeline[data-cols="6"]{grid-template-columns:repeat(6,1fr)}
+  .step{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    padding-top:1.4vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.35);
+  }
+  .step-nb{
+    font-family:var(--serif-en);
+    font-style:italic;
+    font-weight:500;
+    font-size:1.15vw;
+    opacity:.45;
+  }
+  .step-title{
+    font-family:var(--sans-zh);
+    font-weight:700;
+    font-size:1.55vw;
+    letter-spacing:.01em;
+    line-height:1.2;
+  }
+  .step-desc{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(12px,.95vw);
+    line-height:1.45;
+    opacity:.72;
+  }
+
+  /* ---------- 网格（layouts.md 所用） ---------- */
+  /* 这些类独立挂到任何容器上都能生效，不依赖 .frame 复合选择器 */
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3vw 4vh;align-items:start}
+  .grid-2-8-4{display:grid;grid-template-columns:8fr 4fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-auto-rows:minmax(0,1fr);
+    gap:2.4vh 2vw;
+  }
+  /* grid-6 已在旧样式里定义为 3x2，这里仅补 align */
+
+  /* ---------- 图片 frame-img（layouts.md 主命名） ---------- */
+  /* 在旧样式里已定义，这里补 img-cap 命名别名与增强 */
+  figure.frame-img{margin:0;display:flex;flex-direction:column;min-width:0}
+  .img-cap{
+    display:block;
+    margin-top:.8vh;
+    font-family:var(--mono);
+    font-size:max(10px,.8vw);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+  /* callout src 命名别名 */
+  .callout-src{
+    display:block;
+    margin-top:1.6vh;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- chrome & foot 补位（layouts.md 简单写法） ---------- */
+  .chrome{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.2em;text-transform:uppercase;opacity:.62}
+  .foot{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+
+  /* ============ 动效系统(Motion One 驱动) ============
+     所有 [data-anim] 元素默认隐藏,进入页面时由 JS 逐个揭示。
+     - cascade(默认):按 DOM 顺序 stagger 120ms 淡入 + y:16→0
+     - hero(hero 页自动):慢一点的 stagger 180ms
+     - quote(含 [data-anim="line"]):逐行 600ms 淡入
+     - directional(含 [data-anim="left|right"]):左→分隔线→右
+     - pipeline(data-animate="pipeline"):Space/→ 手动推进
+     Motion One 没加载成功时(CDN 断 + 本地丢),所有 [data-anim] 会兜底显示。
+  */
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.motion-ready [data-anim="left"]{transform:translateX(-24px)}
+  body.motion-ready [data-anim="right"]{transform:translateX(24px)}
+  body.motion-ready [data-anim="line"]{opacity:0;transform:translateY(10px)}
+  body.motion-ready [data-animate="pipeline"] [data-anim]{opacity:.15}
+  body.low-power #deck{transition:none!important}
+  body.low-power *,
+  body.low-power *::before,
+  body.low-power *::after{animation:none!important;transition:none!important}
+  body.low-power.motion-ready [data-anim],
+  body.low-power [data-anim]{opacity:1!important;transform:none!important}
+
+  /* ---------- 响应式降级 ---------- */
+  @media (max-width:900px){
+    .display{font-size:16vw}
+    .display-zh{font-size:12vw}
+    .h1-zh{font-size:7vw}
+    .h-hero{font-size:14vw}
+    .h-xl{font-size:9vw}
+    .pipeline{grid-template-columns:repeat(2,1fr)}
+    .grid-2-7-5,.grid-2-6-6,.grid-2-8-4{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<script>
+  (function(){
+    const KEY = 'guizang-ppt-low-power';
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stored = localStorage.getItem(KEY);
+    window.__lowPowerMode = stored === '1' || (stored === null && reduced);
+    function updateHint(){
+      const hint = document.getElementById('hint');
+      if(hint) hint.textContent = `← → 翻页 · B ${window.__lowPowerMode ? '动态' : '静态'} · ESC 索引`;
+    }
+    window.__setLowPowerMode = function(on, opts={}){
+      window.__lowPowerMode = !!on;
+      document.body.classList.toggle('low-power', window.__lowPowerMode);
+      if(opts.persist !== false) localStorage.setItem(KEY, window.__lowPowerMode ? '1' : '0');
+      if(window.__lowPowerMode && document.getAnimations){
+        document.getAnimations().forEach(a=>a.cancel());
+      }
+      updateHint();
+      dispatchEvent(new CustomEvent('ppt-low-power-change', {detail:{on:window.__lowPowerMode}}));
+      if(window.__playSlide) window.__playSlide(window.__currentSlideIndex || 0);
+    };
+    document.body.classList.toggle('low-power', window.__lowPowerMode);
+    addEventListener('DOMContentLoaded', updateHint, {once:true});
+  })();
+</script>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint">← → 翻页 · B 静态 · ESC 索引</div>
+
+<div id="deck">
+
+<!-- ============================================================
+     SLIDES 插入区 · 在此处填充所有 <section class="slide ..."> 页面
+     每页模板参考 references/page-patterns.md
+     页面组件参考 references/components.md
+     ============================================================ -->
+
+<!-- ============================================================
+     AI SRE Investigator · 图文版 10 页杂志风网页 PPT
+     全部插图采用内联 SVG 矢量插画,与靛蓝瓷主题融为一体
+     主题节奏: hero dark → light → dark → light → hero light → dark → light → dark → hero dark → light
+     ============================================================ -->
+
+<!-- ===== P1 · 封面 (hero dark) ===== -->
+<section class="slide hero dark" data-theme="dark">
+  <div class="chrome">
+    <div class="left"><span>MVP V1.0 · 设计阶段</span><span class="sep"></span><span>AI SRE Investigator</span></div>
+    <div class="right"><span>01 / 10</span></div>
+  </div>
+  <div class="frame" style="display:grid; grid-template-columns:6fr 4fr; gap:4vw; align-items:center; min-height:80vh">
+    <div style="display:grid; gap:3.5vh">
+      <div class="kicker" data-anim>智能巡检助手 · Intelligent SRE Copilot</div>
+      <h1 class="h-hero" data-anim style="font-size:8vw">AI SRE<br>Investigator</h1>
+      <h2 class="h-sub" data-anim>让故障排查,说人话。</h2>
+      <p class="lead" style="max-width:42vw" data-anim>用大白话调动 Mimir / Loki / Tempo,自动跨系统取证、生成根因报告——开发自己闭环。</p>
+      <div class="meta-row" data-anim>
+        <span>Private DC</span><span>·</span><span>Native Tool-Calling</span><span>·</span><span>Read-Only</span>
+      </div>
+    </div>
+    <!-- SVG: 抽象可观测性场景 -->
+    <svg data-anim viewBox="0 0 400 400" style="width:100%; max-width:36vw" fill="none">
+      <defs>
+        <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#00A6A6" stop-opacity="0.3"/><stop offset="100%" stop-color="#00A6A6" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="200" cy="200" r="180" fill="url(#glow1)"/>
+      <!-- 波形线 -->
+      <path d="M20 120 Q60 80 100 120 T180 120 T260 120 T340 120 T380 120" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.6"/>
+      <path d="M20 150 Q60 130 100 150 T180 150 T260 150 T340 150 T380 150" stroke="#4A8FCF" stroke-width="1.2" stroke-opacity="0.45"/>
+      <path d="M20 180 Q60 170 100 180 T180 180 T260 180 T340 180 T380 180" stroke="#7AB8D8" stroke-width="1" stroke-opacity="0.3"/>
+      <!-- 节点 -->
+      <circle cx="80" cy="240" r="6" fill="#00A6A6" opacity="0.9"/>
+      <circle cx="200" cy="220" r="8" fill="#00A6A6" opacity="0.85"/>
+      <circle cx="320" cy="250" r="6" fill="#4A8FCF" opacity="0.8"/>
+      <circle cx="140" cy="290" r="5" fill="#7AB8D8" opacity="0.7"/>
+      <circle cx="280" cy="300" r="5" fill="#00A6A6" opacity="0.6"/>
+      <!-- 连接线 -->
+      <line x1="80" y1="240" x2="200" y2="220" stroke="#00A6A6" stroke-width="1" stroke-opacity="0.3"/>
+      <line x1="200" y1="220" x2="320" y2="250" stroke="#4A8FCF" stroke-width="1" stroke-opacity="0.3"/>
+      <line x1="80" y1="240" x2="140" y2="290" stroke="#7AB8D8" stroke-width="0.8" stroke-opacity="0.25"/>
+      <line x1="200" y1="220" x2="280" y2="300" stroke="#00A6A6" stroke-width="0.8" stroke-opacity="0.25"/>
+      <line x1="320" y1="250" x2="280" y2="300" stroke="#4A8FCF" stroke-width="0.8" stroke-opacity="0.2"/>
+      <!-- 底部波形 -->
+      <path d="M20 340 Q60 320 100 340 T180 340 T260 340 T340 340 T380 340" stroke="#00A6A6" stroke-width="1.2" stroke-opacity="0.4"/>
+      <!-- 告警标记 -->
+      <circle cx="320" cy="250" r="14" fill="none" stroke="#FF6B6B" stroke-width="1.5" stroke-opacity="0.6"/>
+      <circle cx="320" cy="250" r="20" fill="none" stroke="#FF6B6B" stroke-width="0.8" stroke-opacity="0.3"/>
+    </svg>
+  </div>
+  <div class="foot"><div class="title">打破可观测性 QL 认知壁垒 · 解放 SRE 生产力</div><div>Cover · Vol.02</div></div>
+</section>
+
+<!-- ===== P2 · 痛点 + 漏斗图 (light) ===== -->
+<section class="slide light" data-theme="light">
+  <div class="chrome">
+    <div class="left"><span>第一幕 · 为什么做</span><span class="sep"></span><span>The Problem</span></div>
+    <div class="right"><span>02 / 10</span></div>
+  </div>
+  <div class="frame" style="padding-top:3vh">
+    <div class="kicker" data-anim>Three Bottlenecks · 三个瓶颈</div>
+    <h2 class="h-xl" data-anim>全员挤兑少数 SRE</h2>
+
+    <div class="grid-2-7-5" style="margin-top:3vh; align-items:start">
+      <div class="grid-3" style="gap:2vw; grid-template-rows:auto;">
+        <div class="stat-card" data-anim>
+          <div class="stat-label">Cognitive Barrier</div>
+          <div class="stat-nb" style="font-size:3.6vw">QL<span class="stat-unit">壁垒</span></div>
+          <div class="stat-note">开发不懂 PromQL / LogQL / TraceQL,深层排查全靠 SRE。</div>
+        </div>
+        <div class="stat-card" data-anim>
+          <div class="stat-label">Human Bottleneck</div>
+          <div class="stat-nb" style="font-size:3.6vw">多对一</div>
+          <div class="stat-note">全公司开发排队等少数 SRE 查日志、写语句。</div>
+        </div>
+        <div class="stat-card" data-anim>
+          <div class="stat-label">High MTTR</div>
+          <div class="stat-nb" style="font-size:3.6vw">无沉淀</div>
+          <div class="stat-note">跨系统排查靠肌肉记忆,RCA 事后整理繁琐。</div>
+        </div>
+      </div>
+      <!-- SVG: 漏斗瓶颈 -->
+      <svg data-anim viewBox="0 0 300 360" style="width:100%; max-width:24vw" fill="none">
+        <!-- 开发者群 -->
+        <circle cx="40" cy="40" r="12" fill="#0a1f3d" opacity="0.7"/>
+        <circle cx="80" cy="30" r="12" fill="#0a1f3d" opacity="0.7"/>
+        <circle cx="130" cy="45" r="12" fill="#0a1f3d" opacity="0.7"/>
+        <circle cx="180" cy="35" r="12" fill="#0a1f3d" opacity="0.7"/>
+        <circle cx="230" cy="45" r="12" fill="#0a1f3d" opacity="0.7"/>
+        <circle cx="55" cy="75" r="12" fill="#0a1f3d" opacity="0.65"/>
+        <circle cx="105" cy="70" r="12" fill="#0a1f3d" opacity="0.65"/>
+        <circle cx="160" cy="75" r="12" fill="#0a1f3d" opacity="0.65"/>
+        <circle cx="215" cy="70" r="12" fill="#0a1f3d" opacity="0.65"/>
+        <text x="150" y="110" text-anchor="middle" font-family="monospace" font-size="10" fill="#0a1f3d" opacity="0.6">All Developers</text>
+        <!-- 漏斗 -->
+        <path d="M30 130 L270 130 L270 150 L180 230 L120 230 L30 150 Z" fill="none" stroke="#00A6A6" stroke-width="2" stroke-opacity="0.7"/>
+        <path d="M30 130 L270 130 L270 150 L180 230 L120 230 L30 150 Z" fill="#00A6A6" fill-opacity="0.06"/>
+        <!-- 收窄箭头 -->
+        <line x1="150" y1="160" x2="150" y2="210" stroke="#FF6B6B" stroke-width="2" stroke-opacity="0.6" stroke-dasharray="4 3"/>
+        <text x="165" y="190" font-family="monospace" font-size="9" fill="#FF6B6B" opacity="0.7">bottleneck</text>
+        <!-- SRE -->
+        <circle cx="150" cy="270" r="22" fill="#00A6A6" opacity="0.85"/>
+        <text x="150" y="275" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#f1f3f5">SRE</text>
+        <text x="150" y="310" text-anchor="middle" font-family="monospace" font-size="9" fill="#0a1f3d" opacity="0.55">Few Experts</text>
+      </svg>
+    </div>
+  </div>
+  <div class="foot"><div class="title">"多对一"人力响应灾难</div><div>Act I · Problem</div></div>
+</section>
+
+<!-- ===== P3 · 旧 vs 新 对比 (dark) ===== -->
+<section class="slide dark" data-theme="dark" data-animate="directional">
+  <div class="chrome">
+    <div class="left"><span>范式转变 · The Shift</span><span class="sep"></span><span>Before / After</span></div>
+    <div class="right"><span>03 / 10</span></div>
+  </div>
+  <div class="frame" style="padding-top:3vh">
+    <div class="kicker" data-anim>From Handoff To Self-Service</div>
+    <h2 class="h-xl" data-anim style="margin-bottom:3vh">从挤兑 SRE,到自助闭环</h2>
+
+    <div class="grid-2-6-6" style="gap:4vw; align-items:start; margin-top:1vh">
+      <div data-anim="left" style="padding:3vh 2vw; border-left:3px solid currentColor; opacity:.5">
+        <div class="kicker" style="opacity:.9">Before · 旧模式</div>
+        <h3 class="h-md" style="margin-top:1.5vh">求助 → 排队 → 手查</h3>
+        <!-- SVG: 混乱流程 -->
+        <svg viewBox="0 0 360 200" style="width:100%; margin-top:2vh" fill="none">
+          <rect x="10" y="10" width="80" height="30" rx="4" fill="none" stroke="#f1f3f5" stroke-opacity="0.3" stroke-width="1"/>
+          <text x="50" y="29" text-anchor="middle" font-family="monospace" font-size="10" fill="#f1f3f5" opacity="0.5">@SRE</text>
+          <path d="M95 25 Q130 5 165 25 Q200 45 235 25" stroke="#FF6B6B" stroke-width="1.2" stroke-opacity="0.4" stroke-dasharray="3 3"/>
+          <rect x="135" y="50" width="90" height="30" rx="4" fill="none" stroke="#f1f3f5" stroke-opacity="0.25" stroke-width="1"/>
+          <text x="180" y="69" text-anchor="middle" font-family="monospace" font-size="10" fill="#f1f3f5" opacity="0.45">排队等待</text>
+          <path d="M180 85 Q150 105 120 125" stroke="#f1f3f5" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="3 3"/>
+          <rect x="60" y="115" width="80" height="30" rx="4" fill="none" stroke="#f1f3f5" stroke-opacity="0.2" stroke-width="1"/>
+          <text x="100" y="134" text-anchor="middle" font-family="monospace" font-size="9" fill="#f1f3f5" opacity="0.4">手写 QL</text>
+          <path d="M145 130 Q180 150 215 130" stroke="#FF6B6B" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="3 2"/>
+          <rect x="230" y="115" width="80" height="30" rx="4" fill="none" stroke="#FF6B6B" stroke-opacity="0.35" stroke-width="1"/>
+          <text x="270" y="134" text-anchor="middle" font-family="monospace" font-size="9" fill="#FF6B6B" opacity="0.5">报错重来</text>
+          <rect x="135" y="165" width="90" height="25" rx="4" fill="none" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+          <text x="180" y="181" text-anchor="middle" font-family="monospace" font-size="9" fill="#f1f3f5" opacity="0.35">手敲 RCA</text>
+        </svg>
+      </div>
+      <div data-anim="right" style="padding:3vh 2vw; border-left:3px solid #00A6A6">
+        <div class="kicker" style="opacity:.9; color:#00A6A6">After · 新模式</div>
+        <h3 class="h-md" style="margin-top:1.5vh">一句话 → Agent 自主取证</h3>
+        <!-- SVG: 清晰流程 -->
+        <svg viewBox="0 0 360 200" style="width:100%; margin-top:2vh" fill="none">
+          <rect x="10" y="10" width="100" height="30" rx="4" fill="#00A6A6" fill-opacity="0.12" stroke="#00A6A6" stroke-opacity="0.6" stroke-width="1"/>
+          <text x="60" y="29" text-anchor="middle" font-family="monospace" font-size="9" fill="#00A6A6" opacity="0.9">大白话申告</text>
+          <line x1="115" y1="25" x2="145" y2="25" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.5"/>
+          <polygon points="145,25 138,21 138,29" fill="#00A6A6" opacity="0.5"/>
+          <rect x="150" y="10" width="100" height="30" rx="4" fill="#00A6A6" fill-opacity="0.12" stroke="#00A6A6" stroke-opacity="0.6" stroke-width="1"/>
+          <text x="200" y="29" text-anchor="middle" font-family="monospace" font-size="9" fill="#00A6A6" opacity="0.9">自动转 QL</text>
+          <line x1="255" y1="25" x2="285" y2="25" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.5"/>
+          <polygon points="285,25 278,21 278,29" fill="#00A6A6" opacity="0.5"/>
+          <rect x="290" y="10" width="60" height="30" rx="4" fill="#00A6A6" fill-opacity="0.12" stroke="#00A6A6" stroke-opacity="0.6" stroke-width="1"/>
+          <text x="320" y="29" text-anchor="middle" font-family="monospace" font-size="9" fill="#00A6A6" opacity="0.9">取证</text>
+          <!-- 三探针 -->
+          <line x1="320" y1="45" x2="320" y2="65" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.4"/>
+          <rect x="250" y="70" width="60" height="24" rx="3" fill="none" stroke="#4A8FCF" stroke-opacity="0.5" stroke-width="1"/>
+          <text x="280" y="86" text-anchor="middle" font-family="monospace" font-size="8" fill="#4A8FCF" opacity="0.7">Mimir</text>
+          <rect x="320" y="70" width="60" height="24" rx="3" fill="none" stroke="#4A8FCF" stroke-opacity="0.5" stroke-width="1"/>
+          <text x="350" y="86" text-anchor="middle" font-family="monospace" font-size="8" fill="#4A8FCF" opacity="0.7">Loki</text>
+          <!-- RCA -->
+          <line x1="180" y1="100" x2="180" y2="120" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.4"/>
+          <rect x="100" y="125" width="160" height="30" rx="4" fill="#00A6A6" fill-opacity="0.15" stroke="#00A6A6" stroke-opacity="0.7" stroke-width="1.5"/>
+          <text x="180" y="144" text-anchor="middle" font-family="monospace" font-size="10" fill="#00A6A6" opacity="0.95">RCA 报告</text>
+          <line x1="180" y1="160" x2="180" y2="175" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.4"/>
+          <rect x="110" y="180" width="140" height="18" rx="3" fill="none" stroke="#f1f3f5" stroke-opacity="0.25" stroke-width="1"/>
+          <text x="180" y="192" text-anchor="middle" font-family="monospace" font-size="8" fill="#f1f3f5" opacity="0.4">一键分享 · 钉钉/Slack</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><div class="title">举证责任从 SRE 下放给 AI</div><div>Before / After</div></div>
+</section>
+
+<!-- ===== P4 · 架构图 (light) ===== -->
+<section class="slide light" data-theme="light">
+  <div class="chrome">
+    <div class="left"><span>核心架构 · Architecture</span><span class="sep"></span><span>System Stack</span></div>
+    <div class="right"><span>04 / 10</span></div>
+  </div>
+  <div class="frame" style="padding-top:2vh">
+    <div class="kicker" data-anim>Architecture · 原生 Tool-Calling</div>
+    <h2 class="h-xl" data-anim style="margin-bottom:2vh">五层架构</h2>
+
+    <!-- SVG: 完整系统架构图 -->
+    <svg data-anim viewBox="0 0 1160 500" style="width:100%; max-height:62vh" fill="none">
+      <!-- L1: Frontend -->
+      <rect x="280" y="10" width="600" height="56" rx="6" fill="#0a1f3d" fill-opacity="0.08" stroke="#0a1f3d" stroke-opacity="0.35" stroke-width="1.5"/>
+      <text x="580" y="34" text-anchor="middle" font-family="monospace" font-size="11" fill="#0a1f3d" opacity="0.6">FRONTEND</text>
+      <text x="580" y="52" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#0a1f3d">Next.js · Chat Input → Execution Timeline → RCA Report View</text>
+      <!-- 箭头 -->
+      <line x1="580" y1="71" x2="580" y2="92" stroke="#00A6A6" stroke-width="2" stroke-opacity="0.5"/>
+      <polygon points="580,92 574,84 586,84" fill="#00A6A6" opacity="0.5"/>
+      <text x="600" y="86" font-family="monospace" font-size="9" fill="#00A6A6" opacity="0.6">HTTP / SSE</text>
+
+      <!-- L2: FastAPI Core -->
+      <rect x="280" y="98" width="600" height="56" rx="6" fill="#00A6A6" fill-opacity="0.06" stroke="#00A6A6" stroke-opacity="0.5" stroke-width="1.5"/>
+      <text x="580" y="122" text-anchor="middle" font-family="monospace" font-size="11" fill="#00A6A6" opacity="0.7">BACKEND · FASTAPI CORE</text>
+      <text x="580" y="140" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="600" fill="#0a1f3d">Session Manager · Tool-Calling Loop · RCA Generator</text>
+      <line x1="580" y1="159" x2="580" y2="180" stroke="#00A6A6" stroke-width="2" stroke-opacity="0.5"/>
+      <polygon points="580,180 574,172 586,172" fill="#00A6A6" opacity="0.5"/>
+
+      <!-- L3: SafeToolExecutor -->
+      <rect x="180" y="186" width="800" height="66" rx="6" fill="#0a1f3d" fill-opacity="0.06" stroke="#0a1f3d" stroke-opacity="0.3" stroke-width="1.5"/>
+      <text x="580" y="208" text-anchor="middle" font-family="monospace" font-size="11" fill="#0a1f3d" opacity="0.6">SAFETOOLEXECUTOR · 四层包装 (ADR-004)</text>
+      <!-- 四个关卡 -->
+      <rect x="210" y="216" width="160" height="26" rx="3" fill="#00A6A6" fill-opacity="0.1" stroke="#00A6A6" stroke-opacity="0.4" stroke-width="1"/>
+      <text x="290" y="233" text-anchor="middle" font-family="monospace" font-size="10" fill="#0a1f3d">① 预算预检</text>
+      <rect x="390" y="216" width="160" height="26" rx="3" fill="#00A6A6" fill-opacity="0.1" stroke="#00A6A6" stroke-opacity="0.4" stroke-width="1"/>
+      <text x="470" y="233" text-anchor="middle" font-family="monospace" font-size="10" fill="#0a1f3d">② 查询缓存</text>
+      <rect x="570" y="216" width="160" height="26" rx="3" fill="#00A6A6" fill-opacity="0.1" stroke="#00A6A6" stroke-opacity="0.4" stroke-width="1"/>
+      <text x="650" y="233" text-anchor="middle" font-family="monospace" font-size="10" fill="#0a1f3d">③ QL 预校验</text>
+      <rect x="750" y="216" width="160" height="26" rx="3" fill="#00A6A6" fill-opacity="0.1" stroke="#00A6A6" stroke-opacity="0.4" stroke-width="1"/>
+      <text x="830" y="233" text-anchor="middle" font-family="monospace" font-size="10" fill="#0a1f3d">④ 失败自修正</text>
+      <line x1="580" y1="257" x2="580" y2="278" stroke="#00A6A6" stroke-width="2" stroke-opacity="0.5"/>
+      <polygon points="580,278 574,270 586,270" fill="#00A6A6" opacity="0.5"/>
+
+      <!-- L4: ToolSpec 契约 -->
+      <rect x="180" y="284" width="800" height="46" rx="6" fill="none" stroke="#4A8FCF" stroke-opacity="0.4" stroke-width="1.5" stroke-dasharray="6 3"/>
+      <text x="580" y="312" text-anchor="middle" font-family="monospace" font-size="11" fill="#4A8FCF" opacity="0.7">ToolSpec 统一契约 (ADR-003) · Schema 对齐 MCP · 可插拔注册表</text>
+
+      <!-- L5: 三个探针 -->
+      <line x1="580" y1="335" x2="580" y2="355" stroke="#00A6A6" stroke-width="2" stroke-opacity="0.5"/>
+      <line x1="380" y1="355" x2="780" y2="355" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.4"/>
+      <line x1="380" y1="355" x2="380" y2="370" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.4"/>
+      <line x1="580" y1="355" x2="580" y2="370" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.4"/>
+      <line x1="780" y1="355" x2="780" y2="370" stroke="#00A6A6" stroke-width="1.5" stroke-opacity="0.4"/>
+
+      <rect x="270" y="370" width="220" height="50" rx="6" fill="#0a1f3d" fill-opacity="0.08" stroke="#0a1f3d" stroke-opacity="0.3" stroke-width="1.5"/>
+      <text x="380" y="392" text-anchor="middle" font-family="monospace" font-size="11" fill="#00A6A6" opacity="0.8">Mimir</text>
+      <text x="380" y="408" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#0a1f3d" opacity="0.6">指标探针 · Metrics</text>
+
+      <rect x="470" y="370" width="220" height="50" rx="6" fill="#0a1f3d" fill-opacity="0.08" stroke="#0a1f3d" stroke-opacity="0.3" stroke-width="1.5"/>
+      <text x="580" y="392" text-anchor="middle" font-family="monospace" font-size="11" fill="#00A6A6" opacity="0.8">Loki</text>
+      <text x="580" y="408" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#0a1f3d" opacity="0.6">日志探针 · Logs</text>
+
+      <rect x="670" y="370" width="220" height="50" rx="6" fill="#0a1f3d" fill-opacity="0.08" stroke="#0a1f3d" stroke-opacity="0.3" stroke-width="1.5"/>
+      <text x="780" y="392" text-anchor="middle" font-family="monospace" font-size="11" fill="#00A6A6" opacity="0.8">Tempo</text>
+      <text x="780" y="408" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#0a1f3d" opacity="0.6">链路探针 · Traces</text>
+
+      <!-- 底标注 -->
+      <text x="580" y="450" text-anchor="middle" font-family="monospace" font-size="10" fill="#0a1f3d" opacity="0.4">Read-Only · 不修改线上状态 (ADR-002) · 失败绝不抛 500 (ADR-005)</text>
+      <text x="580" y="468" text-anchor="middle" font-family="monospace" font-size="9" fill="#0a1f3d" opacity="0.3">Python 3.12 · FastAPI · Pydantic v2 · HTTPX · openai SDK (ADR-006)</text>
+    </svg>
+  </div>
+  <div class="foot"><div class="title">不引框架 · 推理流完全透明可调试</div><div>Architecture</div></div>
+</section>
+
+<!-- ===== P5 · 幕封 (hero light) ===== -->
+<section class="slide hero light" data-theme="light">
+  <div class="chrome">
+    <div class="left"><span>第二幕 · 可靠性</span><span class="sep"></span><span>Act II · Reliability</span></div>
+    <div class="right"><span>05 / 10</span></div>
+  </div>
+  <div class="frame" style="display:grid; gap:5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>SafeToolExecutor · 四层包装</div>
+    <h1 class="h-hero" style="font-size:7.6vw" data-anim>从"不崩"<br>到"自愈 + 可控"</h1>
+    <p class="lead" style="max-width:56vw" data-anim>每次工具调用统一经过四道关卡——把 PRD 红线从"不中断"升级为"自愈 + 可控"。</p>
+  </div>
+  <div class="foot"><div class="title">预算 / 缓存 / 校验 / 自修正</div><div>Act II · Divider</div></div>
+</section>
+
+<!-- ===== P6 · 四层关卡流程 (dark) ===== -->
+<section class="slide dark" data-theme="dark">
+  <div class="chrome">
+    <div class="left"><span>可靠性引擎 · Reliability</span><span class="sep"></span><span>SafeToolExecutor</span></div>
+    <div class="right"><span>06 / 10</span></div>
+  </div>
+  <div class="frame" style="padding-top:2vh">
+    <div class="kicker" data-anim>Four Gates · 四层关卡</div>
+    <h2 class="h-xl" data-anim style="margin-bottom:2vh">每次调用经过四道关</h2>
+
+    <!-- SVG: 四层关卡流程图 -->
+    <svg data-anim viewBox="0 0 1160 440" style="width:100%; max-height:60vh" fill="none">
+      <!-- 输入 -->
+      <rect x="20" y="180" width="120" height="56" rx="6" fill="#00A6A6" fill-opacity="0.15" stroke="#00A6A6" stroke-opacity="0.6" stroke-width="1.5"/>
+      <text x="80" y="206" text-anchor="middle" font-family="monospace" font-size="10" fill="#00A6A6" opacity="0.8">LLM</text>
+      <text x="80" y="222" text-anchor="middle" font-family="monospace" font-size="10" fill="#00A6A6" opacity="0.8">tool_call</text>
+      <line x1="145" y1="208" x2="178" y2="208" stroke="#f1f3f5" stroke-opacity="0.35" stroke-width="1.5"/>
+      <polygon points="178,208 171,204 171,212" fill="#f1f3f5" opacity="0.35"/>
+
+      <!-- ① 预算预检 -->
+      <rect x="185" y="140" width="150" height="136" rx="8" fill="none" stroke="#f1f3f5" stroke-opacity="0.25" stroke-width="1.5"/>
+      <text x="260" y="165" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#f1f3f5" opacity="0.9">①</text>
+      <text x="260" y="188" text-anchor="middle" font-family="monospace" font-size="9" fill="#00A6A6" opacity="0.7">BUDGET</text>
+      <text x="260" y="208" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="600" fill="#f1f3f5">预算预检</text>
+      <line x1="205" y1="222" x2="315" y2="222" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="260" y="240" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">token ≤ 80K</text>
+      <text x="260" y="256" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">calls ≤ 25</text>
+      <text x="260" y="272" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">time ≤ 180s</text>
+      <line x1="340" y1="208" x2="373" y2="208" stroke="#f1f3f5" stroke-opacity="0.35" stroke-width="1.5"/>
+      <polygon points="373,208 366,204 366,212" fill="#f1f3f5" opacity="0.35"/>
+
+      <!-- ② 查询缓存 -->
+      <rect x="380" y="140" width="150" height="136" rx="8" fill="none" stroke="#f1f3f5" stroke-opacity="0.25" stroke-width="1.5"/>
+      <text x="455" y="165" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#f1f3f5" opacity="0.9">②</text>
+      <text x="455" y="188" text-anchor="middle" font-family="monospace" font-size="9" fill="#00A6A6" opacity="0.7">CACHE</text>
+      <text x="455" y="208" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="600" fill="#f1f3f5">查询缓存</text>
+      <line x1="400" y1="222" x2="510" y2="222" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="455" y="240" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">归一化 key</text>
+      <text x="455" y="256" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">近实时 30s</text>
+      <text x="455" y="272" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">历史 10min</text>
+      <line x1="535" y1="208" x2="568" y2="208" stroke="#f1f3f5" stroke-opacity="0.35" stroke-width="1.5"/>
+      <polygon points="568,208 561,204 561,212" fill="#f1f3f5" opacity="0.35"/>
+
+      <!-- ③ QL 预校验 -->
+      <rect x="575" y="140" width="150" height="136" rx="8" fill="none" stroke="#f1f3f5" stroke-opacity="0.25" stroke-width="1.5"/>
+      <text x="650" y="165" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#f1f3f5" opacity="0.9">③</text>
+      <text x="650" y="188" text-anchor="middle" font-family="monospace" font-size="9" fill="#00A6A6" opacity="0.7">VALIDATE</text>
+      <text x="650" y="208" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="600" fill="#f1f3f5">QL 预校验</text>
+      <line x1="595" y1="222" x2="705" y2="222" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="650" y="240" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">L1 语法校验</text>
+      <text x="650" y="256" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">L2 作用域</text>
+      <text x="650" y="272" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">MetricCatalog</text>
+      <line x1="730" y1="208" x2="763" y2="208" stroke="#f1f3f5" stroke-opacity="0.35" stroke-width="1.5"/>
+      <polygon points="763,208 756,204 756,212" fill="#f1f3f5" opacity="0.35"/>
+
+      <!-- ④ 失败自修正 -->
+      <rect x="770" y="140" width="150" height="136" rx="8" fill="none" stroke="#FF6B6B" stroke-opacity="0.35" stroke-width="1.5"/>
+      <text x="845" y="165" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#f1f3f5" opacity="0.9">④</text>
+      <text x="845" y="188" text-anchor="middle" font-family="monospace" font-size="9" fill="#FF6B6B" opacity="0.7">SELF-HEAL</text>
+      <text x="845" y="208" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="600" fill="#f1f3f5">失败自修正</text>
+      <line x1="790" y1="222" x2="900" y2="222" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="845" y="240" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">结构化错误回灌</text>
+      <text x="845" y="256" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.55">LLM 重生成</text>
+      <text x="845" y="272" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#FF6B6B" opacity="0.6">max 3 次</text>
+
+      <!-- 执行 -->
+      <line x1="925" y1="208" x2="958" y2="208" stroke="#00A6A6" stroke-opacity="0.6" stroke-width="2"/>
+      <polygon points="958,208 951,204 951,212" fill="#00A6A6" opacity="0.6"/>
+      <rect x="965" y="180" width="120" height="56" rx="6" fill="#00A6A6" fill-opacity="0.15" stroke="#00A6A6" stroke-opacity="0.6" stroke-width="1.5"/>
+      <text x="1025" y="206" text-anchor="middle" font-family="monospace" font-size="10" fill="#00A6A6" opacity="0.8">执行</text>
+      <text x="1025" y="222" text-anchor="middle" font-family="monospace" font-size="10" fill="#00A6A6" opacity="0.8">execute</text>
+
+      <!-- 自修正回环 -->
+      <path d="M845 140 Q845 100 650 100 Q455 100 455 140" stroke="#FF6B6B" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4 3" fill="none"/>
+      <text x="650" y="92" text-anchor="middle" font-family="monospace" font-size="9" fill="#FF6B6B" opacity="0.5">校验失败 → 回灌 LLM 重生成</text>
+
+      <!-- 优雅收尾分支 -->
+      <line x1="260" y1="285" x2="260" y2="320" stroke="#f1f3f5" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="3 2"/>
+      <rect x="160" y="325" width="200" height="40" rx="4" fill="none" stroke="#f1f3f5" stroke-opacity="0.2" stroke-width="1"/>
+      <text x="260" y="349" text-anchor="middle" font-family="monospace" font-size="10" fill="#f1f3f5" opacity="0.5">预算耗尽 → 优雅收尾</text>
+      <text x="260" y="380" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.4">用已有证据生成"部分 RCA"</text>
+      <text x="260" y="395" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#FF6B6B" opacity="0.4">标注证据缺口 · 绝不臆测</text>
+
+      <!-- 底注 -->
+      <text x="580" y="425" text-anchor="middle" font-family="monospace" font-size="9" fill="#f1f3f5" opacity="0.35">H1: 自修正成功率 ≥ 70%　·　H2: 缓存收益 > 复杂度成本</text>
+    </svg>
+  </div>
+  <div class="foot"><div class="title">对所有 ToolSpec 透明生效 · 行为一致可单测</div><div>Reliability Engine</div></div>
+</section>
+
+<!-- ===== P7 · 产品界面 mockup (light) ===== -->
+<section class="slide light" data-theme="light">
+  <div class="chrome">
+    <div class="left"><span>产品体验 · Product</span><span class="sep"></span><span>UI Mockup</span></div>
+    <div class="right"><span>07 / 10</span></div>
+  </div>
+  <div class="frame" style="padding-top:2vh">
+    <div class="kicker" data-anim>Product Experience · 产品体验</div>
+    <h2 class="h-xl" data-anim style="margin-bottom:1vh">一句话触发,全程透明</h2>
+    <p class="body-zh" data-anim style="max-width:70vw; margin-bottom:1.5vh">每一步推理都可展开、可追溯——证据卡可下钻追问,信任不是口号。</p>
+
+    <!-- SVG: 产品界面 mockup -->
+    <svg data-anim viewBox="0 0 1160 440" style="width:100%; max-height:54vh" fill="none">
+      <!-- 浏览器窗口 -->
+      <rect x="10" y="0" width="1140" height="440" rx="8" fill="#0a1f3d" fill-opacity="0.04" stroke="#0a1f3d" stroke-opacity="0.2" stroke-width="1.5"/>
+      <!-- 标题栏 -->
+      <rect x="10" y="0" width="1140" height="28" rx="8" fill="#0a1f3d" fill-opacity="0.08"/>
+      <rect x="10" y="14" width="1140" height="14" fill="#0a1f3d" fill-opacity="0.08"/>
+      <circle cx="24" cy="14" r="4" fill="#FF6B6B" opacity="0.6"/><circle cx="38" cy="14" r="4" fill="#FFD93D" opacity="0.6"/><circle cx="52" cy="14" r="4" fill="#6BCB77" opacity="0.6"/>
+      <text x="580" y="18" text-anchor="middle" font-family="monospace" font-size="9" fill="#0a1f3d" opacity="0.4">AI SRE Investigator</text>
+
+      <!-- Chat 输入区 -->
+      <rect x="30" y="38" width="1100" height="34" rx="4" fill="#00A6A6" fill-opacity="0.06" stroke="#00A6A6" stroke-opacity="0.3" stroke-width="1"/>
+      <text x="42" y="58" font-family="sans-serif" font-size="11" fill="#0a1f3d" opacity="0.7">payment-service 刚才为什么大量 500?</text>
+      <rect x="1075" y="44" width="44" height="22" rx="3" fill="#00A6A6" fill-opacity="0.2"/>
+      <text x="1097" y="58" text-anchor="middle" font-family="monospace" font-size="9" fill="#00A6A6" opacity="0.8">Send</text>
+
+      <!-- Timeline 标签 -->
+      <text x="30" y="90" font-family="monospace" font-size="10" fill="#0a1f3d" opacity="0.5">INVESTIGATION TIMELINE</text>
+      <line x1="30" y1="96" x2="1130" y2="96" stroke="#0a1f3d" stroke-opacity="0.1" stroke-width="1"/>
+
+      <!-- Timeline step 1: Mimir -->
+      <circle cx="42" cy="114" r="6" fill="#00A6A6" opacity="0.8"/>
+      <text x="56" y="118" font-family="sans-serif" font-size="10" font-weight="600" fill="#0a1f3d">Query Mimir · error_rate</text>
+      <text x="280" y="118" font-family="monospace" font-size="9" fill="#00A6A6" opacity="0.6">rate(http_requests_total{code="500"}[5m])</text>
+      <text x="1090" y="118" text-anchor="end" font-family="monospace" font-size="9" fill="#0a1f3d" opacity="0.4">12.3% spike at 14:32</text>
+      <!-- 迷你折线图 -->
+      <polyline points="56,136 76,134 96,133 116,135 136,132 156,130 176,131 196,129 216,132 236,100 256,95 276,98" stroke="#FF6B6B" stroke-width="1.2" fill="none" opacity="0.6"/>
+
+      <!-- Timeline step 2: self-heal -->
+      <circle cx="42" cy="156" r="6" fill="#FFD93D" opacity="0.7"/>
+      <text x="56" y="160" font-family="sans-serif" font-size="10" fill="#0a1f3d" opacity="0.7">Self-heal · label 修正</text>
+      <text x="1090" y="160" text-anchor="end" font-family="monospace" font-size="9" fill="#FFD93D" opacity="0.6">retry 1/3 → fixed</text>
+
+      <!-- Timeline step 3: Loki -->
+      <circle cx="42" cy="180" r="6" fill="#00A6A6" opacity="0.8"/>
+      <text x="56" y="184" font-family="sans-serif" font-size="10" font-weight="600" fill="#0a1f3d">Search Loki · "Timeout"</text>
+      <text x="1090" y="184" text-anchor="end" font-family="monospace" font-size="9" fill="#FF6B6B" opacity="0.6">47 errors · Top: DB connection pool exhausted</text>
+
+      <!-- Timeline step 4: Tempo -->
+      <circle cx="42" cy="206" r="6" fill="#00A6A6" opacity="0.8"/>
+      <text x="56" y="210" font-family="sans-serif" font-size="10" font-weight="600" fill="#0a1f3d">Drill Tempo · TraceID</text>
+      <text x="1090" y="210" text-anchor="end" font-family="monospace" font-size="9" fill="#0a1f3d" opacity="0.5">slow span: SELECT * FROM orders · 4.2s</text>
+
+      <!-- RCA Report 区 -->
+      <text x="30" y="240" font-family="monospace" font-size="10" fill="#0a1f3d" opacity="0.5">RCA REPORT</text>
+      <line x1="30" y1="246" x2="1130" y2="246" stroke="#0a1f3d" stroke-opacity="0.1" stroke-width="1"/>
+
+      <rect x="30" y="252" width="1100" height="170" rx="4" fill="#0a1f3d" fill-opacity="0.03"/>
+      <text x="44" y="272" font-family="serif" font-size="12" font-weight="700" fill="#0a1f3d"># Incident Report: payment-service 500</text>
+      <line x1="44" y1="280" x2="1090" y2="280" stroke="#0a1f3d" stroke-opacity="0.08" stroke-width="1"/>
+      <text x="44" y="298" font-family="sans-serif" font-size="9" fill="#0a1f3d" opacity="0.7">## 根因: DB 连接池打满 (max_connections=50)</text>
+      <text x="44" y="316" font-family="sans-serif" font-size="9" fill="#0a1f3d" opacity="0.6">## 证据链:</text>
+      <text x="60" y="332" font-family="monospace" font-size="8" fill="#FF6B6B" opacity="0.6">  Metrics: error_rate 12.3% @ 14:32 (正常 < 0.5%)</text>
+      <text x="60" y="346" font-family="monospace" font-size="8" fill="#FF6B6B" opacity="0.6">  Logs: "connection pool exhausted" x47</text>
+      <text x="60" y="360" font-family="monospace" font-size="8" fill="#FF6B6B" opacity="0.6">  Trace: SELECT * FROM orders · 4.2s (P99 通常 80ms)</text>
+      <text x="44" y="380" font-family="sans-serif" font-size="9" fill="#00A6A6" opacity="0.7">## 修复建议: 扩大连接池至 100 / 检查慢查询索引</text>
+      <text x="44" y="400" font-family="monospace" font-size="8" fill="#0a1f3d" opacity="0.35">confidence: HIGH · evidence complete · 4 tool calls · 38s · 12K tokens</text>
+    </svg>
+  </div>
+  <div class="foot"><div class="title">Chat → Timeline → RCA · 全流程可追溯</div><div>Product Mockup</div></div>
+</section>
+
+<!-- ===== P8 · 证据仪表盘 (dark) ===== -->
+<section class="slide dark" data-theme="dark">
+  <div class="chrome">
+    <div class="left"><span>信任设计 · Trust</span><span class="sep"></span><span>Evidence Drill-down</span></div>
+    <div class="right"><span>08 / 10</span></div>
+  </div>
+  <div class="frame" style="padding-top:2vh">
+    <div class="kicker" data-anim>Trust-First · 证据可下钻</div>
+    <h2 class="h-xl" data-anim style="margin-bottom:1vh">AI 说了什么,凭什么?</h2>
+    <p class="body-zh" data-anim style="max-width:70vw; margin-bottom:1.5vh; color:#f1f3f5">指标图标注波峰、日志高亮异常行、Trace 瀑布图标红慢 Span——可点击追问。</p>
+
+    <!-- SVG: 三面板证据视图 -->
+    <svg data-anim viewBox="0 0 1160 420" style="width:100%; max-height:52vh" fill="none">
+      <!-- 面板1: 指标图 -->
+      <rect x="0" y="0" width="370" height="400" rx="6" fill="#f1f3f5" fill-opacity="0.04" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="16" y="24" font-family="monospace" font-size="10" fill="#00A6A6" opacity="0.7">METRICS · Mimir</text>
+      <text x="16" y="42" font-family="sans-serif" font-size="11" font-weight="600" fill="#f1f3f5">error_rate (5min)</text>
+      <!-- 坐标轴 -->
+      <line x1="16" y1="300" x2="354" y2="300" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <line x1="16" y1="60" x2="16" y2="300" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <!-- 正常区域 -->
+      <polyline points="16,280 50,278 84,279 118,277 152,279 186,278 220,280" stroke="#00A6A6" stroke-width="1.5" fill="none" opacity="0.5"/>
+      <!-- 阈值线 -->
+      <line x1="16" y1="260" x2="354" y2="260" stroke="#FFD93D" stroke-width="0.8" stroke-opacity="0.4" stroke-dasharray="3 2"/>
+      <text x="340" y="256" text-anchor="end" font-family="monospace" font-size="8" fill="#FFD93D" opacity="0.5">threshold 0.5%</text>
+      <!-- 异常尖峰 -->
+      <polyline points="220,280 240,270 255,180 265,90 275,85 285,100 295,160 310,220 325,260 354,275" stroke="#FF6B6B" stroke-width="2" fill="none" opacity="0.85"/>
+      <!-- 波峰标注 -->
+      <circle cx="270" cy="88" r="5" fill="none" stroke="#FF6B6B" stroke-width="1.5"/>
+      <line x1="270" y1="83" x2="270" y2="65" stroke="#FF6B6B" stroke-width="0.8" stroke-opacity="0.5"/>
+      <text x="270" y="60" text-anchor="middle" font-family="monospace" font-size="9" fill="#FF6B6B" opacity="0.8">12.3% @ 14:32</text>
+      <text x="16" y="320" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.5">波峰时刻: 14:32</text>
+      <text x="16" y="336" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.5">正常基线: < 0.5%</text>
+      <text x="16" y="352" font-family="sans-serif" font-size="9" fill="#FF6B6B" opacity="0.6">异常: 超阈值 24x</text>
+
+      <!-- 面板2: 日志 -->
+      <rect x="390" y="0" width="370" height="400" rx="6" fill="#f1f3f5" fill-opacity="0.04" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="406" y="24" font-family="monospace" font-size="10" fill="#00A6A6" opacity="0.7">LOGS · Loki</text>
+      <text x="406" y="42" font-family="sans-serif" font-size="11" font-weight="600" fill="#f1f3f5">异常日志 Top 5</text>
+      <!-- 日志行 -->
+      <rect x="406" y="56" width="338" height="20" rx="2" fill="#FF6B6B" fill-opacity="0.08"/>
+      <text x="412" y="70" font-family="monospace" font-size="8" fill="#FF6B6B" opacity="0.8">14:32:01 ERROR pool exhausted</text>
+      <rect x="406" y="80" width="338" height="20" rx="2" fill="#FF6B6B" fill-opacity="0.06"/>
+      <text x="412" y="94" font-family="monospace" font-size="8" fill="#FF6B6B" opacity="0.7">14:32:03 ERROR conn timeout (30s)</text>
+      <rect x="406" y="104" width="338" height="20" rx="2" fill="#FF6B6B" fill-opacity="0.06"/>
+      <text x="412" y="118" font-family="monospace" font-size="8" fill="#FF6B6B" opacity="0.7">14:32:05 ERROR pool exhausted</text>
+      <rect x="406" y="128" width="338" height="20" rx="2" fill="#FF6B6B" fill-opacity="0.05"/>
+      <text x="412" y="142" font-family="monospace" font-size="8" fill="#FF6B6B" opacity="0.6">14:32:08 WARN retry failed (3/3)</text>
+      <rect x="406" y="152" width="338" height="20" rx="2" fill="#FF6B6B" fill-opacity="0.05"/>
+      <text x="412" y="166" font-family="monospace" font-size="8" fill="#FF6B6B" opacity="0.6">14:32:11 ERROR pool exhausted</text>
+      <!-- 统计 -->
+      <text x="406" y="200" font-family="monospace" font-size="9" fill="#f1f3f5" opacity="0.5">Total errors: 47</text>
+      <text x="406" y="216" font-family="monospace" font-size="9" fill="#FF6B6B" opacity="0.6">Pattern: "pool exhausted" x 31</text>
+      <text x="406" y="232" font-family="monospace" font-size="9" fill="#FF6B6B" opacity="0.6">Pattern: "conn timeout" x 16</text>
+      <!-- 高亮提示 -->
+      <rect x="406" y="250" width="338" height="40" rx="3" fill="none" stroke="#00A6A6" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="3 2"/>
+      <text x="575" y="267" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#00A6A6" opacity="0.6">点击日志行 →</text>
+      <text x="575" y="281" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#00A6A6" opacity="0.6">追问 Agent 下钻</text>
+
+      <!-- 面板3: Trace 瀑布图 -->
+      <rect x="780" y="0" width="370" height="400" rx="6" fill="#f1f3f5" fill-opacity="0.04" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="796" y="24" font-family="monospace" font-size="10" fill="#00A6A6" opacity="0.7">TRACE · Tempo</text>
+      <text x="796" y="42" font-family="sans-serif" font-size="11" font-weight="600" fill="#f1f3f5">最慢 Trace 瀑布图</text>
+      <!-- Span 1: HTTP -->
+      <rect x="796" y="58" width="300" height="16" rx="2" fill="#4A8FCF" fill-opacity="0.3"/>
+      <text x="802" y="70" font-family="monospace" font-size="8" fill="#f1f3f5" opacity="0.6">GET /api/payment · 4.8s</text>
+      <!-- Span 2: service -->
+      <rect x="806" y="80" width="280" height="16" rx="2" fill="#00A6A6" fill-opacity="0.2"/>
+      <text x="812" y="92" font-family="monospace" font-size="8" fill="#f1f3f5" opacity="0.55">payment-service.process · 4.5s</text>
+      <!-- Span 3: DB (慢查询!标红) -->
+      <rect x="820" y="102" width="240" height="20" rx="2" fill="#FF6B6B" fill-opacity="0.5" stroke="#FF6B6B" stroke-width="1.5"/>
+      <text x="826" y="116" font-family="monospace" font-size="8" fill="#f1f3f5" opacity="0.9">SELECT * FROM orders · 4.2s</text>
+      <!-- 标注 -->
+      <line x1="1060" y1="112" x2="1100" y2="112" stroke="#FF6B6B" stroke-width="0.8" stroke-opacity="0.5"/>
+      <text x="1130" y="115" text-anchor="end" font-family="monospace" font-size="8" fill="#FF6B6B" opacity="0.8">ROOT CAUSE</text>
+      <!-- Span 4: cache -->
+      <rect x="820" y="128" width="40" height="16" rx="2" fill="#FFD93D" fill-opacity="0.25"/>
+      <text x="826" y="140" font-family="monospace" font-size="8" fill="#f1f3f5" opacity="0.5">cache.get · 0.3s</text>
+      <!-- 时间轴 -->
+      <line x1="796" y1="160" x2="1140" y2="160" stroke="#f1f3f5" stroke-opacity="0.15" stroke-width="1"/>
+      <text x="796" y="174" font-family="monospace" font-size="8" fill="#f1f3f5" opacity="0.35">0s</text>
+      <text x="968" y="174" font-family="monospace" font-size="8" fill="#f1f3f5" opacity="0.35">2s</text>
+      <text x="1140" y="174" font-family="monospace" font-size="8" fill="#f1f3f5" opacity="0.35" text-anchor="end">5s</text>
+      <!-- 统计 -->
+      <text x="796" y="200" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.5">TraceID: a1b2c3d4e5f6</text>
+      <text x="796" y="216" font-family="sans-serif" font-size="9" fill="#FF6B6B" opacity="0.6">最慢 Span: SELECT orders · 4.2s</text>
+      <text x="796" y="232" font-family="sans-serif" font-size="9" fill="#f1f3f5" opacity="0.5">P99 正常: 80ms · 偏离 52x</text>
+      <text x="796" y="248" font-family="sans-serif" font-size="9" fill="#00A6A6" opacity="0.6">占整条 Trace 87.5%</text>
+    </svg>
+  </div>
+  <div class="foot"><div class="title">透明可追溯是信任的基石</div><div>Evidence</div></div>
+</section>
+
+<!-- ===== P9 · POV 悬念 (hero dark) ===== -->
+<section class="slide hero dark" data-theme="dark">
+  <div class="chrome">
+    <div class="left"><span>产品立场 · Point of View</span><span class="sep"></span><span>The Question</span></div>
+    <div class="right"><span>09 / 10</span></div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>The Stance</div>
+    <h1 class="h-hero" style="font-size:6.2vw; line-height:1.16">
+      <span data-anim style="display:block">先证明"读得准",</span>
+      <span data-anim style="display:block">才有资格谈"写得对"。</span>
+    </h1>
+    <p class="lead" style="max-width:54vw" data-anim>MVP 只读、诚实标注不确定性、低置信度优雅交接——这是敢用于真实生产事件的安全闸。</p>
+  </div>
+  <div class="foot"><div class="title">信任未建立前,写权限是灾难</div><div>POV · The Question</div></div>
+</section>
+
+<!-- ===== P10 · 收尾金句 (light) ===== -->
+<section class="slide light" data-theme="light" data-animate="quote">
+  <div class="chrome">
+    <div class="left"><span>收尾 · The Takeaway</span><span class="sep"></span><span>Closing</span></div>
+    <div class="right"><span>10 / 10</span></div>
+  </div>
+  <div class="frame" style="display:grid; gap:4.5vh; align-content:center; min-height:80vh">
+    <div class="kicker" data-anim>Quote · 一句话价值</div>
+    <blockquote style="font-family:var(--serif-zh); font-weight:700; font-size:5vw; line-height:1.2; letter-spacing:-.01em; max-width:74vw">
+      <span data-anim="line" style="display:block">自己的服务故障,</span>
+      <span data-anim="line" style="display:block">自己独立闭环。</span>
+    </blockquote>
+    <p class="lead" style="max-width:56vw; opacity:.66" data-anim>
+      Own your incidents, close the loop yourself.<br>
+      把少数 SRE 的肌肉记忆,沉淀为全员可调用的组织资产。
+    </p>
+    <div class="meta-row" data-anim>
+      <span>AI SRE Investigator</span><span>·</span><span>MVP V1.0</span><span>·</span><span>2026</span>
+    </div>
+  </div>
+  <div class="foot"><div class="title">打破 QL 认知壁垒 · 消除"多对一"瓶颈</div><div>— · —</div></div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+/* =============== WebGL 双背景 ===============
+   深色页：Holographic Dispersion（全息色散 · 钛金暗流）—— 彩虹微扰、鼠标径向涟漪
+   浅色页：Spiral Vortex（旋转涡流 · 银色珍珠）—— domain-warp 流动、无中心
+   修改风格请参考 references/webgl-backgrounds.md
+*/
+const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+const FS_DARK = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;
+    p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  vec3 a=vec3(0.12,0.12,0.13);
+  vec3 b=vec3(0.03,0.04,0.05);
+  vec3 c=vec3(1.0,1.0,1.0);
+  vec3 d=vec3(0.1,0.2,0.4);
+  vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);
+  float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;
+  col+=vec3(disp*0.015,disp*0.01,disp*0.02);
+  float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);
+  col+=hi*0.08;
+  vec3 base=vec3(0.05,0.05,0.06);
+  col=mix(base,col,0.85);
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const FS_LIGHT = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;
+  vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));
+  vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),
+              fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));
+  float f=fbm(p*2.2+r*1.5);
+  vec3 silverDark=vec3(0.86,0.85,0.84);
+  vec3 paper=vec3(0.955,0.945,0.925);
+  vec3 col=mix(silverDark,paper,f);
+  float ph=r.x*2.2+u_time*0.35;
+  col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;
+  col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;
+  float hl=smoothstep(0.48,0.92,f);
+  col+=hl*0.06;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+function bootGL(canvasId, fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl) return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{
+    const d=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=innerWidth*d;canvas.height=innerHeight*d;
+    gl.viewport(0,0,canvas.width,canvas.height);
+  };
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{
+    gl.uniform2f(lRes,canvas.width,canvas.height);
+    gl.uniform1f(lT,tSec);
+    gl.uniform2f(lM,mouse.x,1-mouse.y);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    return true;
+  };
+}
+let drawDark=null, drawLight=null, glRAF=0, glT0=Date.now();
+function startGL(){
+  if(window.__lowPowerMode || glRAF) return;
+  if(!drawDark) drawDark=bootGL('bg-dark',FS_DARK);
+  if(!drawLight) drawLight=bootGL('bg-light',FS_LIGHT);
+  glT0=Date.now();
+  function loop(){
+    if(window.__lowPowerMode){glRAF=0;return;}
+    const t=(Date.now()-glT0)/1000;
+    drawDark(t);drawLight(t);
+    glRAF=requestAnimationFrame(loop);
+  }
+  glRAF=requestAnimationFrame(loop);
+}
+function stopGL(){
+  if(glRAF) cancelAnimationFrame(glRAF);
+  glRAF=0;
+}
+startGL();
+addEventListener('ppt-low-power-change', e=>{e.detail.on ? stopGL() : startGL();});
+
+// =============== 导航（翻页 / 圆点 / 键盘 / 滚轮 / 触屏） ===============
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+
+// 关键：矫正 deck 宽度为 total * 100vw，否则翻页会错位
+deck.style.width=(total*100)+'vw';
+
+slides.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));
+  b.onclick=()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(n){
+  if(lock)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  window.__currentSlideIndex = idx;
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  /* 主题切换：优先读 data-theme，其次从 class（light/dark）推断 */
+  const el=slides[idx];
+  const th=el.dataset.theme || (el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  /* 动效：翻页过渡中段触发当前页的入场动画（由 motion-boot 注册） */
+  if(window.__playSlide) setTimeout(()=>window.__playSlide(idx), 450);
+  lock=true;setTimeout(()=>lock=false,700);
+}
+
+/* =============== ESC 索引视图 =============== */
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)')+';transition:border-color .2s';
+    card.onmouseenter=()=>card.style.borderColor='rgba(var(--paper-rgb),.6)';
+    card.onmouseleave=()=>card.style.borderColor=i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'var(--paper)':'var(--ink)');
+    const clone=s.cloneNode(true);
+    clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+    wrap.appendChild(clone);
+    const label=document.createElement('div');
+    label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);opacity:.7';
+    label.textContent=(i+1)+' / '+total;
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.onclick=()=>{toggleOverview();go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+
+function toggleOverview(){
+  overviewOn=!overviewOn;
+  if(overviewOn){buildOverview();ov.style.display='block';}
+  else{ov.style.display='none';}
+}
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();toggleOverview();return;}
+  if(e.key && e.key.toLowerCase()==='b' && !e.metaKey && !e.ctrlKey && !e.altKey){
+    e.preventDefault();
+    window.__setLowPowerMode(!window.__lowPowerMode);
+    return;
+  }
+  if(overviewOn)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+    if(window.__pipeAdvance && window.__pipeAdvance()) return;
+    go(idx+1);
+    return;
+  }
+  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='Home')go(0);
+  if(e.key==='End')go(total-1);
+});
+
+let wheelTO=null,wheelAcc=0;
+addEventListener('wheel',e=>{
+  wheelAcc+=e.deltaY+e.deltaX;
+  if(Math.abs(wheelAcc)>50){
+    if(wheelAcc>0 && window.__pipeAdvance && window.__pipeAdvance()){
+      wheelAcc=0;
+    }else{
+      go(idx+(wheelAcc>0?1:-1));wheelAcc=0;
+    }
+  }
+  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
+},{passive:true});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=(e.changedTouches[0].clientX-tx);
+  const dy=(e.changedTouches[0].clientY-ty);
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){
+    if(dx<0 && window.__pipeAdvance && window.__pipeAdvance()) return;
+    go(idx+(dx<0?1:-1));
+  }
+},{passive:true});
+
+go(0);
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+
+<!-- ============ Motion One 动效引擎（本地优先,CDN 兜底） ============
+     加载策略:先 ./assets/motion.min.js(本地,离线可用),失败 fallback 到 jsDelivr CDN
+     加载完成后挂 window.__playSlide / window.__pipeAdvance,
+     导航脚本会在翻页中段调用 __playSlide(idx),键盘/滚轮/触屏会在翻页前调用 __pipeAdvance()
+     双双失败时会兜底把所有 [data-anim] 设为可见,不让动效破坏阅读
+-->
+<script type="module">
+let motion;
+try {
+  motion = await import('./assets/motion.min.js');
+} catch(e1) {
+  try {
+    motion = await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  } catch(e2) {
+    console.warn('[motion] local + CDN both failed, disabling animations', e1, e2);
+    document.querySelectorAll('[data-anim]').forEach(el=>{el.style.opacity='1';el.style.transform='none'});
+    document.querySelectorAll('[data-animate="pipeline"] [data-anim]').forEach(el=>el.style.opacity='1');
+  }
+}
+
+if(motion){
+  const { animate, stagger } = motion;
+  document.body.classList.add('motion-ready');
+  const EASE = [.22, 1, .36, 1];
+  const slides = [...document.querySelectorAll('.slide')];
+  let pipeStep = -1;
+  let lastIdx = -1;
+
+  function resetAnims(slide){
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='';
+      el.style.transform='';
+    });
+  }
+
+  function revealStatic(slide){
+    resetAnims(slide);
+    document.getAnimations?.().forEach(a=>a.cancel());
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='1';
+      el.style.transform='none';
+    });
+  }
+
+  function playSlide(i){
+    const slide = slides[i];
+    if(!slide) return;
+    lastIdx = i;
+    const recipe = slide.dataset.animate || (slide.classList.contains('hero') ? 'hero' : 'cascade');
+
+    if(window.__lowPowerMode){
+      revealStatic(slide);
+      return;
+    }
+
+    if(recipe === 'pipeline'){
+      pipeStep = -1;
+      slide.querySelectorAll('[data-anim]').forEach(el=>{
+        el.style.opacity='0.15';
+        el.style.transform='none';
+      });
+      return;
+    }
+
+    resetAnims(slide);
+    const all = [...slide.querySelectorAll('[data-anim]')];
+    if(!all.length) return;
+
+    if(recipe === 'directional'){
+      const lefts  = all.filter(el=>el.dataset.anim==='left');
+      const divs   = all.filter(el=>el.dataset.anim==='divider');
+      const rights = all.filter(el=>el.dataset.anim==='right');
+      const others = all.filter(el=>!['left','right','divider'].includes(el.dataset.anim));
+      if(others.length) animate(others, {opacity:[0,1], y:[12,0]}, {duration:.6, delay:stagger(.1, {start:.15}), easing:EASE});
+      if(lefts.length)  animate(lefts,  {opacity:[0,1], x:[-24,0]}, {duration:.8, delay:.35, easing:EASE});
+      if(divs.length)   animate(divs,   {opacity:[0,.25]},          {duration:.5, delay:.9});
+      if(rights.length) animate(rights, {opacity:[0,1], x:[24,0]},  {duration:.8, delay:1.0, easing:EASE});
+      return;
+    }
+
+    if(recipe === 'quote'){
+      const lines = all.filter(el=>el.dataset.anim==='line');
+      const others = all.filter(el=>el.dataset.anim!=='line');
+      if(others.length) animate(others, {opacity:[0,1], y:[8,0]},    {duration:.6, delay:stagger(.12, {start:.2}), easing:EASE});
+      if(lines.length)  animate(lines,  {opacity:[.35,1], y:[10,0]}, {duration:.8, delay:stagger(.55, {start:.5}), easing:EASE});
+      return;
+    }
+
+    if(recipe === 'hero'){
+      animate(all, {opacity:[0,1], y:[14,0]}, {duration:.9, delay:stagger(.16, {start:.2}), easing:EASE});
+      return;
+    }
+
+    // default: cascade
+    animate(all, {opacity:[0,1], y:[16,0]}, {duration:.75, delay:stagger(.1, {start:.15}), easing:EASE});
+  }
+
+  function pipeAdvance(){
+    if(window.__lowPowerMode) return false;
+    const slide = slides[lastIdx];
+    if(!slide || slide.dataset.animate !== 'pipeline') return false;
+    const steps  = [...slide.querySelectorAll('[data-anim="step"]')];
+    const arrows = [...slide.querySelectorAll('[data-anim="arrow"]')];
+    if(pipeStep >= steps.length - 1) return false;
+    pipeStep++;
+    animate(steps[pipeStep], {opacity:[0.15,1], y:[8,0]}, {duration:.5, easing:EASE});
+    if(pipeStep > 0 && arrows[pipeStep-1]){
+      animate(arrows[pipeStep-1], {opacity:[0.15,.7]}, {duration:.3, delay:.15});
+    }
+    return true;
+  }
+
+  window.__playSlide = playSlide;
+  window.__pipeAdvance = pipeAdvance;
+
+  // 首屏:go(0) 已跑过(同步),没来得及触发动效 → 这里补一下
+  playSlide(0);
+}
+</script>
+</body>
+</html>

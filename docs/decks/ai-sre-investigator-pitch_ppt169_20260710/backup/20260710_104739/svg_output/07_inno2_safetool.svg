@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF"/>
+
+  <!-- header -->
+  <rect x="56" y="48" width="6" height="32" fill="#00A6A6"/>
+  <text x="74" y="72" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#00A6A6" letter-spacing="2">07 · 核心创新 ②</text>
+  <text x="56" y="118" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="37" font-weight="bold" fill="#0F2A44">ToolSpec + SafeToolExecutor 四层包装</text>
+  <text x="56" y="156" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" fill="#5A6B7E">所有 Tool 共享同一调度外壳 · 任意新工具零成本继承全部防护（ADR-003 / ADR-004）</text>
+
+  <!-- Left: 4-layer stack wrapper -->
+  <g id="stack">
+    <text x="60" y="208" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44" letter-spacing="2">SafeToolExecutor · 四道关卡</text>
+    <text x="60" y="232" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#5A6B7E">对所有 ToolSpec 透明生效</text>
+
+    <!-- LLM icon at top -->
+    <g transform="translate(580,256)">
+      <rect x="0" y="0" width="120" height="38" rx="4" fill="#0F2A44"/>
+      <use data-icon="chunk-filled/robot" x="8" y="6" width="26" height="26" fill="#00A6A6"/>
+      <text x="80" y="24" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">LLM tool_call</text>
+    </g>
+
+    <!-- arrow down -->
+    <line x1="640" y1="294" x2="640" y2="314" stroke="#0F2A44" stroke-width="2"/>
+    <polygon points="640,322 634,312 646,312" fill="#0F2A44"/>
+
+    <!-- four layers stacked -->
+    <!-- Layer 1: budget precheck -->
+    <g transform="translate(60,328)">
+      <rect x="0" y="0" width="120" height="56" rx="4" fill="#F4F6FA" stroke="#00A6A6"/>
+      <text x="60" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" font-weight="bold" fill="#00A6A6" text-anchor="middle">① 预算预检</text>
+      <text x="60" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">token / tool / 时长</text>
+    </g>
+    <!-- Layer 2: cache -->
+    <g transform="translate(200,328)">
+      <rect x="0" y="0" width="120" height="56" rx="4" fill="#F4F6FA" stroke="#00A6A6"/>
+      <text x="60" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" font-weight="bold" fill="#00A6A6" text-anchor="middle">② 查询缓存</text>
+      <text x="60" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">去重 · TTL 分级</text>
+    </g>
+    <!-- Layer 3: QL prevalidate -->
+    <g transform="translate(340,328)">
+      <rect x="0" y="0" width="120" height="56" rx="4" fill="#F4F6FA" stroke="#00A6A6"/>
+      <text x="60" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" font-weight="bold" fill="#00A6A6" text-anchor="middle">③ QL 预校验</text>
+      <text x="60" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">L1 语法 + L2 作用域</text>
+    </g>
+    <!-- Layer 4: self-heal -->
+    <g transform="translate(480,328)">
+      <rect x="0" y="0" width="160" height="56" rx="4" fill="#F4F6FA" stroke="#00A6A6"/>
+      <text x="80" y="22" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" font-weight="bold" fill="#00A6A6" text-anchor="middle">④ 失败自修正</text>
+      <text x="80" y="42" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#5A6B7E" text-anchor="middle">结构化错误回灌 · 最多 3 次</text>
+    </g>
+
+    <!-- Execution -->
+    <line x1="640" y1="384" x2="640" y2="408" stroke="#0F2A44" stroke-width="2"/>
+    <polygon points="640,416 634,406 646,406" fill="#0F2A44"/>
+
+    <g transform="translate(60,420)">
+      <rect x="0" y="0" width="580" height="40" rx="4" fill="#0F2A44"/>
+      <text x="290" y="26" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">⑤ 执行（timeout + 指数退避重试） → 结构化结果回灌</text>
+    </g>
+
+    <!-- icons per layer -->
+    <use data-icon="chunk-filled/clock" x="20" y="344" width="20" height="20" fill="#00A6A6"/>
+    <use data-icon="chunk-filled/database" x="160" y="344" width="20" height="20" fill="#00A6A6"/>
+    <use data-icon="chunk-filled/code-block" x="300" y="344" width="20" height="20" fill="#00A6A6"/>
+    <use data-icon="chunk-filled/git-branch" x="440" y="344" width="20" height="20" fill="#00A6A6"/>
+  </g>
+
+  <!-- right: judgment panel -->
+  <g id="judgment">
+    <rect x="700" y="200" width="520" height="420" rx="8" fill="#F4F6FA" stroke="#E2E8F0"/>
+    <text x="724" y="240" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0F2A44" letter-spacing="2">设计意义</text>
+    <line x1="724" y1="252" x2="884" y2="252" stroke="#00A6A6" stroke-width="2"/>
+
+    <g transform="translate(724,278)">
+      <use data-icon="chunk-filled/lightbulb" x="0" y="0" width="28" height="28" fill="#00A6A6"/>
+      <text x="40" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0F2A44">四关透明生效</text>
+      <text x="40" y="44" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">Mimir / Loki / Tempo 各自工具实现只关心</text>
+      <text x="40" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">validate / execute，防护逻辑零成本继承</text>
+    </g>
+
+    <g transform="translate(724,360)">
+      <use data-icon="chunk-filled/target" x="0" y="0" width="28" height="28" fill="#00A6A6"/>
+      <text x="40" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0F2A44">可插拔 · 演进无债务</text>
+      <text x="40" y="44" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">新增 Prometheus / ES / k8s 工具</text>
+      <text x="40" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">只需注册 ToolSpec，不动调度层</text>
+    </g>
+
+    <g transform="translate(724,442)">
+      <use data-icon="chunk-filled/shield-check" x="0" y="0" width="28" height="28" fill="#00A6A6"/>
+      <text x="40" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0F2A44">把红线从"不崩"</text>
+      <text x="40" y="44" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">升级为"自愈 + 可控"，</text>
+      <text x="40" y="62" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#5A6B7E">是产品能上生产的前置工程门槛</text>
+    </g>
+
+    <g transform="translate(724,540)">
+      <use data-icon="chunk-filled/cog" x="0" y="0" width="28" height="28" fill="#00A6A6"/>
+      <text x="40" y="20" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#5A6B7E">详见 tech-design-ql-selfheal.md</text>
+    </g>
+  </g>
+
+  <line x1="56" y1="676" x2="1224" y2="676" stroke="#E2E8F0"/>
+  <text x="56" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6">ADR-003 / ADR-004 · tech-design-ql-selfheal</text>
+  <text x="1224" y="700" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8896A6" text-anchor="end">P07 / 12</text>
+</svg>
