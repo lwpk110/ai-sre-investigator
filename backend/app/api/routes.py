@@ -24,6 +24,7 @@ from app.agent.events import SSEEvent
 from app.agent.loop import AgentLoop
 from app.agent.safe_executor import SafeToolExecutor
 from app.observability.metrics import collector as metrics_collector
+from app.services.service_profile import catalog as service_catalog
 from app.tools.base import ToolSpec
 from app.tools.loki import LokiTool
 from app.tools.mimir import MimirTool
@@ -244,6 +245,45 @@ def create_app(
         if session_metrics is None:
             raise HTTPException(status_code=404, detail="会话指标不存在")
         return session_metrics.to_dict()
+
+    @app.get("/api/services")
+    async def list_services() -> dict[str, Any]:
+        """列出全部服务画像（V2-F3）。"""
+        return {
+            "services": [
+                {
+                    "name": s.name,
+                    "owner_team": s.owner_team,
+                    "owner_contact": s.owner_contact,
+                    "slo": s.slo.model_dump(),
+                    "dependencies": s.dependencies,
+                    "criticality": s.criticality,
+                    "description": s.description,
+                }
+                for s in service_catalog.all()
+            ]
+        }
+
+    @app.get("/api/services/{service_name}")
+    async def get_service(service_name: str) -> dict[str, Any]:
+        """查询单个服务画像（V2-F3）。"""
+        profile = service_catalog.get(service_name)
+        if profile is None:
+            # 尝试模糊匹配
+            results = service_catalog.find_by_keyword(service_name)
+            if results:
+                profile = results[0]
+            else:
+                raise HTTPException(status_code=404, detail="服务不存在")
+        return {
+            "name": profile.name,
+            "owner_team": profile.owner_team,
+            "owner_contact": profile.owner_contact,
+            "slo": profile.slo.model_dump(),
+            "dependencies": profile.dependencies,
+            "criticality": profile.criticality,
+            "description": profile.description,
+        }
 
     return app
 

@@ -1,0 +1,78 @@
+# 服务画像配置 — V2-F3 服务目录
+# V1 阶段使用静态 YAML，V2 接 CMDB 自动同步
+# 服务名必须与 Mimir application / Loki service_name 标签一致
+
+services:
+  - name: "tendata-crm-customer-service"
+    owner_team: "CRM"
+    owner_contact: "#crm-oncall"
+    slo:
+      availability_999: "99.9%"
+      p99_latency_ms: 500
+    dependencies:
+      - "tendata-auth-service"
+      - "tendata-dfs-service"
+      - "mysql-crm-cluster"
+    criticality: "P1"
+    description: "CRM 客户管理核心服务"
+
+  - name: "tendata-auth-service"
+    owner_team: "Platform"
+    owner_contact: "#platform-oncall"
+    slo:
+      availability_999: "99.95%"
+      p99_latency_ms: 200
+    dependencies:
+      - "redis-cluster"
+      - "mysql-auth-cluster"
+    criticality: "P0"
+    description: "统一认证鉴权服务"
+
+  - name: "tendata-corp-service"
+    owner_team: "Data"
+    owner_contact: "#data-oncall"
+    slo:
+      availability_999: "99.9%"
+      p99_latency_ms: 800
+    dependencies:
+      - "tendata-dfs-service"
+      - "mysql-corp-cluster"
+      - "elasticsearch-cluster"
+    criticality: "P1"
+    description: "企业信息查询服务"
+
+  - name: "tendata-ai-service"
+    owner_team: "AI"
+    owner_contact: "#ai-oncall"
+    slo:
+      availability_999: "99.5%"
+      p99_latency_ms: 2000
+    dependencies:
+      - "tendata-dmx-cms-service"
+      - "gpu-cluster"
+    criticality: "P2"
+    description: "AI 智能推荐与分析服务"
+
+  - name: "tendata-bi-service"
+    owner_team: "BI"
+    owner_contact: "#bi-oncall"
+    slo:
+      availability_999: "99.9%"
+      p99_latency_ms: 1000
+    dependencies:
+      - "tendata-dfs-service"
+      - "clickhouse-cluster"
+    criticality: "P2"
+    description: "商业智能报表服务"
+
+  - name: "tendata-contact-service"
+    owner_team: "CRM"
+    owner_contact: "#crm-oncall"
+    slo:
+      availability_999: "99.9%"
+      p99_latency_ms: 600
+    dependencies:
+      - "tendata-auth-service"
+      - "mysql-crm-cluster"
+    criticality: "P1"
+    description: "联系人管理服务"
