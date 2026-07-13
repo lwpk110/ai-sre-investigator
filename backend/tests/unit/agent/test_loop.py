@@ -10,6 +10,7 @@ import json
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 from pydantic import BaseModel
 
 from app.agent.budget import BudgetTracker
@@ -511,3 +512,99 @@ class TestAgentLoopEvents:
         assert len(tr_events) == 2
         assert events[-1].type == "rca_complete"
         assert events[-1].data["confidence"] == "high"  # 2 条证据
+
+
+class TestPartialRCAEnhancements:
+    """部分 RCA 增强：suggestions 和 missing_queries（V1.5-F4）。"""
+
+    @pytest.mark.asyncio
+    async def test_partial_rca_includes_suggestions(self):
+        """预算耗尽时部分 RCA 包含 suggestions 字段。"""
+        budget = BudgetTracker(max_tokens=100, max_tool_calls=1)
+        executor = SafeToolExecutor(budget=budget)
+        agent = AgentLoop(
+            tools=[_StubTool()],
+            executor=executor,
+            budget=budget,
+            client=MagicMock(),
+        )
+
+        suggestions = agent._generate_suggestions(
+            evidence=["[mimir] 数据点1"],
+            pending_queries=["loki: {service=\"x\"} |= \"error\""],
+        )
+        assert len(suggestions) >= 1
+        assert isinstance(suggestions, list)
+
+    def test_generate_suggestions_for_mimir(self):
+        """mimir 查询的待执行建议应包含时间窗口。"""
+        budget = BudgetTracker()
+        executor = SafeToolExecutor(budget=budget)
+        agent = AgentLoop(
+            tools=[_StubTool()],
+            executor=executor,
+            budget=budget,
+            client=MagicMock(),
+        )
+        suggestions = agent._generate_suggestions(
+            evidence=[],
+            pending_queries=["mimir: rate(cpu[5m])"],
+        )
+        assert any("时间窗口" in s or "趋势" in s for s in suggestions)
+
+    def test_generate_suggestions_fills_to_minimum(self):
+        """建议不足 2 条时自动补充通用建议。"""
+        budget = BudgetTracker()
+        executor = SafeToolExecutor(budget=budget)
+        agent = AgentLoop(
+            tools=[_StubTool()],
+            executor=executor,
+            budget=budget,
+            client=MagicMock(),
+        )
+        suggestions = agent._generate_suggestions(
+            evidence=["[mimir] 数据"],
+            pending_queries=[],
+        )
+        assert len(suggestions) >= 2
+
+    def test_generate_suggestions_max_three(self):
+        """建议最多 3 条。"""
+        budget = BudgetTracker()
+        executor = SafeToolExecutor(budget=budget)
+        agent = AgentLoop(
+            tools=[_StubTool()],
+            executor=executor,
+            budget=budget,
+            client=MagicMock(),
+        )
+        suggestions = agent._generate_suggestions(
+            evidence=[],
+            pending_queries=["mimir: q1", "loki: q2", "tempo: q3", "mimir: q4"],
+        )
+        assert len(suggestions) <= 3
+
+
+class TestRCACompleteSuggestions:
+    """rca_complete 事件包含 suggestions 字段（V1.5-F3/F4）。"""
+
+    def test_rca_complete_has_suggestions_field(self):
+        """rca_complete 事件应包含 suggestions 字段（空列表）。"""
+        from app.agent.events import rca_complete
+
+        event = rca_complete(report="RCA 报告", confidence="high")
+        assert "suggestions" in event.data
+        assert isinstance(event.data["suggestions"], list)
+
+    def test_rca_partial_has_suggestions_field(self):
+        """rca_partial 事件应包含 suggestions 字段。"""
+        from app.agent.events import rca_partial
+
+        event = rca_partial(
+            report="部分报告",
+            missing=["缺失查询1"],
+            suggestions=["建议1", "建议2"],
+        )
+        assert event.data["suggestions"] == ["建议1", "建议2"]
+        assert event.data["missing"] == ["缺失查询1"]
+        assert event.data["confidence"] == "low"

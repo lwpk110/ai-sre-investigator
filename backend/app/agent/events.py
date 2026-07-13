@@ -67,15 +67,28 @@ def rca_complete(report: str, confidence: str = "high") -> SSEEvent:
     """RCA 报告生成完成。"""
     return SSEEvent(
         type="rca_complete",
-        data={"report": report, "confidence": confidence},
+        data={
+            "report": report,
+            "confidence": confidence,
+            "suggestions": [],
+        },
     )
 
 
-def rca_partial(report: str, missing: list[str]) -> SSEEvent:
+def rca_partial(
+    report: str,
+    missing: list[str],
+    suggestions: list[str] | None = None,
+) -> SSEEvent:
     """部分 RCA（预算耗尽或证据不足）。"""
     return SSEEvent(
         type="rca_partial",
-        data={"report": report, "missing": missing, "confidence": "low"},
+        data={
+            "report": report,
+            "missing": missing,
+            "confidence": "low",
+            "suggestions": suggestions or [],
+        },
     )
 
 
