@@ -164,6 +164,58 @@ class TestSSEStream:
         # 至少包含 thinking 或 rca_complete
         assert "thinking" in event_types or "rca_complete" in event_types
 
+    def test_stream_emits_playbook_hint(self):
+        """SSE 流在申告匹配剧本时推送 playbook_hint 事件（V2-F2）。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        # 创建一个匹配 OOM 剧本的会话
+        resp = client.post(
+            "/api/chat",
+            json={"message": "payment-service 内存溢出 OOM 导致大量 500"},
+        )
+        session_id = resp.json()["session_id"]
+
+        # 读取 SSE 流
+        with client.stream("GET", f"/api/session/{session_id}/stream") as stream:
+            assert stream.status_code == 200
+            events = []
+            for line in stream.iter_lines():
+                if line.startswith("data: "):
+                    events.append(json.loads(line[6:]))
+
+        event_types = [e.get("type") for e in events]
+        assert "playbook_hint" in event_types
+
+        hint_events = [e for e in events if e.get("type") == "playbook_hint"]
+        assert len(hint_events) == 1
+        hint = hint_events[0]["data"]
+        assert hint["playbook_id"] == "oom"
+        assert hint["score"] > 0
+        assert len(hint["matched_keywords"]) > 0
+
+    def test_stream_no_playbook_hint_for_unrelated_message(self):
+        """不匹配任何剧本的申告不推送 playbook_hint。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        resp = client.post("/api/chat", json={"message": "排查问题"})
+        session_id = resp.json()["session_id"]
+
+        with client.stream("GET", f"/api/session/{session_id}/stream") as stream:
+            assert stream.status_code == 200
+            events = []
+            for line in stream.iter_lines():
+                if line.startswith("data: "):
+                    events.append(json.loads(line[6:]))
+
+        event_types = [e.get("type") for e in events]
+        assert "playbook_hint" not in event_types
+
     def test_stream_nonexistent_session(self):
         """流式查询不存在的会话返回 404，不是 500。"""
         from fastapi.testclient import TestClient
