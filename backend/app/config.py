@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     openai_base_url: str = ""  # empty = default OpenAI; set for MiniMax/DeepSeek/etc
     llm_model: str = "MiniMax-M3"
 
+    # --- Multi-model routing (V3-F3) ---
+    # 可用模型列表（JSON 格式，从环境变量 MODEL_CONFIG 覆盖）
+    model_config_json: str = ""
+
     # --- Budget (ADR-004 §5.2) ---
     max_tokens_per_session: int = 80_000
     max_tool_calls_per_session: int = 25

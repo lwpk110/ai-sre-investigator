@@ -26,6 +26,7 @@ from app.agent.events import SSEEvent
 from app.agent.loop import AgentLoop
 from app.agent.safe_executor import SafeToolExecutor
 from app.knowledge.store import store as knowledge_store
+from app.llm.model_registry import model_registry
 from app.observability.metrics import collector as metrics_collector
 from app.persistence.session_store import SessionSnapshot, persistence
 from app.services.service_profile import catalog as service_catalog
@@ -491,6 +492,18 @@ def create_app(
         if not tool_registry.disable(tool_name):
             raise HTTPException(status_code=404, detail="工具不存在")
         return {"tool": tool_name, "status": "disabled"}
+
+    @app.get("/api/models")
+    async def list_models() -> dict[str, Any]:
+        """列出全部可用模型（V3-F3）。"""
+        return {"models": model_registry.list_all()}
+
+    @app.post("/api/models/{model_id}/select")
+    async def select_model(model_id: str) -> dict[str, str]:
+        """选择当前使用的模型（V3-F3）。"""
+        if not model_registry.select(model_id):
+            raise HTTPException(status_code=404, detail="模型不存在")
+        return {"model": model_id, "status": "selected"}
 
     return app
 
