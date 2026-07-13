@@ -46,3 +46,9 @@ personal-note.md
 .env
 .env.local
 .env.*.local
+
+# Coverage reports
+spike/.coverage
+spike/coverage.json
+.coverage
+coverage.json
