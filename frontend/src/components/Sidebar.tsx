@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   Loader,
   BarChart3,
+  Wrench,
 } from "lucide-react";
 import type { Session } from "@/types/events";
 
@@ -80,6 +81,20 @@ export function Sidebar({ sessions, activeSessionId, onSelect, onNew }: SidebarP
         >
           <BarChart3 className="w-4 h-4" style={{ color: "var(--color-text-tertiary)" }} />
           价值仪表盘
+        </a>
+      </div>
+
+      {/* 工具管理入口 */}
+      <div className="px-3 pb-2">
+        <a
+          href="/tools"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-[var(--radius-sm)] text-[13px] transition-colors"
+          style={{
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          <Wrench className="w-4 h-4" style={{ color: "var(--color-text-tertiary)" }} />
+          工具管理
         </a>
       </div>
 

@@ -29,6 +29,7 @@ from app.services.service_profile import catalog as service_catalog
 from app.tools.base import ToolSpec
 from app.tools.loki import LokiTool
 from app.tools.mimir import MimirTool
+from app.tools.registry import registry as tool_registry
 from app.tools.tempo import TempoTool
 
 
@@ -96,9 +97,9 @@ def create_app(
     app = FastAPI(title="AI SRE Investigator")
     store = SessionStore()
 
-    # 如果没有注入工具，使用默认的 Mimir/Loki/Tempo
+    # 如果没有注入工具，使用 registry 中已启用的工具（V3-F2）
     effective_tools: list[ToolSpec] = (
-        tools if tools is not None else _build_default_tools()
+        tools if tools is not None else tool_registry.get_active_tools()
     )
 
     @app.post("/api/chat")
@@ -384,6 +385,25 @@ def create_app(
             "tags": entry.tags,
             "created_at": entry.created_at,
         }
+
+    @app.get("/api/tools")
+    async def list_tools() -> dict[str, Any]:
+        """列出全部已注册工具（V3-F2）。"""
+        return {"tools": tool_registry.list_info_dict()}
+
+    @app.post("/api/tools/{tool_name}/enable")
+    async def enable_tool(tool_name: str) -> dict[str, str]:
+        """启用工具（V3-F2）。"""
+        if not tool_registry.enable(tool_name):
+            raise HTTPException(status_code=404, detail="工具不存在")
+        return {"tool": tool_name, "status": "enabled"}
+
+    @app.post("/api/tools/{tool_name}/disable")
+    async def disable_tool(tool_name: str) -> dict[str, str]:
+        """禁用工具（V3-F2）。"""
+        if not tool_registry.disable(tool_name):
+            raise HTTPException(status_code=404, detail="工具不存在")
+        return {"tool": tool_name, "status": "disabled"}
 
     return app
 
