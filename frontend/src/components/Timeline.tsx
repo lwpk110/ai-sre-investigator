@@ -154,6 +154,197 @@ function extractResultSummary(
   return rows;
 }
 
+/** V15-F1: 从 Mimir matrix 结果提取时序数据点 */
+function extractTimeSeries(
+  data: Record<string, unknown> | null
+): number[] | null {
+  if (!data) return null;
+  const result = data.result;
+  if (!Array.isArray(result) || result.length === 0) return null;
+  const firstSeries = result[0] as Record<string, unknown>;
+  const values = firstSeries.values;
+  if (!Array.isArray(values) || values.length < 2) return null;
+  return values
+    .map((v: unknown) => {
+      const pair = v as [number, string];
+      return parseFloat(pair[1]);
+    })
+    .filter((n: number) => !isNaN(n));
+}
+
+/** V15-F1: 指标 sparkline 柱状图 */
+function SparklineChart({ points }: { points: number[] }) {
+  if (points.length === 0) return null;
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const range = max - min || 1;
+  const avg = points.reduce((a, b) => a + b, 0) / points.length;
+  // 截断为最多 32 根柱子
+  const display = points.slice(-32);
+  return (
+    <div className="mt-2">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--color-text-quaternary)" }}>
+          指标趋势
+        </span>
+        <span className="text-[11px] font-mono" style={{ color: "var(--color-info)" }}>
+          峰值 {max.toFixed(2)}
+        </span>
+        <span className="text-[11px] font-mono" style={{ color: "var(--color-text-tertiary)" }}>
+          均值 {avg.toFixed(2)}
+        </span>
+      </div>
+      <div className="sparkline">
+        {display.map((val, i) => {
+          const ratio = (val - min) / range;
+          const isSpike = val > avg * 1.5 || val === max;
+          return (
+            <div
+              key={i}
+              className={`spark-bar ${isSpike ? "spike" : ""}`}
+              style={{ height: `${Math.max(ratio * 100, 8)}%` }}
+              title={val.toFixed(4)}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** V15-F1: 日志查看器（高亮错误行） */
+function LogViewer({ lines }: { lines: string[] }) {
+  const display = lines.slice(0, 50);
+  return (
+    <div className="mt-2">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--color-text-quaternary)" }}>
+          日志样本
+        </span>
+        <span className="text-[11px] font-mono" style={{ color: "var(--color-text-tertiary)" }}>
+          {lines.length} 行{lines.length > 50 ? "（显示前 50 行）" : ""}
+        </span>
+      </div>
+      <div
+        className="rounded-[var(--radius-sm)] overflow-hidden max-h-[200px] overflow-y-auto"
+        style={{ background: "#070912", border: "1px solid var(--color-border-subtle)" }}
+      >
+        {display.map((line, i) => {
+          const isError = /(error|exception|fatal|panic|oom|killed|timeout|refused)/i.test(line);
+          return (
+            <div
+              key={i}
+              className="flex items-start gap-2 px-2.5 py-1 text-[11.5px] font-mono leading-[1.5]"
+              style={{
+                borderBottom: i < display.length - 1 ? "1px solid var(--color-border-subtle)" : "none",
+                background: isError ? "rgba(244,63,94,0.06)" : "transparent",
+              }}
+            >
+              <span className="shrink-0" style={{ color: "var(--color-text-quaternary)" }}>
+                {i + 1}
+              </span>
+              <span
+                style={{
+                  color: isError ? "var(--color-error)" : "var(--color-text-secondary)",
+                  fontWeight: isError ? 500 : 400,
+                }}
+              >
+                {line}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** V15-F1: Trace 瀑布图 */
+function TraceWaterfall({
+  spans,
+}: {
+  spans: { trace_id: string; operation: string; duration_ms: number }[];
+}) {
+  const display = spans.slice(0, 10);
+  const maxDuration = Math.max(...display.map((s) => s.duration_ms), 1);
+  return (
+    <div className="mt-2">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--color-text-quaternary)" }}>
+          链路瀑布
+        </span>
+        <span className="text-[11px] font-mono" style={{ color: "var(--color-text-tertiary)" }}>
+          {spans.length} 个 Span
+        </span>
+      </div>
+      <div className="space-y-1">
+        {display.map((span, i) => {
+          const ratio = span.duration_ms / maxDuration;
+          const isSlow = span.duration_ms > 1000;
+          return (
+            <div key={i} className="flex items-center gap-2">
+              <span
+                className="text-[11px] font-mono shrink-0 truncate"
+                style={{
+                  color: "var(--color-text-secondary)",
+                  maxWidth: "200px",
+                }}
+              >
+                {span.operation || span.trace_id.slice(0, 8)}
+              </span>
+              <div className="flex-1 flex items-center gap-1.5">
+                <div
+                  className="h-3 rounded-[2px] transition-all"
+                  style={{
+                    width: `${Math.max(ratio * 100, 4)}%`,
+                    background: isSlow ? "var(--color-error)" : "var(--color-accent)",
+                    opacity: 0.8,
+                  }}
+                />
+                <span
+                  className="text-[10px] font-mono shrink-0"
+                  style={{
+                    color: isSlow ? "var(--color-error)" : "var(--color-text-tertiary)",
+                  }}
+                >
+                  {span.duration_ms}ms
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** V15-F1: 根据探针类型渲染对应的证据可视化组件 */
+function EvidenceVisualization({
+  tool,
+  data,
+}: {
+  tool: string;
+  data: Record<string, unknown> | null;
+}) {
+  if (!data) return null;
+  if (tool.includes("mimir")) {
+    const ts = extractTimeSeries(data);
+    if (ts && ts.length >= 2) return <SparklineChart points={ts} />;
+  }
+  if (tool.includes("loki")) {
+    const lines = (data.lines ?? data.logs) as string[] | undefined;
+    if (Array.isArray(lines) && lines.length > 0) return <LogViewer lines={lines} />;
+  }
+  if (tool.includes("tempo")) {
+    const spans = data.spans as
+      | { trace_id: string; operation: string; duration_ms: number }[]
+      | undefined;
+    if (Array.isArray(spans) && spans.length > 0)
+      return <TraceWaterfall spans={spans} />;
+  }
+  return null;
+}
+
 /** Timeline 步骤卡片 */
 function StepCard({
   event,
@@ -423,8 +614,9 @@ function StepCard({
         {/* 可展开结果 */}
         {expanded && (
           <div className="px-3.5 pb-3 pl-[52px]">
-            {success && summary.length > 0 ? (
-              <div className="flex flex-col gap-2 mt-2.5">
+           {success && summary.length > 0 ? (
+              <>
+             <div className="flex flex-col gap-2 mt-2.5">
                 {summary.map((row, i) => (
                   <div
                     key={i}
@@ -445,10 +637,13 @@ function StepCard({
                     >
                       {row.value}
                     </span>
-                  </div>
-                ))}
-              </div>
-            ) : success && data ? (
+               </div>
+             ))}
+           </div>
+            {/* V15-F1: 证据可视化（sparkline / 日志 / 瀑布图） */}
+             <EvidenceVisualization tool={tool} data={data} />
+              </>
+           ) : success && data ? (
               <pre
                 className="font-mono text-[12px] leading-[1.6] p-3 rounded-[var(--radius-sm)] overflow-x-auto max-h-[240px] mt-2.5"
                 style={{ background: "#070912", border: "1px solid var(--color-border-subtle)", color: "var(--color-text-secondary)" }}
