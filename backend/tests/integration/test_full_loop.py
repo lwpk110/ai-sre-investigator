@@ -245,19 +245,17 @@ class TestSelfHealPath:
             finish_reason="stop",
         )
 
-        client = _mock_client([r1, r2])
+        # heal response: LLM 返回修正后的参数
+        heal_resp = _make_response(
+            content=json.dumps({"query": "rate(up[5m])"}),
+            finish_reason="stop",
+        )
+
+        # 执行顺序: r1(主循环第一轮) → heal_resp(修正) → r2(主循环第二轮)
+        client = _mock_client([r1, heal_resp, r2])
         budget = BudgetTracker(max_tokens=100_000, max_tool_calls=100)
 
-        # 自修正回调：第一次失败后返回修正参数
-        heal_count = [0]
-
-        async def heal_callback(
-            tool_name: str, params: BaseModel, error: str
-        ) -> BaseModel | None:
-            heal_count[0] += 1
-            return params  # 返回相同参数，让工具重试
-
-        executor = SafeToolExecutor(budget=budget, heal_callback=heal_callback)
+        executor = SafeToolExecutor(budget=budget)
         tool = _ControllableTool(fail_count=1)  # 只失败一次
 
         agent = AgentLoop(
@@ -271,8 +269,6 @@ class TestSelfHealPath:
 
         # 最终应该成功
         assert events[-1].type == "rca_complete"
-        # 自修正回调被调用过
-        assert heal_count[0] > 0
 
         # 验证 tool_result 中有成功结果
         tr_events = [e for e in events if e.type == "tool_result"]
@@ -289,15 +285,18 @@ class TestSelfHealPath:
             finish_reason="stop",
         )
 
-        client = _mock_client([r1, r2])
+        # heal responses: LLM 尝试修正但工具仍然失败（3次后放弃）
+        heal_resps = [
+            _make_response(content=json.dumps({"query": "up"}), finish_reason="stop"),
+            _make_response(content=json.dumps({"query": "rate(up[5m])"}), finish_reason="stop"),
+            _make_response(content=json.dumps({"query": "up"}), finish_reason="stop"),
+        ]
+
+        # 执行顺序: r1 → heal×3 → r2
+        client = _mock_client([r1] + heal_resps + [r2])
         budget = BudgetTracker(max_tokens=100_000, max_tool_calls=100)
 
-        async def heal_callback(
-            tool_name: str, params: BaseModel, error: str
-        ) -> BaseModel | None:
-            return params  # 一直返回相同参数
-
-        executor = SafeToolExecutor(budget=budget, heal_callback=heal_callback)
+        executor = SafeToolExecutor(budget=budget)
         tool = _ControllableTool(fail_count=99)  # 永远失败
 
         agent = AgentLoop(

@@ -62,6 +62,63 @@ class AgentLoop:
         self._client = client
         self._model = model or settings.llm_model
 
+        # 为 executor 注入 self-heal 回调（ADR-004 L4）
+        self._executor._heal_callback = self._heal_callback
+
+    def _heal_callback(
+        self,
+        tool_name: str,
+        params: Any,
+        error: str,
+    ) -> Any:
+        """同步包装，返回异步 heal 协程供 executor await。"""
+        return self._async_heal(tool_name, params, error)
+
+    async def _async_heal(
+        self,
+        tool_name: str,
+        params: Any,
+        error: str,
+    ) -> Any:
+        """向 LLM 请求修正失败的查询参数。
+
+        将错误信息和原始参数发给 LLM，让其返回修正后的 JSON。
+        无法修正时返回 None。
+        """
+        tool = self._tools.get(tool_name)
+        if tool is None or self._client is None:
+            return None
+
+        try:
+            heal_prompt = (
+                f"工具 {tool_name} 执行失败，错误信息: {error}\n"
+                f"原始参数: {params.model_dump_json()}\n"
+                f"请修正参数并返回合法 JSON 对象。只返回 JSON，不要其他内容。"
+            )
+            response = await self._client.chat.completions.create(
+                model=self._model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "你是查询修正助手。修正失败的查询参数，返回合法 JSON。",
+                    },
+                    {"role": "user", "content": heal_prompt},
+                ],
+            )
+
+            content = response.choices[0].message.content or ""
+            content = content.strip()
+            if content.startswith("```"):
+                lines = content.split("\n")
+                content = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+
+            healed_params = json.loads(content)
+            return tool.parameters(**healed_params)
+
+        except Exception as exc:
+            logger.warning("self-heal 回调异常: %s", exc)
+            return None
+
     async def run(
         self, user_message: str
     ) -> AsyncIterator[SSEEvent]:
