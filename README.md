@@ -2,11 +2,41 @@
 
 让开发人员用"大白话"即可调动底层可观测性平台（Mimir / Loki / Tempo），实现"自己的服务故障自己独立闭环"，打破研发与 SRE 之间的可观测性 QL 认知壁垒，消除全员向 SRE 求助的"多对一"响应瓶颈。
 
-> 状态：MVP V1.0 设计阶段（尚未编码）
+> 状态：MVP V1.0 已实现 — 后端核心循环 + 前端交互界面完成，83 tests passed，覆盖率 90.65%
 
 ## Quick Start
 
-> 代码尚未实现。设计完成后，启动方式将在此更新。当前可阅读设计文档。
+### 后端（FastAPI）
+
+```bash
+cd backend
+pip install -e ".[dev]"
+uvicorn app.main:app --reload    # http://localhost:8000
+pytest                            # 83 tests
+ruff check app/ tests/            # lint
+mypy app/                         # type-check (strict)
+```
+
+### 前端（Next.js）
+
+```bash
+cd frontend
+npm install
+npm run dev                      # http://localhost:3000
+npm run build                    # production build
+```
+
+前端 dev server 通过 `next.config.ts` 的 `rewrites` 代理 `/api/*` 到后端 `localhost:8000`。
+
+## API 端点
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/chat` | 创建排查会话，返回 `session_id` |
+| GET | `/api/session/{id}` | 查询会话状态 |
+| GET | `/api/session/{id}/stream` | SSE 事件流（thinking/tool_call/tool_result/budget_update/rca） |
+| GET | `/api/metrics` | 全局自观测指标汇总 |
+| GET | `/api/metrics/{id}` | 单会话自观测指标 |
 
 ## 文档导航
 
