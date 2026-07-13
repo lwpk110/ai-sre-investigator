@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -8,6 +9,9 @@ import {
   ShieldAlert,
   Lightbulb,
   ChevronRight,
+  Share2,
+  Download,
+  Check,
 } from "lucide-react";
 
 interface RCAPanelProps {
@@ -61,6 +65,46 @@ export function RCAPanel({
 }: RCAPanelProps) {
   const config = confidenceConfig[confidence];
   const Icon = config.icon;
+  const [copied, setCopied] = useState(false);
+
+  /** 导出 RCA 为 Markdown 文件 */
+  const handleExportMarkdown = () => {
+    const header =
+      `# 根因分析报告\n\n> 置信度: ${config.label}` +
+      (isPartial ? " | 部分报告" : "") +
+      `\n> 生成时间: ${new Date().toLocaleString("zh-CN")}\n\n---\n\n`;
+    const blob = new Blob([header + report], {
+      type: "text/markdown;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `rca-report-${Date.now()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  /** 复制分享链接到剪贴板 */
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // 降级方案：用 textarea + execCommand
+      const textarea = document.createElement("textarea");
+      textarea.value = url;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <div
@@ -84,6 +128,42 @@ export function RCAPanel({
           根因分析报告
         </span>
         <div className="flex-1" />
+        {/* 分享按钮 */}
+        <button
+          onClick={handleShare}
+          title="复制链接"
+          className="flex items-center gap-1 text-[12px] px-2 py-1 rounded-[var(--radius-sm)] transition-colors"
+          style={{
+            background: copied
+              ? "rgba(16,185,129,0.1)"
+              : "var(--color-app-bg)",
+            color: copied
+              ? "var(--color-success)"
+              : "var(--color-text-secondary)",
+            border: "1px solid var(--color-border-subtle)",
+          }}
+        >
+          {copied ? (
+            <Check className="w-3.5 h-3.5" />
+          ) : (
+            <Share2 className="w-3.5 h-3.5" />
+          )}
+          {copied ? "已复制" : "分享"}
+        </button>
+        {/* 导出 Markdown 按钮 */}
+        <button
+          onClick={handleExportMarkdown}
+          title="导出 Markdown"
+          className="flex items-center gap-1 text-[12px] px-2 py-1 rounded-[var(--radius-sm)] transition-colors"
+          style={{
+            background: "var(--color-app-bg)",
+            color: "var(--color-text-secondary)",
+            border: "1px solid var(--color-border-subtle)",
+          }}
+        >
+          <Download className="w-3.5 h-3.5" />
+          导出
+        </button>
         <span
           className="text-[11px] font-medium px-2.5 py-1 rounded-full"
           style={{ background: config.bg, color: config.color }}
@@ -139,7 +219,7 @@ export function RCAPanel({
                 className="text-[12px] font-mono flex items-center gap-1.5"
                 style={{ color: "var(--color-text-secondary)" }}
               >
-                <span style={{ color: "var(--color-error)" }}>×</span>
+                <span style={{ color: "var(--color-error)" }}>x</span>
                 {q}
               </li>
             ))}
