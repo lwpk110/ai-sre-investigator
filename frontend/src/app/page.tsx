@@ -6,6 +6,7 @@ import { ChatInput } from "@/components/ChatInput";
 import { Timeline } from "@/components/Timeline";
 import { RCAPanel } from "@/components/RCAPanel";
 import { BudgetBar } from "@/components/BudgetBar";
+import { DemoGuide } from "@/components/DemoGuide";
 import { createSession, followUp, streamSession } from "@/lib/api";
 import type { Session, SSEEvent, BudgetInfo } from "@/types/events";
 import { Search, Terminal } from "lucide-react";
@@ -297,7 +298,12 @@ export default function Home() {
       >
         {/* 内容滚动区域 */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-[780px] mx-auto px-6 py-6 space-y-6">
+         <div className="max-w-[780px] mx-auto px-6 py-6 space-y-6">
+            {/* 模拟故障上手引导（首次访问显示） */}
+            {!activeSession && !isStreaming && (
+              <DemoGuide onSelect={handleSubmit} onClose={() => {}} />
+            )}
+
             {/* 空状态引导 */}
             {!activeSession && (
               <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
