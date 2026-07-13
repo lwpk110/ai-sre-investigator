@@ -2,7 +2,7 @@
 
 让开发人员用"大白话"即可调动底层可观测性平台（Mimir / Loki / Tempo），实现"自己的服务故障自己独立闭环"，打破研发与 SRE 之间的可观测性 QL 认知壁垒，消除全员向 SRE 求助的"多对一"响应瓶颈。
 
-> 状态：MVP V1.0 已实现 — 后端核心循环 + 前端交互界面完成，83 tests passed，覆盖率 90.65%
+> 状态：MVP ~ V3 全阶段已实现 — 后端 148 tests passed，覆盖率 86%；前端 9 路由全量复刻原型；CI/CD + Docker 就绪
 
 ## Quick Start
 
@@ -12,7 +12,7 @@
 cd backend
 pip install -e ".[dev]"
 uvicorn app.main:app --reload    # http://localhost:8000
-pytest                            # 83 tests
+pytest                            # 148 tests
 ruff check app/ tests/            # lint
 mypy app/                         # type-check (strict)
 ```
@@ -28,15 +28,42 @@ npm run build                    # production build
 
 前端 dev server 通过 `next.config.ts` 的 `rewrites` 代理 `/api/*` 到后端 `localhost:8000`。
 
+## 功能概览
+
+| 阶段 | 功能 | 状态 |
+|------|------|------|
+| MVP | 自然语言申告 + QL 转化 + SSE 推理流 + RCA 报告 + SafeToolExecutor | 已完成 |
+| V1.5 | 证据下钻 Timeline + 对话式追问 + 置信度标注 + 部分 RCA + 模拟引导 + 一键分享 | 已完成 |
+| V2 | RCA 知识库 + 黄金路径剧本库 + 服务画像 + 价值仪表盘 + 交接卡 | 已完成 |
+| V3 | 可插拔工具注册表 + 多模型路由 + 会话持久化 + 自观测指标 | 已完成 |
+
 ## API 端点
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | POST | `/api/chat` | 创建排查会话，返回 `session_id` |
+| POST | `/api/session/{id}/follow-up` | 对话式追问 |
 | GET | `/api/session/{id}` | 查询会话状态 |
-| GET | `/api/session/{id}/stream` | SSE 事件流（thinking/tool_call/tool_result/budget_update/rca） |
+| POST | `/api/session/{id}/handoff` | 生成交接卡 |
+| GET | `/api/session/{id}/stream` | SSE 事件流（thinking/tool_call/tool_result/budget_update/rca/playbook_hint） |
 | GET | `/api/metrics` | 全局自观测指标汇总 |
 | GET | `/api/metrics/{id}` | 单会话自观测指标 |
+| GET | `/api/dashboard` | 价值仪表盘 KPI |
+| GET | `/api/services` | 服务目录列表 |
+| GET | `/api/services/{name}` | 服务画像详情 |
+| GET | `/api/knowledge` | RCA 知识库搜索 |
+| GET | `/api/knowledge/{id}` | 知识库条目详情 |
+| GET | `/api/tools` | 工具注册表列表 |
+| POST | `/api/tools/{name}/enable` | 启用工具 |
+| POST | `/api/tools/{name}/disable` | 禁用工具 |
+| GET | `/api/playbooks` | 剧本库摘要列表 |
+| GET | `/api/playbooks/{id}` | 剧本详情 |
+| GET | `/api/playbooks/match?q=...` | 剧本匹配 |
+| GET | `/api/playbooks/stats` | 剧本覆盖统计 |
+| GET | `/api/sessions` | 历史会话列表 |
+| GET | `/api/sessions/{id}/replay` | 会话事件回放 |
+| GET | `/api/models` | 可用模型列表 |
+| POST | `/api/models/{id}/select` | 切换模型 |
 
 ## 文档导航
 
@@ -84,7 +111,10 @@ npm run build                    # production build
 Frontend (Next.js) ──HTTP/SSE──> FastAPI Core
                                   ├── Session Manager
                                   ├── Tool-Calling Loop  ──> SafeToolExecutor (校验/缓存/预算/自修正)
+                                  ├── Playbook Engine     ──> 黄金路径自动匹配
                                   └── RCA Generator              │
+                                       ├── Knowledge Store       │
+                                       └── Service Catalog       │
                                                                  ▼
                                           Native Agent Toolset (Mimir / Loki / Tempo)
 ```
@@ -101,21 +131,27 @@ Frontend (Next.js) ──HTTP/SSE──> FastAPI Core
 - **Backend**：Python 3.12, FastAPI, Pydantic v2, HTTPX, `openai` SDK（见 ADR-006）
 - **Frontend**：Next.js (App Router), Tailwind CSS, React Markdown（见 ADR-006）
 
-## 目录结构（规划）
+## 目录结构
 
 ```text
 backend/app/
 ├── main.py              # FastAPI 入口
-├── api/chat.py          # 路由: 创建会话 & 轮询状态
+├── api/routes.py        # 23 个 API 端点
 ├── agent/
 │   ├── loop.py          # 原生 Tool-Calling 循环
 │   ├── safe_executor.py # 四层包装（ADR-004）
-│   └── prompts.py       # SRE 专家人设 prompt
+│   ├── budget.py        # 预算追踪
+│   └── events.py        # SSE 事件类型
 ├── tools/
 │   ├── base.py          # ToolSpec 基类（ADR-003）
-│   ├── catalog.py       # 元数据缓存
+│   ├── registry.py      # 可插拔工具注册表（V3-F2）
 │   ├── ql/              # 三类 QL 校验器
 │   └── mimir.py|loki.py|tempo.py
+├── knowledge/store.py   # RCA 知识库（V2-F1）
+├── playbooks/           # 黄金路径剧本库（V2-F2）
+├── services/            # 服务画像（V2-F3）
+├── llm/                 # 多模型路由（V3-F3）
+├── persistence/         # 会话持久化（V3-F4）
 └── observability/metrics.py
 frontend/                # 极简交互界面
 ```
@@ -123,4 +159,4 @@ frontend/                # 极简交互界面
 ## Contributing
 
 - 重大架构变更须新建 ADR（见 [docs/decisions/README.md](docs/decisions/README.md)）。
-- 遵循 [CLAUDE.md](CLAUDE.md) 中的项目约定。
+- 遵循 [AGENTS.md](AGENTS.md) 中的项目约定。
