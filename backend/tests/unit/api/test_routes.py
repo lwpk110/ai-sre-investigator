@@ -195,3 +195,86 @@ class TestNeverReturns500:
 
         resp = client.post("/api/chat")
         assert resp.status_code != 500
+
+
+class TestFollowUp:
+    """对话式追问（V1.5-F2）。"""
+
+    def test_follow_up_on_completed_session(self):
+        """已完成会话可以发起追问。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        # 创建会话
+        resp = client.post("/api/chat", json={"message": "排查问题"})
+        session_id = resp.json()["session_id"]
+
+        # 运行 SSE 流（让会话变为 completed）
+        with client.stream("GET", f"/api/session/{session_id}/stream") as stream:
+            for _ in stream.iter_lines():
+                pass
+
+        # 发起追问
+        follow_resp = client.post(
+            f"/api/session/{session_id}/follow-up",
+            json={"message": "展开这个 TraceID 的下游"},
+        )
+        assert follow_resp.status_code == 200
+        data = follow_resp.json()
+        assert data["session_id"] == session_id
+        assert data["follow_up"] is True
+
+    def test_follow_up_nonexistent_session(self):
+        """追问不存在的会话返回 404。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        resp = client.post(
+            "/api/session/nonexistent/follow-up",
+            json={"message": "追问"},
+        )
+        assert resp.status_code == 404
+
+    def test_follow_up_empty_message(self):
+        """空追问消息返回 400。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        resp = client.post("/api/chat", json={"message": "排查问题"})
+        session_id = resp.json()["session_id"]
+
+        follow_resp = client.post(
+            f"/api/session/{session_id}/follow-up",
+            json={"message": ""},
+        )
+        assert follow_resp.status_code == 400
+
+    def test_follow_up_creates_new_agent(self):
+        """追问后应创建新的 agent 和 budget。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        resp = client.post("/api/chat", json={"message": "排查问题"})
+        session_id = resp.json()["session_id"]
+
+        with client.stream("GET", f"/api/session/{session_id}/stream") as stream:
+            for _ in stream.iter_lines():
+                pass
+
+        # 追问
+        client.post(
+            f"/api/session/{session_id}/follow-up",
+            json={"message": "展开细节"},
+        )
+
+        # 验证新 agent 被创建（budget 重置）
+        status2 = client.get(f"/api/session/{session_id}").json()
+        assert status2["status"] == "created"

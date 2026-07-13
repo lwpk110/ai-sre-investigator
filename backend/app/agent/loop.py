@@ -120,7 +120,9 @@ class AgentLoop:
             return None
 
     async def run(
-        self, user_message: str
+        self,
+        user_message: str,
+        prior_context: list[dict[str, str]] | None = None,
     ) -> AsyncIterator[SSEEvent]:
         """运行 Agent 循环，yield SSE 事件。
 
@@ -128,11 +130,22 @@ class AgentLoop:
         - LLM 返回 finish_reason="stop" → 发送 rca_complete
         - 预算耗尽 → 发送 rca_partial
         - 异常 → 发送 error
+
+        Args:
+            user_message: 当前用户的问题。
+            prior_context: 对话式追问的历史上下文（可选）。
+                格式: [{"role": "user"|"assistant", "content": "..."}]
+                当追问时传入，让 LLM 理解之前的排查过程和结论。
         """
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_message},
         ]
+
+        # 追问时携带历史上下文
+        if prior_context:
+            messages.extend(prior_context)
+
+        messages.append({"role": "user", "content": user_message})
 
         tool_schemas = [t.to_openai_schema() for t in self._tools.values()]
 

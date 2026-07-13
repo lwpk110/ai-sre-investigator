@@ -47,6 +47,8 @@ class Session:
     budget: BudgetTracker = field(default_factory=BudgetTracker)
     executor: SafeToolExecutor | None = None
     agent: AgentLoop | None = None
+    # 对话式追问：存储用户消息和 RCA 结果的交替历史
+    history: list[dict[str, str]] = field(default_factory=list)
 
 
 class SessionStore:
@@ -126,6 +128,47 @@ def create_app(
 
         return {"session_id": session.session_id}
 
+    @app.post("/api/session/{session_id}/follow-up")
+    async def follow_up(session_id: str, req: ChatRequest) -> dict[str, Any]:
+        """对话式追问：在已有会话中继续提问。
+
+        复用已有会话的工具集和预算，将追问消息追加到历史。
+        客户端再次连接 SSE 流获取新的推理过程。
+        """
+        if not req.message.strip():
+            raise HTTPException(status_code=400, detail="message 不能为空")
+
+        session = store.get(session_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="会话不存在")
+
+        # 将上一次的 RCA 结果存入历史
+        if session.agent is not None and session.status in ("completed",):
+            session.history.append({"role": "user", "content": session.message})
+            session.history.append(
+                {"role": "rca", "content": "上一次 RCA 结果已提供给 Agent"}
+            )
+
+        # 更新会话消息为追问消息
+        session.message = req.message
+        session.status = "created"
+
+        # 重建 agent（复用 tools 和 client，新建 budget 和 executor）
+        budget = BudgetTracker()
+        executor = SafeToolExecutor(budget=budget)
+        agent = AgentLoop(
+            tools=session.tools,
+            executor=executor,
+            budget=budget,
+            client=llm_client,
+        )
+
+        session.budget = budget
+        session.executor = executor
+        session.agent = agent
+
+        return {"session_id": session.session_id, "follow_up": True}
+
     @app.get("/api/session/{session_id}")
     async def get_session_status(session_id: str) -> dict[str, Any]:
         """获取会话状态。"""
@@ -156,7 +199,12 @@ def create_app(
             """将 AgentLoop 的 SSEEvent 转换为 SSE 格式。"""
             try:
                 metrics = metrics_collector.get_session(session.session_id)
-                async for event in session.agent.run(session.message):  # type: ignore[union-attr]
+                # 追问时传入历史上下文（如果有）
+                prior = session.history if session.history else None
+                async for event in session.agent.run(  # type: ignore[union-attr]
+                    session.message,
+                    prior_context=prior,
+                ):
                     # 更新自观测指标
                     if metrics:
                         if event.type == "budget_update":
