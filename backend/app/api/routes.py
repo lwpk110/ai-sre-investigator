@@ -275,6 +275,9 @@ def create_app(
                 if pb_matches:
                     best = pb_matches[0]
                     pb = best.playbook
+                    # 注入剧本到 Agent 系统提示词，让 Agent 遵循黄金路径
+                    if session.agent is not None:
+                        session.agent.set_playbook(pb)
                     hint_event = playbook_hint(
                         playbook_id=pb.id,
                         playbook_name=pb.name,

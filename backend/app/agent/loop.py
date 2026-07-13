@@ -29,6 +29,7 @@ from app.agent.safe_executor import SafeToolExecutor
 from app.config import settings
 from app.knowledge.store import RCAEntry
 from app.knowledge.store import store as knowledge_store
+from app.playbooks.models import Playbook
 from app.services.service_profile import ServiceCatalog
 from app.tools.base import ToolSpec
 
@@ -81,6 +82,32 @@ class AgentLoop:
 
         # 为 executor 注入 self-heal 回调（ADR-004 L4）
         self._executor._heal_callback = self._heal_callback
+
+        # V2-F2: 可选的剧本上下文（匹配到黄金路径时注入系统提示词）
+        self._playbook: Playbook | None = None
+
+    def set_playbook(self, playbook: Playbook) -> None:
+        """注入匹配的黄金路径剧本，让 Agent 遵循标准排查路径（V2-F2）。"""
+        self._playbook = playbook
+
+    def _build_system_prompt(self) -> str:
+        """构建系统提示词，如果有匹配的剧本则追加黄金路径指引。"""
+        prompt = SYSTEM_PROMPT
+        if self._playbook:
+            steps_text = "\n".join(
+                f"  {i + 1}. [{s.probe}] {s.purpose}\n     查询模板: {s.query_template}"
+                for i, s in enumerate(self._playbook.steps)
+            )
+            causes_text = "\n".join(
+                f"  - {c}" for c in self._playbook.common_root_causes
+            )
+            prompt += (
+                f"\n\n--- 黄金路径剧本: {self._playbook.name} ---\n"
+                f"该故障疑似「{self._playbook.description}」。\n"
+                f"建议按以下标准步骤排查（可调整查询条件）：\n{steps_text}\n\n"
+                f"常见根因（排查时重点关注）：\n{causes_text}\n"
+            )
+        return prompt
 
     def _heal_callback(
         self,
@@ -211,7 +238,7 @@ class AgentLoop:
                 当追问时传入，让 LLM 理解之前的排查过程和结论。
         """
         messages: list[dict[str, Any]] = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": self._build_system_prompt()},
         ]
 
         # 追问时携带历史上下文

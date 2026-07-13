@@ -608,3 +608,92 @@ class TestRCACompleteSuggestions:
         assert event.data["suggestions"] == ["建议1", "建议2"]
         assert event.data["missing"] == ["缺失查询1"]
         assert event.data["confidence"] == "low"
+
+
+class TestPlaybookInjection:
+    """V2-F2: 剧本注入到 Agent 系统提示词的测试。"""
+
+    async def test_playbook_injected_into_system_prompt(self):
+        """匹配的剧本步骤出现在 Agent 发送给 LLM 的 system 消息中。"""
+        from app.playbooks.models import Playbook, PlaybookStep
+
+        resp = _make_response(
+            choices=[
+                {
+                    "message": MagicMock(
+                        content="## RCA\n排查完成。",
+                        tool_calls=None,
+                    ),
+                    "finish_reason": "stop",
+                }
+            ],
+        )
+        client = _mock_client([resp])
+        budget = BudgetTracker(max_tokens=100_000, max_tool_calls=100)
+        executor = SafeToolExecutor(budget=budget)
+
+        agent = AgentLoop(
+            tools=[_StubTool()],
+            executor=executor,
+            budget=budget,
+            client=client,
+        )
+
+        pb = Playbook(
+            id="test-oom",
+            name="OOM 排查",
+            fault_type="memory",
+            trigger_keywords=["oom"],
+            description="内存溢出",
+            steps=[
+                PlaybookStep(
+                    probe="mimir",
+                    query_template='container_memory_rss{{container="{service}"}}',
+                    purpose="查看内存使用率",
+                ),
+            ],
+            common_root_causes=["内存泄漏"],
+        )
+        agent.set_playbook(pb)
+
+        async for _ in agent.run("排查内存问题"):
+            pass
+
+        call_kwargs = client.chat.completions.create.call_args.kwargs
+        messages = call_kwargs.get("messages", [])
+        system_content = messages[0].get("content", "") if messages else ""
+        assert "黄金路径剧本" in system_content
+        assert "OOM 排查" in system_content
+        assert "内存泄漏" in system_content
+
+    async def test_no_playbook_uses_base_prompt(self):
+        """没有注入剧本时，系统提示词不包含黄金路径段落。"""
+        resp = _make_response(
+            choices=[
+                {
+                    "message": MagicMock(
+                        content="## RCA\n完成。",
+                        tool_calls=None,
+                    ),
+                    "finish_reason": "stop",
+                }
+            ],
+        )
+        client = _mock_client([resp])
+        budget = BudgetTracker(max_tokens=100_000, max_tool_calls=100)
+        executor = SafeToolExecutor(budget=budget)
+
+        agent = AgentLoop(
+            tools=[_StubTool()],
+            executor=executor,
+            budget=budget,
+            client=client,
+        )
+
+        async for _ in agent.run("排查"):
+            pass
+
+        call_kwargs = client.chat.completions.create.call_args.kwargs
+        messages = call_kwargs.get("messages", [])
+        system_content = messages[0].get("content", "") if messages else ""
+        assert "黄金路径剧本" not in system_content
