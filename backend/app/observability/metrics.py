@@ -171,6 +171,70 @@ class MetricsCollector:
             ),
         }
 
+    def get_dashboard(self) -> dict[str, object]:
+        """V2-F4 价值仪表盘 KPI 数据。
+
+        自闭环率 = completed / total
+        MTTR = avg(completed_at - created_at) 秒
+        成本估算 = total_tokens * token_price
+        """
+        with self._lock:
+            sessions = list(self._sessions.values())
+
+        total = len(sessions)
+        if total == 0:
+            return {
+                "total_sessions": 0,
+                "self_resolution_rate": 0.0,
+                "avg_mttr_seconds": 0,
+                "total_tokens": 0,
+                "est_cost_usd": 0.0,
+                "tool_calls_total": 0,
+                "cache_hit_rate": 0.0,
+                "heal_success_rate": 0.0,
+            }
+
+        completed = sum(
+            1 for s in sessions if s.status in ("completed", "partial")
+        )
+        self_resolution = completed / total
+
+        # MTTR: 只计算已完成的会话
+        mttr_values: list[float] = []
+        for s in sessions:
+            if s.completed_at and s.status in ("completed", "partial"):
+                mttr_values.append(s.completed_at - s.created_at)
+        avg_mttr = (
+            sum(mttr_values) / len(mttr_values) if mttr_values else 0.0
+        )
+
+        total_tokens = sum(s.tokens_used for s in sessions)
+        # 估算成本: ~$0.002 / 1K tokens（GPT-4o-mini 级别）
+        est_cost = total_tokens * 0.002 / 1000
+
+        all_tool_calls = sum(s.tool_calls_total for s in sessions)
+        all_cached = sum(s.tool_calls_cached for s in sessions)
+        cache_rate = all_cached / all_tool_calls if all_tool_calls else 0.0
+
+        all_heal_attempts = sum(s.heal_attempts for s in sessions)
+        all_heal_success = sum(s.heal_successes for s in sessions)
+        heal_rate = (
+            all_heal_success / all_heal_attempts
+            if all_heal_attempts
+            else 0.0
+        )
+
+        return {
+            "total_sessions": total,
+            "self_resolution_rate": round(self_resolution, 4),
+            "avg_mttr_seconds": round(avg_mttr, 2),
+            "total_tokens": total_tokens,
+            "est_cost_usd": round(est_cost, 4),
+            "tool_calls_total": all_tool_calls,
+            "cache_hit_rate": round(cache_rate, 4),
+            "heal_success_rate": round(heal_rate, 4),
+        }
+
 
 # 全局单例
 collector = MetricsCollector()

@@ -287,6 +287,11 @@ def create_app(
         """全局自观测指标汇总。"""
         return metrics_collector.get_summary()
 
+    @app.get("/api/dashboard")
+    async def get_dashboard() -> dict[str, object]:
+        """价值仪表盘 KPI 数据（V2-F4）。"""
+        return metrics_collector.get_dashboard()
+
     @app.get("/api/metrics/{session_id}")
     async def get_session_metrics(session_id: str) -> dict[str, object]:
         """单会话自观测指标。"""
