@@ -1,7 +1,6 @@
 """Unit tests for MimirTool — PromQL execution (T3, ADR-002/005)."""
 
 import httpx
-import pytest
 
 from app.tools.base import ToolResult
 from app.tools.mimir import MimirParams, MimirTool
