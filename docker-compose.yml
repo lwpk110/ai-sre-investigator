@@ -1,0 +1,28 @@
+# docker-compose 全栈编排 — 一键启动后端 + 前端
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - LLM_MODEL=${LLM_MODEL:-MiniMax-M3}
+      - MIMIR_URL=${MIMIR_URL:-http://mimir-gateway.infra-monitoring.svc.tendata.kube1:80/prometheus}
+      - LOKI_URL=${LOKI_URL:-http://loki-gateway.infra-monitoring.svc.tendata.kube1}
+      - TEMPO_URL=${TEMPO_URL:-http://tempo-gateway.infra-monitoring.svc.tendata.kube1}
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped

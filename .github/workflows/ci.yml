@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ──────────────────────────────────────────────
+  # 后端质量门禁：ruff + mypy --strict + pytest
+  # ──────────────────────────────────────────────
+  backend:
+    name: Backend Quality Gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装依赖
+        run: pip install -e ".[dev]"
+
+      - name: Ruff lint
+        run: ruff check app/ tests/
+
+      - name: Mypy type-check (strict)
+        run: mypy app/
+
+      - name: Pytest + coverage
+        run: pytest tests/ --cov=app --cov-report=term-missing --cov-fail-under=80 -q
+
+  # ──────────────────────────────────────────────
+  # 前端构建检查
+  # ──────────────────────────────────────────────
+  frontend:
+    name: Frontend Build Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: TypeScript 类型检查 + 构建
+        run: npm run build

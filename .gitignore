@@ -58,3 +58,4 @@ coverage.json
 
 # Swarm binary backups
 .swarm/backups/
+backend/.env
