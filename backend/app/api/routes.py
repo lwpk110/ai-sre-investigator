@@ -10,9 +10,11 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -25,6 +27,7 @@ from app.agent.loop import AgentLoop
 from app.agent.safe_executor import SafeToolExecutor
 from app.knowledge.store import store as knowledge_store
 from app.observability.metrics import collector as metrics_collector
+from app.persistence.session_store import SessionSnapshot, persistence
 from app.services.service_profile import catalog as service_catalog
 from app.tools.base import ToolSpec
 from app.tools.loki import LokiTool
@@ -128,6 +131,16 @@ def create_app(
 
         # 初始化自观测指标（E-5）
         metrics_collector.create_session(session.session_id)
+
+        # V3-F4: 会话持久化
+        persistence.save(
+            SessionSnapshot(
+                session_id=session.session_id,
+                message=session.message,
+                status="created",
+                created_at=datetime.now().isoformat(),
+            )
+        )
 
         return {"session_id": session.session_id}
 
@@ -253,6 +266,10 @@ def create_app(
                 metrics = metrics_collector.get_session(session.session_id)
                 # 追问时传入历史上下文（如果有）
                 prior = session.history if session.history else None
+                collected_events: list[dict[str, Any]] = []
+                final_report: str | None = None
+                final_confidence: str | None = None
+                final_partial = False
                 async for event in session.agent.run(  # type: ignore[union-attr]
                     session.message,
                     prior_context=prior,
@@ -268,15 +285,47 @@ def create_app(
                                 event.data.get("latency_ms", 0),
                                 event.data.get("cached", False),
                             )
+                    # V3-F4: 收集事件用于持久化
+                    collected_events.append(
+                        {"type": event.type, "data": event.data}
+                    )
+                    if event.type in ("rca_complete", "rca_partial"):
+                        final_report = event.data.get("report")
+                        final_confidence = event.data.get("confidence")
+                        final_partial = event.type == "rca_partial"
                     yield {
                         "event": event.type,
                         "data": _serialize_event(event),
                     }
                 session.status = "completed"
                 metrics_collector.complete_session(session.session_id, "completed")
+                # V3-F4: 持久化最终状态（含事件历史和 RCA）
+                persistence.save(
+                    SessionSnapshot(
+                        session_id=session.session_id,
+                        message=session.message,
+                        status="completed",
+                        events_json=json.dumps(
+                            collected_events, ensure_ascii=False, default=str
+                        ),
+                        rca_report=final_report,
+                        rca_confidence=final_confidence,
+                        is_partial=final_partial,
+                    )
+                )
             except Exception:
                 session.status = "error"
                 metrics_collector.complete_session(session.session_id, "error")
+                persistence.save(
+                    SessionSnapshot(
+                        session_id=session.session_id,
+                        message=session.message,
+                        status="error",
+                        events_json=json.dumps(
+                            collected_events, ensure_ascii=False, default=str
+                        ),
+                    )
+                )
                 yield {
                     "event": "error",
                     "data": '{"type": "error", "data": {"message": "内部错误"}}',
@@ -391,6 +440,44 @@ def create_app(
         """列出全部已注册工具（V3-F2）。"""
         return {"tools": tool_registry.list_info_dict()}
 
+    @app.get("/api/sessions")
+    async def list_sessions(limit: int = 50) -> dict[str, Any]:
+        """列出历史会话（V3-F4，从持久化层读取）。"""
+        snapshots = persistence.list_recent(limit=limit)
+        return {
+            "sessions": [
+                {
+                    "session_id": s.session_id,
+                    "message": s.message,
+                    "status": s.status,
+                    "created_at": s.created_at,
+                    "updated_at": s.updated_at,
+                    "rca_report": s.rca_report,
+                    "rca_confidence": s.rca_confidence,
+                    "is_partial": s.is_partial,
+                }
+                for s in snapshots
+            ]
+        }
+
+    @app.get("/api/sessions/{session_id}/replay")
+    async def replay_session(session_id: str) -> dict[str, Any]:
+        """获取持久化会话的完整事件历史（V3-F4）。"""
+        snapshot = persistence.get(session_id)
+        if snapshot is None:
+            raise HTTPException(status_code=404, detail="会话不存在")
+        import json as _json
+        events = _json.loads(snapshot.events_json) if snapshot.events_json else []
+        return {
+            "session_id": snapshot.session_id,
+            "message": snapshot.message,
+            "status": snapshot.status,
+            "events": events,
+            "rca_report": snapshot.rca_report,
+            "rca_confidence": snapshot.rca_confidence,
+            "is_partial": snapshot.is_partial,
+        }
+
     @app.post("/api/tools/{tool_name}/enable")
     async def enable_tool(tool_name: str) -> dict[str, str]:
         """启用工具（V3-F2）。"""
@@ -414,6 +501,7 @@ def _serialize_event(event: SSEEvent) -> str:
 
     payload = {"type": event.type, "data": event.data}
     return json.dumps(payload, ensure_ascii=False, default=str)
+
 
 
 def _generate_handoff_markdown(
