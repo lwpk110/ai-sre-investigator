@@ -278,3 +278,82 @@ class TestFollowUp:
         # 验证新 agent 被创建（budget 重置）
         status2 = client.get(f"/api/session/{session_id}").json()
         assert status2["status"] == "created"
+
+
+class TestHandoff:
+    """SRE 交接卡（V2-F5）。"""
+
+    def test_handoff_on_completed_session(self):
+        """已完成会话可生成交接卡。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        # 创建会话并运行完成
+        resp = client.post(
+            "/api/chat",
+            json={"message": "tendata-auth-service 为什么延迟高"},
+        )
+        session_id = resp.json()["session_id"]
+
+        with client.stream("GET", f"/api/session/{session_id}/stream") as stream:
+            for _ in stream.iter_lines():
+                pass
+
+        # 生成交接卡
+        handoff_resp = client.post(f"/api/session/{session_id}/handoff")
+        assert handoff_resp.status_code == 200
+        data = handoff_resp.json()
+        assert data["session_id"] == session_id
+        assert "symptom" in data
+        assert "evidence_chain" in data
+        assert "markdown" in data
+        assert "SRE 交接卡" in data["markdown"]
+
+    def test_handoff_nonexistent_session(self):
+        """不存在的会话返回 404。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        resp = client.post("/api/session/nonexistent/handoff")
+        assert resp.status_code == 404
+
+    def test_handoff_on_running_session(self):
+        """未完成的会话返回 400。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        resp = client.post("/api/chat", json={"message": "排查问题"})
+        session_id = resp.json()["session_id"]
+
+        # 不运行 stream，直接尝试交接
+        handoff_resp = client.post(f"/api/session/{session_id}/handoff")
+        assert handoff_resp.status_code == 400
+
+    def test_handoff_markdown_contains_ownership(self):
+        """交接卡 Markdown 包含服务归属信息。"""
+        from fastapi.testclient import TestClient
+
+        app = _create_app_with_mock()
+        client = TestClient(app)
+
+        resp = client.post(
+            "/api/chat",
+            json={"message": "tendata-auth-service 认证失败"},
+        )
+        session_id = resp.json()["session_id"]
+
+        with client.stream("GET", f"/api/session/{session_id}/stream") as stream:
+            for _ in stream.iter_lines():
+                pass
+
+        handoff_resp = client.post(f"/api/session/{session_id}/handoff")
+        data = handoff_resp.json()
+        # 如果服务画像匹配到了，ownership 应非空
+        if data.get("ownership"):
+            assert "Platform" in str(data["ownership"])

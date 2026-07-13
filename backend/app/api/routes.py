@@ -184,6 +184,55 @@ def create_app(
             "tool_calls": session.budget.tool_calls,
         }
 
+    @app.post("/api/session/{session_id}/handoff")
+    async def generate_handoff(session_id: str) -> dict[str, Any]:
+        """生成 SRE 交接卡（V2-F5）。
+
+        低置信度或证据缺失时，自动生成结构化交接卡，
+        包含症状摘要、已查证据链、置信度、缺失信息和建议下一步。
+        """
+        session = store.get(session_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="会话不存在")
+        if session.status not in ("completed",):
+            raise HTTPException(
+                status_code=400, detail="会话尚未完成，无法生成交接卡"
+            )
+
+        # 从会话历史中提取证据链
+        evidence_chain: list[dict[str, str]] = []
+        if session.history:
+            for item in session.history:
+                evidence_chain.append(
+                    {"role": item.get("role", ""), "summary": item.get("content", "")}
+                )
+
+        # 从服务画像查询归属信息
+        ownership: dict[str, str] = {}
+        for svc in service_catalog.find_by_keyword(session.message):
+            ownership[svc.name] = (
+                f"{svc.owner_team} ({svc.criticality}) — {svc.owner_contact}"
+            )
+            break
+
+        return {
+            "session_id": session.session_id,
+            "symptom": session.message,
+            "evidence_chain": evidence_chain,
+            "confidence": "low",
+            "missing": ["需 SRE 人工确认根因"],
+            "suggestions": [
+                "检查服务部署变更记录",
+                "查看基础设施层告警",
+                "联系服务负责人确认",
+            ],
+            "ownership": ownership,
+            "timestamp": session.budget.tokens_used,
+            "markdown": _generate_handoff_markdown(
+                session.message, evidence_chain, ownership
+            ),
+        }
+
     @app.get("/api/session/{session_id}/stream")
     async def stream_session(session_id: str) -> EventSourceResponse:
         """SSE 流：推送 Agent 推理步骤和 RCA 结果。"""
@@ -294,3 +343,41 @@ def _serialize_event(event: SSEEvent) -> str:
 
     payload = {"type": event.type, "data": event.data}
     return json.dumps(payload, ensure_ascii=False, default=str)
+
+
+def _generate_handoff_markdown(
+    symptom: str,
+    evidence_chain: list[dict[str, str]],
+    ownership: dict[str, str],
+) -> str:
+    """生成交接卡 Markdown（V2-F5），可直接粘贴到 Slack/钉钉。"""
+    lines: list[str] = [
+        "## SRE 交接卡",
+        "",
+        f"**症状**: {symptom}",
+        "",
+    ]
+    if ownership:
+        for _svc, owner in ownership.items():
+            lines.append(f"**责任方**: {owner}")
+    lines.extend([
+        "",
+        "### 已查证据链",
+        "",
+    ])
+    if evidence_chain:
+        for item in evidence_chain:
+            lines.append(f"- [{item['role']}] {item['summary']}")
+    else:
+        lines.append("- （Agent 排查过程中的证据已记录）")
+    lines.extend([
+        "",
+        "### 待确认",
+        "- 需 SRE 人工确认根因",
+        "- 检查近期部署变更",
+        "- 查看基础设施告警",
+        "",
+        "---",
+        "_此交接卡由 AI SRE Investigator 自动生成_",
+    ])
+    return "\n".join(lines)

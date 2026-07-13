@@ -7,6 +7,7 @@ import { Timeline } from "@/components/Timeline";
 import { RCAPanel } from "@/components/RCAPanel";
 import { BudgetBar } from "@/components/BudgetBar";
 import { DemoGuide } from "@/components/DemoGuide";
+import { HandoffCard } from "@/components/HandoffCard";
 import { createSession, followUp, streamSession } from "@/lib/api";
 import type { Session, SSEEvent, BudgetInfo } from "@/types/events";
 import { Search, Terminal } from "lucide-react";
@@ -17,6 +18,7 @@ export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef(false);
+  const [handoffSession, setHandoffSession] = useState<string | null>(null);
 
   const activeSession = sessions.find((s) => s.session_id === activeSessionId);
 
@@ -399,14 +401,15 @@ export default function Home() {
                 {hasRCA &&
                   activeSession.rca_report &&
                   activeSession.rca_confidence && (
-                    <RCAPanel
-                      report={activeSession.rca_report}
-                      confidence={activeSession.rca_confidence}
-                      isPartial={activeSession.is_partial}
-                      missingQueries={activeSession.missing_queries}
-                      suggestions={activeSession.suggestions}
-                      onFollowUp={handleSubmit}
-                    />
+                  <RCAPanel
+                    report={activeSession.rca_report}
+                    confidence={activeSession.rca_confidence}
+                    isPartial={activeSession.is_partial}
+                    missingQueries={activeSession.missing_queries}
+                    suggestions={activeSession.suggestions}
+                    onFollowUp={handleSubmit}
+                    onHandoff={() => setHandoffSession(activeSession.session_id)}
+                  />
                   )}
               </>
             )}
@@ -433,6 +436,15 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* SRE 交接卡弹窗（V2-F5） */}
+      {handoffSession && activeSession && (
+        <HandoffCard
+          sessionId={handoffSession}
+          symptom={activeSession.message}
+          onClose={() => setHandoffSession(null)}
+        />
+      )}
     </div>
   );
 }

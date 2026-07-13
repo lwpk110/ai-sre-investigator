@@ -12,6 +12,7 @@ import {
   Share2,
   Download,
   Check,
+  UserCheck,
 } from "lucide-react";
 
 interface RCAPanelProps {
@@ -24,6 +25,8 @@ interface RCAPanelProps {
   suggestions?: string[];
   /** 追问回调：点击建议或追问按钮时触发 */
   onFollowUp?: (message: string) => void;
+  /** 转交 SRE 回调：低置信度时显示 */
+  onHandoff?: () => void;
 }
 
 /** 置信度配置 */
@@ -62,6 +65,7 @@ export function RCAPanel({
   missingQueries = [],
   suggestions = [],
   onFollowUp,
+  onHandoff,
 }: RCAPanelProps) {
   const config = confidenceConfig[confidence];
   const Icon = config.icon;
@@ -272,6 +276,20 @@ export function RCAPanel({
                 {s}
               </button>
             ))}
+            {onHandoff && (
+              <button
+                onClick={onHandoff}
+                className="text-[12px] px-2.5 py-1.5 rounded-[var(--radius-sm)] transition-colors flex items-center gap-1"
+                style={{
+                  background: "rgba(244,63,94,0.08)",
+                  border: "1px solid rgba(244,63,94,0.2)",
+                  color: "var(--color-error)",
+                }}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                转交 SRE
+              </button>
+            )}
           </div>
         </div>
       )}
