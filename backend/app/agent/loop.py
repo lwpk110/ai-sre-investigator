@@ -27,6 +27,8 @@ from app.agent.events import (
 )
 from app.agent.safe_executor import SafeToolExecutor
 from app.config import settings
+from app.knowledge.store import RCAEntry
+from app.knowledge.store import store as knowledge_store
 from app.services.service_profile import ServiceCatalog
 from app.tools.base import ToolSpec
 
@@ -157,6 +159,39 @@ class AgentLoop:
                 return report + ownership
         return report
 
+    def _save_to_knowledge(
+        self,
+        symptom: str,
+        report: str,
+        confidence: str,
+        evidence: list[str],
+    ) -> None:
+        """V2-F1: 将 RCA 自动入库（知识记忆）。
+
+        每次成功排查的结构化 RCA 入库，下次相似症状可复用。
+        """
+        # 从用户消息中提取服务名
+        service_name = ""
+        for svc in self._catalog.all():
+            if svc.name in symptom:
+                service_name = svc.name
+                break
+
+        try:
+            knowledge_store.insert(
+                RCAEntry(
+                    symptom=symptom[:500],  # 限制长度
+                    service_name=service_name,
+                    query_path="; ".join(evidence[:10]),
+                    root_cause=report[:200],
+                    confidence=confidence,
+                    report=report,
+                    tags=service_name,
+                )
+            )
+        except Exception as exc:
+            logger.warning("RCA 入库失败: %s", exc)
+
     async def run(
         self,
         user_message: str,
@@ -252,11 +287,17 @@ class AgentLoop:
 
                 # 如果 LLM 不再调用工具 → RCA 完成
                 if choice.finish_reason == "stop" or not assistant_msg.tool_calls:
+                    # V2-F1: RCA 自动入库（知识记忆）
+                    final_report = self._enrich_rca_with_service_profile(
+                        assistant_msg.content or "", user_message
+                    )
+                    final_confidence = "high" if len(evidence) >= 2 else "medium"
+                    self._save_to_knowledge(
+                        user_message, final_report, final_confidence, evidence
+                    )
                     yield rca_complete(
-                        report=self._enrich_rca_with_service_profile(
-                            assistant_msg.content or "", user_message
-                        ),
-                        confidence="high" if len(evidence) >= 2 else "medium",
+                        report=final_report,
+                        confidence=final_confidence,
                     )
                     return
 

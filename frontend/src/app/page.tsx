@@ -8,6 +8,8 @@ import { RCAPanel } from "@/components/RCAPanel";
 import { BudgetBar } from "@/components/BudgetBar";
 import { DemoGuide } from "@/components/DemoGuide";
 import { HandoffCard } from "@/components/HandoffCard";
+import { KnowledgeHint } from "@/components/KnowledgeHint";
+import type { KnowledgeEntry } from "@/lib/knowledge";
 import { createSession, followUp, streamSession } from "@/lib/api";
 import type { Session, SSEEvent, BudgetInfo } from "@/types/events";
 import { Search, Terminal } from "lucide-react";
@@ -422,6 +424,15 @@ export default function Home() {
           style={{ background: "var(--color-main-bg)" }}
         >
           <div className="max-w-[780px] mx-auto">
+            {/* V2-F1: 历史排查模式匹配提示 */}
+            {!isStreaming && (
+              <KnowledgeHint
+                message={inputValue}
+                onSelect={(entry) => {
+                  setInputValue(entry.symptom);
+                }}
+              />
+            )}
             <ChatInput
               onSubmit={handleSubmit}
               disabled={isStreaming}

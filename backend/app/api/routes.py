@@ -23,6 +23,7 @@ from app.agent.budget import BudgetTracker
 from app.agent.events import SSEEvent
 from app.agent.loop import AgentLoop
 from app.agent.safe_executor import SafeToolExecutor
+from app.knowledge.store import store as knowledge_store
 from app.observability.metrics import collector as metrics_collector
 from app.services.service_profile import catalog as service_catalog
 from app.tools.base import ToolSpec
@@ -335,8 +336,53 @@ def create_app(
             "owner_contact": profile.owner_contact,
             "slo": profile.slo.model_dump(),
             "dependencies": profile.dependencies,
-            "criticality": profile.criticality,
-            "description": profile.description,
+           "criticality": profile.criticality,
+           "description": profile.description,
+       }
+
+    @app.get("/api/knowledge")
+    async def list_knowledge(q: str | None = None, limit: int = 20) -> dict[str, Any]:
+        """知识库列表 / 搜索（V2-F1）。
+
+        - 不带参数: 返回最近 RCA 条目
+        - 带 q 参数: 按服务名/症状关键词搜索相似 RCA
+        """
+        if q:
+            entries = knowledge_store.search_by_symptom(q, limit=limit)
+        else:
+            entries = knowledge_store.get_all(limit=limit)
+        return {
+            "total": knowledge_store.count(),
+            "entries": [
+                {
+                    "id": e.id,
+                    "symptom": e.symptom,
+                    "service_name": e.service_name,
+                    "root_cause": e.root_cause,
+                    "confidence": e.confidence,
+                    "tags": e.tags,
+                    "created_at": e.created_at,
+                }
+                for e in entries
+            ],
+        }
+
+    @app.get("/api/knowledge/{entry_id}")
+    async def get_knowledge(entry_id: int) -> dict[str, Any]:
+        """查询知识库单条详情（V2-F1）。"""
+        entry = knowledge_store.get_by_id(entry_id)
+        if entry is None:
+            raise HTTPException(status_code=404, detail="知识条目不存在")
+        return {
+            "id": entry.id,
+            "symptom": entry.symptom,
+            "service_name": entry.service_name,
+            "query_path": entry.query_path,
+            "root_cause": entry.root_cause,
+            "confidence": entry.confidence,
+            "report": entry.report,
+            "tags": entry.tags,
+            "created_at": entry.created_at,
         }
 
     return app
