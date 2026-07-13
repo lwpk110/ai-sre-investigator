@@ -14,6 +14,7 @@ import {
   Clock,
   ShieldCheck,
   Copy,
+  BookMarked,
 } from "lucide-react";
 import type { SSEEvent } from "@/types/events";
 
@@ -207,6 +208,84 @@ function StepCard({
         <p className="text-[13px]" style={{ color: "var(--color-text-secondary)" }}>
           {(event.data as { message: string }).message}
         </p>
+      </div>
+    );
+  }
+
+  // playbook_hint 事件（V2-F2 剧本自动匹配提示）
+  if (event.type === "playbook_hint") {
+    const {
+      playbook_name,
+      score,
+      matched_keywords,
+      steps,
+      common_root_causes,
+    } = event.data as {
+      playbook_name: string;
+      score: number;
+      matched_keywords: string[];
+      steps: { probe: string; query_template: string; purpose: string }[];
+      common_root_causes: string[];
+    };
+    const pct = Math.round(score * 100);
+    return (
+      <div
+        key={index}
+        className="animate-step-enter rounded-[var(--radius-md)] overflow-hidden"
+        style={{
+          background: "var(--color-surface-1)",
+          border: "1px solid var(--color-border-subtle)",
+          borderLeft: "2px solid var(--color-accent)",
+        }}
+      >
+        <div className="flex items-center gap-2.5 px-3.5 py-3">
+          <div className="w-7 h-7 rounded-[var(--radius-sm)] flex items-center justify-center shrink-0" style={{ background: "rgba(94,138,255,0.12)" }}>
+            <BookMarked className="w-4 h-4" style={{ color: "var(--color-accent)" }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-medium" style={{ color: "var(--color-text-primary)" }}>
+              命中剧本：{playbook_name}
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <div
+                className="h-1 rounded-full"
+                style={{
+                  width: `${Math.max(pct, 6)}%`,
+                  background: pct > 60 ? "var(--color-success)" : "var(--color-warning)",
+                  maxWidth: "80px",
+                }}
+              />
+              <span className="text-[10px] font-mono" style={{ color: "var(--color-text-tertiary)" }}>
+                {pct}%
+              </span>
+              <div className="flex gap-1">
+                {matched_keywords.slice(0, 3).map((kw) => (
+                  <span
+                    key={kw}
+                    className="text-[9px] font-mono px-1 py-0.5 rounded"
+                    style={{ background: "var(--color-app-bg)", color: "var(--color-text-tertiary)" }}
+                  >
+                    {kw}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="px-3.5 pb-3 pl-[52px] space-y-1.5">
+          {steps.slice(0, 3).map((s, i) => (
+            <div key={i} className="flex items-center gap-2 text-[11px]" style={{ color: "var(--color-text-tertiary)" }}>
+              <span className="font-mono shrink-0">{i + 1}.</span>
+              <span style={{ color: "var(--color-info)" }}>{s.probe}</span>
+              <span className="truncate">{s.purpose}</span>
+            </div>
+          ))}
+          {common_root_causes.length > 0 && (
+            <div className="text-[10px] pt-1" style={{ color: "var(--color-text-quaternary)" }}>
+              常见根因：{common_root_causes[0]}
+            </div>
+          )}
+        </div>
       </div>
     );
   }

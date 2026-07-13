@@ -5,6 +5,7 @@ export type SSEEventType =
   | "tool_call"
   | "tool_result"
   | "heal_attempt"
+  | "playbook_hint"
   | "budget_update"
   | "rca_partial"
   | "rca_complete"
@@ -67,6 +68,18 @@ export interface ErrorEvent extends BaseSSEEvent {
   data: { message: string };
 }
 
+export interface PlaybookHintEvent extends BaseSSEEvent {
+  type: "playbook_hint";
+  data: {
+    playbook_id: string;
+    playbook_name: string;
+    score: number;
+    matched_keywords: string[];
+    steps: { probe: string; query_template: string; purpose: string }[];
+    common_root_causes: string[];
+  };
+}
+
 export type SSEEvent =
   | ThinkingEvent
   | ToolCallEvent
@@ -74,6 +87,7 @@ export type SSEEvent =
   | BudgetUpdateEvent
   | RCACompleteEvent
   | RCAPartialEvent
+  | PlaybookHintEvent
   | ErrorEvent;
 
 // 会话状态
