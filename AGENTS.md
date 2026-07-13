@@ -46,11 +46,19 @@ cd frontend && npm run dev                      # dev server
 npm run lint
 ```
 
+## 语言策略
+
+所有文档、注释、GitHub Issue/PR/工单、OpenSpec artifact、对话均以**中文**为主。
+
+- **中文**：代码注释、提交信息描述、文档、GitHub 工单、设计文档
+- **英文**：代码标识符（变量名/函数名/类名）、QL 查询语句（PromQL/LogQL/TraceQL）、技术术语原文（SSE、HTTPX、Pydantic 等）
+- **Commit message**：保持 Conventional Commits 英文前缀（`feat`/`fix`/`docs`/`refactor`）+ 中文描述
+
 ## Coding Style & Naming Conventions
 
 - Python: async-first (`async/await`), strict typing enforced via `mypy`.
 - Define all tool parameters as Pydantic v2 models (converted to LLM `tools` schemas).
-- Comments explain *why*, not *what*. No commented-out code; no stale TODOs.
+- 注释解释 *为什么*（why），不解释 *是什么*（what）。不要留注释掉的代码，不要留过期 TODO。
 
 ## Testing Guidelines
 
