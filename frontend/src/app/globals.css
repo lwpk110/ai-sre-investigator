@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/*
+ * Observatory 设计系统 (docs/design/DESIGN.md)
+ * 深色操作台主题 — Indigo Porcelain
+ */
+
+@theme {
+  /* --- 背景层级 --- */
+  --color-app-bg: #0a0c14;
+  --color-sidebar-bg: #0e1020;
+  --color-main-bg: #0c0e18;
+  --color-surface-1: #141728;
+  --color-surface-2: #1a1e34;
+
+  /* --- 文本层级 --- */
+  --color-text-primary: #e8eaf0;
+  --color-text-secondary: #a0a6b8;
+  --color-text-tertiary: #6b7088;
+  --color-text-quaternary: #444962;
+
+  /* --- 强调色 --- */
+  --color-accent: #5e8aff;
+  --color-accent-hover: #7aa1ff;
+  --color-accent-muted: #3a5599;
+
+  /* --- 语义状态色 --- */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #f43f5e;
+  --color-info: #38bdf8;
+
+  /* --- 边框 --- */
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border-standard: rgba(255, 255, 255, 0.08);
+  --color-border-emphasis: rgba(255, 255, 255, 0.12);
+  --color-border-solid: #252940;
+
+  /* --- 字体 --- */
+  --font-sans: var(--font-inter), -apple-system, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "SF Mono", Menlo, monospace;
+
+  /* --- 圆角 --- */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+}
+
+* {
+  border-color: var(--color-border-subtle);
+}
+
+body {
+  background: var(--color-app-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- 自定义滚动条 --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* --- 状态灯脉冲动画 --- */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-status-pulse {
+  animation: status-pulse 1.5s ease-in-out infinite;
+}
+
+/* --- Timeline 步骤入场动画 --- */
+@keyframes step-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-step-enter {
+  animation: step-enter 200ms ease-out;
+}
+
+/* --- Markdown 排版 --- */
+.prose-rca h1 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+.prose-rca h2 {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+.prose-rca h3 {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+.prose-rca p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.prose-rca ul, .prose-rca ol {
+  font-size: 14px;
+  line-height: 1.5;
+  padding-left: 20px;
+  margin-bottom: 8px;
+}
+.prose-rca li {
+  margin-bottom: 4px;
+}
+.prose-rca code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-app-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-subtle);
+}
+.prose-rca pre {
+  background: var(--color-app-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+.prose-rca pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+.prose-rca strong {
+  font-weight: 600;
+}
+.prose-rca blockquote {
+  border-left: 2px solid var(--color-accent);
+  padding-left: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
