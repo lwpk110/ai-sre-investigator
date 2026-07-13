@@ -23,6 +23,7 @@ from app.agent.budget import BudgetTracker
 from app.agent.events import SSEEvent
 from app.agent.loop import AgentLoop
 from app.agent.safe_executor import SafeToolExecutor
+from app.observability.metrics import collector as metrics_collector
 from app.tools.base import ToolSpec
 from app.tools.loki import LokiTool
 from app.tools.mimir import MimirTool
@@ -120,6 +121,9 @@ def create_app(
         session.tools = effective_tools
         session.status = "created"
 
+        # 初始化自观测指标（E-5）
+        metrics_collector.create_session(session.session_id)
+
         return {"session_id": session.session_id}
 
     @app.get("/api/session/{session_id}")
@@ -151,20 +155,47 @@ def create_app(
         async def event_generator() -> AsyncGenerator[dict[str, str], None]:
             """将 AgentLoop 的 SSEEvent 转换为 SSE 格式。"""
             try:
+                metrics = metrics_collector.get_session(session.session_id)
                 async for event in session.agent.run(session.message):  # type: ignore[union-attr]
+                    # 更新自观测指标
+                    if metrics:
+                        if event.type == "budget_update":
+                            metrics.tokens_used = event.data.get("tokens_used", 0)
+                        elif event.type == "tool_result":
+                            metrics.record_tool_call(
+                                event.data.get("tool", "unknown"),
+                                event.data.get("success", False),
+                                event.data.get("latency_ms", 0),
+                                event.data.get("cached", False),
+                            )
                     yield {
                         "event": event.type,
                         "data": _serialize_event(event),
                     }
                 session.status = "completed"
+                metrics_collector.complete_session(session.session_id, "completed")
             except Exception:
                 session.status = "error"
+                metrics_collector.complete_session(session.session_id, "error")
                 yield {
                     "event": "error",
                     "data": '{"type": "error", "data": {"message": "内部错误"}}',
                 }
 
         return EventSourceResponse(event_generator())
+
+    @app.get("/api/metrics")
+    async def get_metrics() -> dict[str, object]:
+        """全局自观测指标汇总。"""
+        return metrics_collector.get_summary()
+
+    @app.get("/api/metrics/{session_id}")
+    async def get_session_metrics(session_id: str) -> dict[str, object]:
+        """单会话自观测指标。"""
+        session_metrics = metrics_collector.get_session(session_id)
+        if session_metrics is None:
+            raise HTTPException(status_code=404, detail="会话指标不存在")
+        return session_metrics.to_dict()
 
     return app
 
