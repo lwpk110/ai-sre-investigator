@@ -11,6 +11,22 @@ export type SSEEventType =
   | "rca_complete"
   | "error";
 
+/** self-heal 事件：工具执行失败后自动修正重试 */
+export interface HealAttemptEvent extends BaseSSEEvent {
+  type: "heal_attempt";
+  data: {
+    tool: string;
+    /** 原始失败查询 */
+    original_query: string;
+    /** 失败原因 */
+    error: string;
+    /** 修正后的查询 */
+    healed_query: string;
+    /** 重试是否成功 */
+    success: boolean;
+  };
+}
+
 export interface BaseSSEEvent {
   type: SSEEventType;
   data: Record<string, unknown>;
@@ -84,6 +100,7 @@ export type SSEEvent =
   | ThinkingEvent
   | ToolCallEvent
   | ToolResultEvent
+  | HealAttemptEvent
   | BudgetUpdateEvent
   | RCACompleteEvent
   | RCAPartialEvent

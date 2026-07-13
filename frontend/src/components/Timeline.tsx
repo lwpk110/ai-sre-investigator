@@ -356,6 +356,10 @@ function StepCard({
   stepNum: string;
 }) {
   const [expanded, setExpanded] = useState(true);
+  const [userToggled, setUserToggled] = useState(false);
+
+  // 全局展开/收起与用户手动切换的协调
+  const isExpanded = !userToggled ? true : expanded;
 
   // thinking 事件
   if (event.type === "thinking") {
@@ -501,20 +505,19 @@ function StepCard({
             {stepNum}
           </span>
           <ProbeIcon name={tool} />
-          <div className="flex-1 min-w-0">
-            <div className="text-[14px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
-              {tool}
+         <div className="flex-1 min-w-0">
+           <div className="text-[14px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
+             {tool}
+           </div>
+            <div className="text-[12px] mt-0.5 truncate" style={{ color: "var(--color-text-tertiary)" }}>
+              {probeLabel(tool)} 查询执行中...
             </div>
-          </div>
-          <span
-            className="text-[11px] font-mono px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(56,189,248,0.1)", color: "var(--color-info)" }}
-          >
-            {probeLabel(tool)}
-          </span>
-          <span className="text-[11px]" style={{ color: "var(--color-text-tertiary)" }}>
-            执行中...
-          </span>
+         </div>
+          {/* 状态圆点 - 执行中脉冲 */}
+          <div
+            className="w-2 h-2 rounded-full shrink-0 animate-status-pulse"
+            style={{ background: "var(--color-info)" }}
+          />
         </div>
         {/* QL 代码块 */}
         <div className="px-3.5 pb-3 pl-[52px]">
@@ -573,8 +576,8 @@ function StepCard({
         }}
       >
         {/* 头部 */}
-        <button
-          onClick={() => setExpanded(!expanded)}
+       <button
+          onClick={() => { setUserToggled(true); setExpanded(!expanded); }}
           className="w-full flex items-center gap-2.5 px-3.5 py-3 text-left"
         >
           <span className="text-[11px] font-mono w-5 text-center shrink-0" style={{ color: "var(--color-text-quaternary)" }}>
@@ -585,6 +588,18 @@ function StepCard({
             <div className="text-[14px] font-semibold" style={{ color: "var(--color-text-primary)" }}>
               {tool}
             </div>
+            {/* subtitle 摘要 */}
+            {success && summary.length > 0 && (
+              <div className="text-[12px] mt-0.5 truncate" style={{ color: "var(--color-text-tertiary)" }}>
+                {summary[0].label}: {summary[0].value}
+                {summary.length > 1 && ` · ${summary[1].label}: ${summary[1].value}`}
+              </div>
+            )}
+            {!success && error && (
+              <div className="text-[12px] mt-0.5 truncate" style={{ color: "var(--color-error)" }}>
+                {error.slice(0, 80)}
+              </div>
+            )}
           </div>
           <span
             className="text-[11px] font-mono px-2 py-0.5 rounded-full"
@@ -607,12 +622,12 @@ function StepCard({
             {latency_ms}ms
           </span>
           <ChevronDown
-            className={`w-3.5 h-3.5 transition-transform shrink-0 ${expanded ? "rotate-180" : ""}`}
+            className={`w-3.5 h-3.5 transition-transform shrink-0 ${isExpanded ? "rotate-180" : ""}`}
             style={{ color: "var(--color-text-quaternary)" }}
           />
         </button>
         {/* 可展开结果 */}
-        {expanded && (
+        {isExpanded && (
           <div className="px-3.5 pb-3 pl-[52px]">
            {success && summary.length > 0 ? (
               <>
@@ -664,6 +679,54 @@ function StepCard({
   // budget_update - 不在 timeline 中渲染
   if (event.type === "budget_update") return null;
 
+  // heal_attempt 事件 (self-heal 自修正重试)
+  if (event.type === "heal_attempt") {
+    const { original_query, error, healed_query, success } = event.data as {
+      tool: string;
+      original_query: string;
+      error: string;
+      healed_query: string;
+      success: boolean;
+    };
+    return (
+      <div
+        key={index}
+        className="animate-step-enter rounded-[var(--radius-md)] overflow-hidden"
+        style={{
+          background: "var(--color-surface-1)",
+          border: "1px solid var(--color-border-subtle)",
+          borderLeft: "2px solid var(--color-warning)",
+        }}
+      >
+        <div className="heal-block" style={{ margin: 0 }}>
+          {/* 失败行 */}
+          <div className="heal-row fail">
+            <XCircle className="w-3.5 h-3.5 shrink-0 mt-px" />
+            <div className="flex-1">
+              <span className="font-medium">查询失败，触发自修正</span>
+              <code className="font-mono text-[11px] opacity-80 block mt-0.5 break-all">
+                {original_query.slice(0, 120)}
+              </code>
+              <span className="text-[11px] opacity-70 block mt-0.5">{error}</span>
+            </div>
+          </div>
+          {/* 修正行 */}
+          <div className="heal-row fix">
+            <Wrench className="w-3.5 h-3.5 shrink-0 mt-px" />
+            <div className="flex-1">
+              <span className="font-medium">
+                {success ? "自动修正成功，重试通过" : "修正重试中..."}
+              </span>
+              <code className="font-mono text-[11px] opacity-80 block mt-0.5 break-all">
+                {healed_query.slice(0, 120)}
+              </code>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -672,6 +735,7 @@ export function Timeline({ events }: TimelineProps) {
   if (visibleEvents.length === 0) return null;
 
   let stepCounter = 0;
+  const [forceExpand, setForceExpand] = useState(true);
 
   return (
     <div className="space-y-2">
@@ -687,6 +751,15 @@ export function Timeline({ events }: TimelineProps) {
             {visibleEvents.filter((e) => e.type === "tool_result").length} / {visibleEvents.filter((e) => e.type === "tool_result").length} 完成
           </span>
         </div>
+        {visibleEvents.some((e) => e.type === "tool_result") && (
+          <button
+            onClick={() => setForceExpand(!forceExpand)}
+            className="text-[12px] font-medium px-2 py-1 rounded transition-colors hover:text-[var(--color-text-primary)]"
+            style={{ color: "var(--color-text-tertiary)" }}
+          >
+            {forceExpand ? "全部收起" : "全部展开"}
+          </button>
+        )}
       </div>
       {/* 步骤卡片 */}
       {visibleEvents.map((event, index) => {

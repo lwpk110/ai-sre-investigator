@@ -93,6 +93,7 @@ describe("Timeline", () => {
       },
     ];
     render(<Timeline events={events} />);
-    expect(screen.getByText("查询语法错误")).toBeInTheDocument();
+    // error 文本同时出现在 subtitle 和展开区域，用 getAllByText 匹配
+    expect(screen.getAllByText("查询语法错误").length).toBeGreaterThan(0);
   });
 });

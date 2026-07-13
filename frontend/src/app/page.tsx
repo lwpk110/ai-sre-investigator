@@ -12,7 +12,73 @@ import { KnowledgeHint } from "@/components/KnowledgeHint";
 import type { KnowledgeEntry } from "@/lib/knowledge";
 import { createSession, followUp, streamSession } from "@/lib/api";
 import type { Session, SSEEvent, BudgetInfo } from "@/types/events";
-import { Search, Terminal } from "lucide-react";
+import { Search, Terminal, Share2 } from "lucide-react";
+
+/** 从消息文本中提取标签（服务名 / HTTP 状态码 / 优先级） */
+function extractTags(message: string): string[] {
+  const tags: string[] = [];
+  // 服务名
+  const svcMatch = message.match(/([\w-]+(?:-service|-api|-gateway))\b/i);
+  if (svcMatch) tags.push(svcMatch[1]);
+  // HTTP 状态码
+  const httpMatch = message.match(/(HTTP\s*5\d{2}|5\d{2})/i);
+  if (httpMatch) tags.push("HTTP 5xx");
+  // 优先级
+  if (/p0|p1|严重|紧急|大量/i.test(message)) tags.push("P1");
+  return tags.length > 0 ? tags : ["general"];
+}
+
+/** 主区域头部栏 — 复刻原型 main-header */
+function MainHeader({
+  title,
+  status,
+  isStreaming,
+  onShare,
+}: {
+  title: string;
+  status: Session["status"];
+  isStreaming: boolean;
+  onShare?: () => void;
+}) {
+  const statusConfig: Record<Session["status"], { label: string; bg: string; color: string }> = {
+    running: { label: "排查中", bg: "rgba(56,189,248,0.1)", color: "var(--color-info)" },
+    completed: { label: "排查完成", bg: "rgba(16,185,129,0.1)", color: "var(--color-success)" },
+    error: { label: "排查失败", bg: "rgba(244,63,94,0.1)", color: "var(--color-error)" },
+    created: { label: "等待中", bg: "rgba(255,255,255,0.06)", color: "var(--color-text-tertiary)" },
+  };
+  const sc = statusConfig[status];
+  const pulse = status === "running" ? "animate-status-pulse" : "";
+
+  return (
+    <div
+      className="shrink-0 flex items-center justify-between px-6 py-3 border-b"
+      style={{ borderColor: "var(--color-border-subtle)" }}
+    >
+      <div className="text-[15px] font-semibold truncate" style={{ color: "var(--color-text-primary)" }}>
+        {title}
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <span
+          className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full ${pulse}`}
+          style={{ background: sc.bg, color: sc.color }}
+        >
+          <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc.color }} />
+          {sc.label}
+        </span>
+        {onShare && (
+          <button
+            onClick={onShare}
+            title="分享排查"
+            className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-sm)] transition-colors"
+            style={{ border: "1px solid var(--color-border-standard)", color: "var(--color-text-tertiary)" }}
+          >
+            <Share2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -300,6 +366,15 @@ export default function Home() {
         className="flex-1 flex flex-col h-screen overflow-hidden"
         style={{ background: "var(--color-main-bg)" }}
       >
+        {/* 头部栏 — 复刻原型 main-header */}
+        {activeSession && (
+          <MainHeader
+            title={activeSession.message.slice(0, 60)}
+            status={activeSession.status}
+            isStreaming={isStreaming}
+          />
+        )}
+
         {/* 内容滚动区域 */}
         <div className="flex-1 overflow-y-auto">
          <div className="max-w-[780px] mx-auto px-6 py-6 space-y-6">
@@ -370,24 +445,48 @@ export default function Home() {
             {/* 会话内容 */}
             {activeSession && (
               <>
-                {/* 用户问题 */}
-                <div className="flex items-start gap-3">
-                  <div
-                    className="w-8 h-8 shrink-0 flex items-center justify-center rounded-full text-[12px] font-semibold"
-                    style={{
-                      background: "var(--color-accent)",
-                      color: "#ffffff",
-                    }}
-                  >
-                    ME
-                  </div>
-                  <div className="flex-1 pt-1">
-                    <p
-                      className="text-[14px] font-medium"
-                      style={{ color: "var(--color-text-primary)" }}
+                {/* 事件报告卡 — 复刻原型 incident 卡片 */}
+                <div
+                  className="rounded-[var(--radius-md)] px-4 py-3.5"
+                  style={{
+                    background: "var(--color-surface-1)",
+                    border: "1px solid var(--color-border-standard)",
+                  }}
+                >
+                  <div className="flex items-center gap-2.5 mb-2.5">
+                    <div
+                      className="w-6 h-6 shrink-0 flex items-center justify-center rounded-full text-[11px] font-semibold"
+                      style={{ background: "#2d3348", color: "var(--color-text-secondary)" }}
                     >
-                      {activeSession.message}
-                    </p>
+                      L
+                    </div>
+                    <span className="text-[13px] font-medium" style={{ color: "var(--color-text-primary)" }}>
+                      luwei
+                    </span>
+                    <span className="text-[11px] font-mono" style={{ color: "var(--color-text-quaternary)" }}>
+                      {new Date(activeSession.created_at).toLocaleString("zh-CN", {
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-[14px] leading-[1.5]" style={{ color: "var(--color-text-primary)" }}>
+                    {activeSession.message}
+                  </p>
+                  {/* 标签行 */}
+                  <div className="flex gap-1.5 mt-2.5 flex-wrap">
+                    {extractTags(activeSession.message).map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-[11px] font-mono px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(255,255,255,0.05)", color: "var(--color-text-tertiary)" }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
