@@ -124,6 +124,7 @@ def create_app(
             budget=budget,
             client=llm_client,
         )
+        agent.set_model_registry(model_registry)
 
         session.budget = budget
         session.executor = executor

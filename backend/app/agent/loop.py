@@ -79,6 +79,7 @@ class AgentLoop:
         self._client = client
         self._model = model or settings.llm_model
         self._catalog = service_catalog or ServiceCatalog()
+        self._registry = None
 
         # 为 executor 注入 self-heal 回调（ADR-004 L4）
         self._executor._heal_callback = self._heal_callback
@@ -89,6 +90,18 @@ class AgentLoop:
     def set_playbook(self, playbook: Playbook) -> None:
         """注入匹配的黄金路径剧本，让 Agent 遵循标准排查路径（V2-F2）。"""
         self._playbook = playbook
+    
+    def set_model_registry(self, registry: Any) -> None:
+        """注入 ModelRegistry，使 AgentLoop 动态跟随用户切换的模型（V3-F3）。"""
+        self._registry = registry
+
+    def _resolve_model(self) -> str:
+        """解析当前应使用的模型 ID — 优先从 registry 读取（V3-F3）。"""
+        if self._registry is not None:
+            active = self._registry.get_active()
+            if active is not None:
+                return active.model or self._model
+        return self._model
 
     def _build_system_prompt(self) -> str:
         """构建系统提示词，如果有匹配的剧本则追加黄金路径指引。"""
@@ -270,7 +283,7 @@ class AgentLoop:
 
                 # 调用 LLM（原生 tool-calling，ADR-001）
                 response = await client.chat.completions.create(
-                    model=self._model,
+                    model=self._resolve_model(),
                     messages=messages,  # type: ignore[arg-type]
                     tools=tool_schemas if tool_schemas else None,  # type: ignore[arg-type]
                 )
