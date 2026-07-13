@@ -19,6 +19,23 @@ export async function createSession(message: string): Promise<string> {
   return data.session_id as string;
 }
 
+/** 对话式追问：在已完成会话中继续提问 */
+export async function followUp(
+  sessionId: string,
+  message: string
+): Promise<void> {
+  const resp = await fetch(`/api/session/${sessionId}/follow-up`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`追问失败 (${resp.status}): ${text}`);
+  }
+}
+
 /** 获取会话状态 */
 export async function getSessionStatus(
   sessionId: string

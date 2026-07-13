@@ -54,7 +54,12 @@ export interface RCACompleteEvent extends BaseSSEEvent {
 
 export interface RCAPartialEvent extends BaseSSEEvent {
   type: "rca_partial";
-  data: { report: string; missing: string[]; confidence: "low" };
+  data: {
+    report: string;
+    missing: string[];
+    confidence: "low";
+    suggestions?: string[];
+  };
 }
 
 export interface ErrorEvent extends BaseSSEEvent {
@@ -83,6 +88,9 @@ export interface Session {
   rca_report: string | null;
   rca_confidence: "high" | "medium" | "low" | null;
   is_partial: boolean;
+  missing_queries: string[];
+  suggestions: string[];
+  followup_count: number;
 }
 
 // 预算信息
