@@ -164,3 +164,59 @@ body {
   color: var(--color-text-secondary);
   margin-bottom: 8px;
 }
+
+/* ===== 探针专属图标色 (原型 step-card) ===== */
+.probe-mimir { background: rgba(244,162,97,0.12); color: #f4a261; }
+.probe-loki { background: rgba(225,80,80,0.12); color: #e15050; }
+.probe-tempo { background: rgba(0,200,150,0.12); color: #00c896; }
+.probe-shield { background: var(--color-accent-muted); color: var(--color-accent); }
+.probe-brain { background: rgba(168,85,247,0.12); color: #a855f7; }
+
+/* ===== 状态背景半透明层 ===== */
+.bg-success-soft { background: rgba(16,185,129,0.10); }
+.bg-warning-soft { background: rgba(245,158,11,0.10); }
+.bg-error-soft { background: rgba(244,63,94,0.10); }
+.bg-info-soft { background: rgba(56,189,248,0.10); }
+.bg-accent-soft { background: rgba(94,138,255,0.12); }
+
+/* ===== 代码块语法高亮 (原型 code-body) ===== */
+.code-syntax .kw { color: #c792ea; }
+.code-syntax .fn { color: #82aaff; }
+.code-syntax .str { color: #c3e88d; }
+.code-syntax .num { color: #f78c6c; }
+.code-syntax .op { color: #89ddff; }
+.code-syntax .cmt { color: var(--color-text-quaternary); font-style: italic; }
+
+/* ===== Sparkline 柱状图 (原型 sparkline) ===== */
+.sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  flex: 1;
+  height: 24px;
+}
+.spark-bar {
+  flex: 1;
+  background: var(--color-text-quaternary);
+  border-radius: 1px;
+  min-height: 2px;
+  transition: opacity 0.2s;
+}
+.spark-bar.spike { background: var(--color-error); }
+
+/* ===== Slide up 动画 (scenarios 原型) ===== */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* ===== 行截断工具类 ===== */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

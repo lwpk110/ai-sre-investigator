@@ -1,60 +1,56 @@
 "use client";
 
-import { Coins, Zap } from "lucide-react";
+import { Shield } from "lucide-react";
 import type { BudgetInfo } from "@/types/events";
 
 interface BudgetBarProps {
-  budget: BudgetInfo | null;
+  budget: BudgetInfo;
 }
 
 export function BudgetBar({ budget }: BudgetBarProps) {
-  if (!budget) return null;
-
-  const tokenPct = Math.min(100, (budget.tokens_used / budget.tokens_max) * 100);
-  const callPct = Math.min(100, (budget.calls_used / budget.calls_max) * 100);
+  const tokenPct = budget.tokens_max > 0 ? (budget.tokens_used / budget.tokens_max) * 100 : 0;
+  const callPct = budget.calls_max > 0 ? (budget.calls_used / budget.calls_max) * 100 : 0;
+  const pct = Math.max(tokenPct, callPct);
+  const fillWidth = `${Math.min(pct, 100)}%`;
 
   // 预算接近耗尽时变色
-  const tokenColor = tokenPct > 80 ? "var(--color-error)" : tokenPct > 50 ? "var(--color-warning)" : "var(--color-accent)";
-  const callColor = callPct > 80 ? "var(--color-error)" : callPct > 50 ? "var(--color-warning)" : "var(--color-accent)";
+  const fillColor = pct > 80 ? "var(--color-error)" : pct > 60 ? "var(--color-warning)" : "var(--color-accent)";
 
   return (
-    <div className="flex items-center gap-4 px-4 py-2 rounded-[var(--radius-md)]"
-      style={{ background: "var(--color-surface-1)", border: "1px solid var(--color-border-subtle)" }}
+    <div
+      className="flex items-center gap-3 px-3.5 py-2.5 rounded-[var(--radius-md)]"
+      style={{
+        background: "var(--color-surface-1)",
+        border: "1px solid var(--color-border-subtle)",
+      }}
     >
-      {/* Token 用量 */}
-      <div className="flex items-center gap-2 flex-1">
-        <Coins className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--color-text-tertiary)" }} />
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-0.5">
-            <span className="text-[11px] font-medium" style={{ color: "var(--color-text-tertiary)" }}>
-              Token
-            </span>
-            <span className="text-[11px] font-mono" style={{ color: "var(--color-text-secondary)" }}>
-              {budget.tokens_used.toLocaleString()} / {budget.tokens_max.toLocaleString()}
-            </span>
-          </div>
-          <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <div className="h-full rounded-full transition-all duration-300" style={{ width: `${tokenPct}%`, background: tokenColor }} />
-          </div>
+      <Shield className="w-[18px] h-[18px] shrink-0" style={{ color: "var(--color-accent)" }} />
+      <div className="flex-1">
+        <div
+          className="text-[11px] font-medium uppercase"
+          style={{ color: "var(--color-text-tertiary)", letterSpacing: "0.04em" }}
+        >
+          SafeToolExecutor · 预算与缓存
+        </div>
+        <div
+          className="h-1 rounded-full mt-1.5 overflow-hidden"
+          style={{ background: "rgba(255,255,255,0.06)" }}
+        >
+          <div
+            className="h-full rounded-full transition-all duration-300"
+            style={{ width: fillWidth, background: fillColor }}
+          />
         </div>
       </div>
-
-      {/* 工具调用次数 */}
-      <div className="flex items-center gap-2 flex-1">
-        <Zap className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--color-text-tertiary)" }} />
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-0.5">
-            <span className="text-[11px] font-medium" style={{ color: "var(--color-text-tertiary)" }}>
-              工具调用
-            </span>
-            <span className="text-[11px] font-mono" style={{ color: "var(--color-text-secondary)" }}>
-              {budget.calls_used} / {budget.calls_max}
-            </span>
-          </div>
-          <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <div className="h-full rounded-full transition-all duration-300" style={{ width: `${callPct}%`, background: callColor }} />
-          </div>
-        </div>
+      <div
+        className="text-[12px] font-mono text-right whitespace-nowrap"
+        style={{ color: "var(--color-text-secondary)" }}
+      >
+        <span style={{ color: "var(--color-text-tertiary)" }}>token</span>{" "}
+        {budget.tokens_used.toLocaleString()} / {budget.tokens_max.toLocaleString()}
+        <br />
+        <span style={{ color: "var(--color-text-tertiary)" }}>queries</span>{" "}
+        {budget.calls_used} / {budget.calls_max}
       </div>
     </div>
   );

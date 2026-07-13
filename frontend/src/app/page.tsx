@@ -410,7 +410,6 @@ export default function Home() {
                     missingQueries={activeSession.missing_queries}
                     suggestions={activeSession.suggestions}
                     onFollowUp={handleSubmit}
-                    onHandoff={() => setHandoffSession(activeSession.session_id)}
                   />
                   )}
               </>
