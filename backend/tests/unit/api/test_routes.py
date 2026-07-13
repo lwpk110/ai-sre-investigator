@@ -357,3 +357,100 @@ class TestHandoff:
         # 如果服务画像匹配到了，ownership 应非空
         if data.get("ownership"):
             assert "Platform" in str(data["ownership"])
+
+
+class TestPlaybookEndpoints:
+    """剧本库 API 端点测试（V2-F2）。"""
+
+    def test_list_playbooks(self):
+        """GET /api/playbooks 返回剧本摘要列表。"""
+        from fastapi.testclient import TestClient
+
+        from app.api.routes import create_app
+
+        app = create_app()
+        client = TestClient(app)
+
+        resp = client.get("/api/playbooks")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "playbooks" in data
+        assert len(data["playbooks"]) >= 5
+        first = data["playbooks"][0]
+        assert "id" in first
+        assert "name" in first
+        assert "step_count" in first
+
+    def test_get_playbook_detail(self):
+        """GET /api/playbooks/{id} 返回剧本完整详情。"""
+        from fastapi.testclient import TestClient
+
+        from app.api.routes import create_app
+
+        app = create_app()
+        client = TestClient(app)
+
+        resp = client.get("/api/playbooks/oom")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["id"] == "oom"
+        assert len(data["steps"]) >= 2
+        assert len(data["common_root_causes"]) >= 1
+        assert len(data["trigger_keywords"]) >= 1
+
+    def test_get_playbook_not_found(self):
+        """GET /api/playbooks/不存在 返回 404。"""
+        from fastapi.testclient import TestClient
+
+        from app.api.routes import create_app
+
+        app = create_app()
+        client = TestClient(app)
+
+        resp = client.get("/api/playbooks/nonexistent")
+        assert resp.status_code == 404
+
+    def test_match_playbooks(self):
+        """GET /api/playbooks/match?q=OOM 返回匹配结果。"""
+        from fastapi.testclient import TestClient
+
+        from app.api.routes import create_app
+
+        app = create_app()
+        client = TestClient(app)
+
+        resp = client.get("/api/playbooks/match?q=内存溢出 OOM 服务重启")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["query"] == "内存溢出 OOM 服务重启"
+        assert len(data["matches"]) >= 1
+        assert data["matches"][0]["playbook_id"] == "oom"
+        assert data["matches"][0]["score"] > 0
+
+    def test_match_playbooks_no_result(self):
+        """无匹配时返回空列表。"""
+        from fastapi.testclient import TestClient
+
+        from app.api.routes import create_app
+
+        app = create_app()
+        client = TestClient(app)
+
+        resp = client.get("/api/playbooks/match?q=今天天气真好")
+        assert resp.status_code == 200
+        assert len(resp.json()["matches"]) == 0
+
+    def test_playbook_stats(self):
+        """GET /api/playbooks/stats 返回覆盖统计。"""
+        from fastapi.testclient import TestClient
+
+        from app.api.routes import create_app
+
+        app = create_app()
+        client = TestClient(app)
+
+        resp = client.get("/api/playbooks/stats")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total_playbooks"] >= 5
+        assert isinstance(data["by_fault_type"], dict)

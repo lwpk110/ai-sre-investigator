@@ -16,6 +16,7 @@ import {
   BookOpen,
   Server,
   History,
+  BookMarked,
 } from "lucide-react";
 import type { Session } from "@/types/events";
 
@@ -174,6 +175,7 @@ export function Sidebar({ sessions, activeSessionId, onSelect, onNew }: SidebarP
         <NavItem href="/dashboard" icon={LayoutDashboard} label="价值仪表盘" active={pathname === "/dashboard"} />
         <NavItem href="/tools" icon={Wrench} label="工具管理" active={pathname === "/tools"} />
         <NavItem href="/knowledge" icon={BookOpen} label="知识库" active={pathname === "/knowledge"} />
+        <NavItem href="/playbooks" icon={BookMarked} label="剧本库" active={pathname === "/playbooks"} />
         <NavItem href="/services" icon={Server} label="服务目录" active={pathname === "/services"} />
         <NavItem href="/sessions" icon={History} label="会话历史" active={pathname === "/sessions"} />
         <NavItem href="/settings" icon={Settings} label="模型设置" active={pathname === "/settings"} />

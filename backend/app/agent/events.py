@@ -95,3 +95,25 @@ def rca_partial(
 def error(message: str) -> SSEEvent:
     """错误事件。"""
     return SSEEvent(type="error", data={"message": message})
+
+
+def playbook_hint(
+    playbook_id: str,
+    playbook_name: str,
+    score: float,
+    matched_keywords: list[str],
+    steps: list[dict[str, Any]],
+    common_root_causes: list[str],
+) -> SSEEvent:
+    """剧本匹配提示（V2-F2）—— 申告时自动推荐黄金路径剧本。"""
+    return SSEEvent(
+        type="playbook_hint",
+        data={
+            "playbook_id": playbook_id,
+            "playbook_name": playbook_name,
+            "score": round(score, 3),
+            "matched_keywords": matched_keywords,
+            "steps": steps,
+            "common_root_causes": common_root_causes,
+        },
+    )

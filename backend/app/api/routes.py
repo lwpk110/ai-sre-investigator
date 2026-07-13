@@ -22,13 +22,14 @@ from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from app.agent.budget import BudgetTracker
-from app.agent.events import SSEEvent
+from app.agent.events import SSEEvent, playbook_hint
 from app.agent.loop import AgentLoop
 from app.agent.safe_executor import SafeToolExecutor
 from app.knowledge.store import store as knowledge_store
 from app.llm.model_registry import model_registry
 from app.observability.metrics import collector as metrics_collector
 from app.persistence.session_store import SessionSnapshot, persistence
+from app.playbooks.registry import registry as playbook_registry
 from app.services.service_profile import catalog as service_catalog
 from app.tools.base import ToolSpec
 from app.tools.loki import LokiTool
@@ -268,6 +269,35 @@ def create_app(
                 # 追问时传入历史上下文（如果有）
                 prior = session.history if session.history else None
                 collected_events: list[dict[str, Any]] = []
+
+                # V2-F2: 剧本自动匹配 — 申告时推荐黄金路径
+                pb_matches = playbook_registry.match(session.message, limit=1)
+                if pb_matches:
+                    best = pb_matches[0]
+                    pb = best.playbook
+                    hint_event = playbook_hint(
+                        playbook_id=pb.id,
+                        playbook_name=pb.name,
+                        score=best.score,
+                        matched_keywords=best.matched_keywords,
+                        steps=[
+                            {
+                                "probe": s.probe,
+                                "query_template": s.query_template,
+                                "purpose": s.purpose,
+                            }
+                            for s in pb.steps
+                        ],
+                        common_root_causes=pb.common_root_causes,
+                    )
+                    collected_events.append(
+                        {"type": hint_event.type, "data": hint_event.data}
+                    )
+                    yield {
+                        "event": hint_event.type,
+                        "data": _serialize_event(hint_event),
+                    }
+
                 final_report: str | None = None
                 final_confidence: str | None = None
                 final_partial = False
@@ -504,6 +534,58 @@ def create_app(
         if not model_registry.select(model_id):
             raise HTTPException(status_code=404, detail="模型不存在")
         return {"model": model_id, "status": "selected"}
+
+    @app.get("/api/playbooks")
+    async def list_playbooks() -> dict[str, Any]:
+        """列出全部排查剧本摘要（V2-F2）。"""
+        return {"playbooks": playbook_registry.summary()}
+
+    @app.get("/api/playbooks/stats")
+    async def playbook_stats() -> dict[str, Any]:
+        """剧本覆盖统计（V2-F2）。"""
+        return playbook_registry.coverage_stats()
+
+    @app.get("/api/playbooks/match")
+    async def match_playbooks(q: str) -> dict[str, Any]:
+        """根据用户申告文本匹配剧本（V2-F2）。"""
+        matches = playbook_registry.match(q)
+        return {
+            "query": q,
+            "matches": [
+                {
+                    "playbook_id": m.playbook.id,
+                    "playbook_name": m.playbook.name,
+                    "score": round(m.score, 3),
+                    "matched_keywords": m.matched_keywords,
+                }
+                for m in matches
+            ],
+        }
+
+    @app.get("/api/playbooks/{playbook_id}")
+    async def get_playbook(playbook_id: str) -> dict[str, Any]:
+        """获取剧本完整详情（V2-F2）。"""
+        pb = playbook_registry.get(playbook_id)
+        if pb is None:
+            raise HTTPException(status_code=404, detail="剧本不存在")
+        return {
+            "id": pb.id,
+            "name": pb.name,
+            "fault_type": pb.fault_type,
+            "trigger_keywords": pb.trigger_keywords,
+            "description": pb.description,
+            "steps": [
+                {
+                    "probe": s.probe,
+                    "query_template": s.query_template,
+                    "purpose": s.purpose,
+                    "evidence_key": s.evidence_key,
+                }
+                for s in pb.steps
+            ],
+            "common_root_causes": pb.common_root_causes,
+            "confidence_threshold": pb.confidence_threshold,
+        }
 
     return app
 

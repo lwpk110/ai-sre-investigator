@@ -1,0 +1,188 @@
+# 黄金路径剧本库（V2-F2）
+# 为高频故障预置标准排查路径：触发条件 -> 标准查询 -> 判定证据 -> 常见根因
+# trigger_keywords 同时支持中英文，用于匹配用户自然语言申告
+
+playbooks:
+  # ---------------------------------------------------------------- OOM
+  - id: "oom"
+    name: "OOM 内存溢出排查"
+    fault_type: "memory"
+    trigger_keywords:
+      - "oom"
+      - "out of memory"
+      - "内存溢出"
+      - "内存不够"
+      - "killed"
+      - "被kill"
+      - "进程被杀"
+      - "memory"
+    description: "服务因内存不足被 OOM Killer 终止或触发 OOM 异常"
+    steps:
+      - probe: "mimir"
+        query_template: 'container_memory_rss{{container="{service}"}} / container_memory_limit{{container="{service}"}}'
+        purpose: "查看容器内存使用率是否逼近上限"
+        evidence_key: "memory_usage_ratio"
+      - probe: "mimir"
+        query_template: 'increase(container_oom_events_total{{container="{service}"}}[5m])'
+        purpose: "确认 OOM Killer 是否在近期触发"
+        evidence_key: "oom_events"
+      - probe: "loki"
+        query_template: '{app="{service}"}|~"(?i)(oom|out of memory|killed)"'
+        purpose: "搜索日志中的 OOM 相关错误信息"
+        evidence_key: "oom_log_entries"
+      - probe: "mimir"
+        query_template: 'go_memstats_heap_inuse_bytes{{app="{service}"}} or jvm_memory_heap_used_bytes{{app="{service}"}}'
+        purpose: "查看堆内存增长趋势，判断是否内存泄漏"
+        evidence_key: "heap_trend"
+    common_root_causes:
+      - "内存泄漏：堆内存持续增长不回收"
+      - "大对象未释放：批量查询全量数据加载到内存"
+      - "容器内存限制过低：实际用量超过 limit 触发 OOM"
+      - "并发暴涨：突发流量导致内存使用量翻倍"
+
+  # ---------------------------------------------------------------- 连接池打满
+  - id: "conn_pool"
+    name: "连接池打满排查"
+    fault_type: "connection"
+    trigger_keywords:
+      - "连接池"
+      - "connection pool"
+      - "too many connections"
+      - "连接耗尽"
+      - "连接超时"
+      - "pool exhausted"
+      - "database connection"
+    description: "数据库或 RPC 连接池耗尽，新请求无法获取连接"
+    steps:
+      - probe: "mimir"
+        query_template: '{service}_db_connections_active{{service="{service}"}} / {service}_db_connections_max{{service="{service}"}}'
+        purpose: "查看连接池使用率是否接近 100%"
+        evidence_key: "conn_pool_usage"
+      - probe: "mimir"
+        query_template: 'histogram_quantile(0.99, rate({service}_db_query_duration_seconds_bucket{{service="{service}"}}[5m]))'
+        purpose: "查看数据库查询 P99 延迟是否飙升"
+        evidence_key: "db_query_p99"
+      - probe: "loki"
+        query_template: '{app="{service}"}|~"(?i)(too many connections|pool exhausted|connection refused|connection timeout)"'
+        purpose: "搜索连接池耗尽的错误日志"
+        evidence_key: "conn_error_logs"
+      - probe: "mimir"
+        query_template: 'increase({service}_http_requests_total{{service="{service}",status=~"5.."}}[5m])'
+        purpose: "查看 5xx 错误是否因连接池问题激增"
+        evidence_key: "http_5xx_count"
+    common_root_causes:
+      - "慢查询堆积：长事务占用连接不释放"
+      - "连接泄漏：代码获取连接后未正确归还"
+      - "连接池配置过小：max-connections 无法满足并发量"
+      - "下游数据库不可用：连接建立失败导致排队"
+
+  # ---------------------------------------------------------------- 依赖超时
+  - id: "dep_timeout"
+    name: "依赖服务超时排查"
+    fault_type: "latency"
+    trigger_keywords:
+      - "超时"
+      - "timeout"
+      - "依赖超时"
+      - "响应慢"
+      - "延迟"
+      - "latency"
+      - "downstream"
+      - "依赖不可用"
+    description: "下游依赖响应缓慢导致本服务请求超时级联失败"
+    steps:
+      - probe: "mimir"
+        query_template: 'histogram_quantile(0.99, rate(http_server_request_duration_seconds_bucket{{service="{service}"}}[5m]))'
+        purpose: "查看本服务 P99 延迟是否飙升"
+        evidence_key: "p99_latency"
+      - probe: "tempo"
+        query_template: '{ .service.name = "{service}" } | duration > 1s'
+        purpose: "查看慢 Trace，定位耗时最长的下游调用"
+        evidence_key: "slow_spans"
+      - probe: "mimir"
+        query_template: 'rate(http_client_request_duration_seconds_bucket{{service="{service}",le="1"}}[5m])'
+        purpose: "查看下游调用的 P99 延迟"
+        evidence_key: "downstream_latency"
+      - probe: "loki"
+        query_template: '{app="{service}"}|~"(?i)(timeout|deadline exceeded|context canceled|connection reset)"'
+        purpose: "搜索超时和上下文取消的错误日志"
+        evidence_key: "timeout_logs"
+    common_root_causes:
+      - "下游服务变慢：数据库慢查询或缓存命中率下降"
+      - "网络抖动：跨机房调用延迟突增"
+      - "重试风暴：超时后重试放大下游压力"
+      - "线程池打满：等待下游响应耗尽工作线程"
+
+  # ---------------------------------------------------------------- GC 停顿
+  - id: "gc_pause"
+    name: "GC 停顿排查"
+    fault_type: "performance"
+    trigger_keywords:
+      - "gc"
+      - "gc停顿"
+      - "gc pause"
+      - "stop the world"
+      - "垃圾回收"
+      - "卡顿"
+      - "jvm"
+      - "java卡住"
+    description: "JVM/Go 运行时垃圾回收停顿导致服务短暂无响应"
+    steps:
+      - probe: "mimir"
+        query_template: 'rate(jvm_gc_pause_seconds_sum{{app="{service}"}}[5m])'
+        purpose: "查看 GC 耗时占比是否异常"
+        evidence_key: "gc_time_ratio"
+      - probe: "mimir"
+        query_template: 'increase(jvm_gc_pause_seconds_count{{app="{service}",action="end of major GC"}}[10m])'
+        purpose: "统计 Full GC 频率，判断是否频繁触发"
+        evidence_key: "full_gc_count"
+      - probe: "mimir"
+        query_template: 'jvm_memory_used_bytes{{area="heap",app="{service}"}}'
+        purpose: "查看堆内存使用量，判断是否频繁触发 GC"
+        evidence_key: "heap_usage"
+      - probe: "loki"
+        query_template: '{app="{service}"}|~"(?i)(gc|garbage collect|pause|stop-the-world)"'
+        purpose: "搜索 GC 相关日志，确认停顿时间"
+        evidence_key: "gc_logs"
+    common_root_causes:
+      - "堆内存不足：年轻代/老年代空间不够触发频繁 GC"
+      - "大对象分配：直接进入老年代触发 Full GC"
+      - "内存泄漏：老年代持续增长无法回收"
+      - "GC 参数不当：CMS/G1 配置不适合当前负载模式"
+
+  # ---------------------------------------------------------------- 限流
+  - id: "rate_limit"
+    name: "限流/429 排查"
+    fault_type: "throttling"
+    trigger_keywords:
+      - "限流"
+      - "429"
+      - "rate limit"
+      - "throttle"
+      - "too many requests"
+      - "被限流"
+      - "熔断"
+      - "circuit breaker"
+    description: "请求被限流或熔断器拦截导致大量 429/503"
+    steps:
+      - probe: "mimir"
+        query_template: 'increase(http_requests_total{{service="{service}",status="429"}}[5m])'
+        purpose: "统计 429 限流响应数量"
+        evidence_key: "429_count"
+      - probe: "mimir"
+        query_template: 'rate({service}_circuit_breaker_state{{service="{service}",state="open"}}[5m])'
+        purpose: "查看熔断器是否处于打开状态"
+        evidence_key: "circuit_open"
+      - probe: "mimir"
+        query_template: 'increase(http_requests_total{{service="{service}"}}[1m])'
+        purpose: "查看请求 QPS 是否超过限流阈值"
+        evidence_key: "qps"
+      - probe: "loki"
+        query_template: '{app="{service}"}|~"(?i)(rate limit|429|throttl|circuit|too many requests)"'
+        purpose: "搜索限流和熔断相关的错误日志"
+        evidence_key: "rate_limit_logs"
+    common_root_causes:
+      - "突发流量：QPS 短时间内超过限流配置"
+      - "限流阈值过低：配置未根据容量及时调整"
+      - "下游故障触发熔断：熔断器打开拦截所有请求"
+      - "客户端重试风暴：429 后重试放大流量"
