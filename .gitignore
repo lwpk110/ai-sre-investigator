@@ -52,3 +52,9 @@ spike/.coverage
 spike/coverage.json
 .coverage
 coverage.json
+
+# @claude-flow/codex generic skills (regenerable via `npx @claude-flow/codex init`)
+.agents/skills/
+
+# Swarm binary backups
+.swarm/backups/
