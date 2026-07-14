@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { AppShell } from "@/components/layout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,8 +27,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="antialiased">
-        {children}
+      <body className="antialiased font-sans">
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
