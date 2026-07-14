@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI SRE Investigator — 剧本页组件</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app:      #0a0c14;
+      --bg-main:     #0c0e18;
+      --bg-surface1: #141728;
+      --bg-surface2: #1a1e34;
+      --bg-code:     #070912;
+      --text-1:      #e8eaf0;
+      --text-2:      #a0a6b8;
+      --text-3:      #6b7088;
+      --text-4:      #444962;
+      --accent:      #5e8aff;
+      --accent-light:#7aa1ff;
+      --accent-muted:#3a5599;
+      --ok:          #10b981;
+      --warn:        #f59e0b;
+      --err:         #f43f5e;
+      --info:        #38bdf8;
+      --purple:      #a855f7;
+      --ok-bg:       rgba(16,185,129,0.1);
+      --warn-bg:     rgba(245,158,11,0.1);
+      --err-bg:      rgba(244,63,94,0.1);
+      --info-bg:     rgba(56,189,248,0.1);
+      --purple-bg:   rgba(168,85,247,0.1);
+      --border-subtle: rgba(255,255,255,0.06);
+      --border-std:    rgba(255,255,255,0.08);
+      --border-emph:   rgba(255,255,255,0.12);
+      --border-solid:  #252940;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg-app); color: var(--text-1); font-family: var(--font-sans); min-height: 100vh; padding: 24px; -webkit-font-smoothing: antialiased; }
+    .page { max-width: 780px; margin: 0 auto; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .page-title { font-size: 15px; font-weight: 600; color: var(--text-1); letter-spacing: -0.01em; }
+    .page-subtitle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); font-family: var(--font-mono); }
+    .comp-group { margin-bottom: 32px; }
+    .comp-label { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .comp-label::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+    .comp-label span { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; }
+    /* Badge */
+    .badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); color: var(--text-2); border-radius: 9999px; padding: 2px 8px; font-size: 11px; font-weight: 500; font-family: var(--font-mono); }
+    .badge-ok { background: var(--ok-bg); color: var(--ok); }
+    .badge-warn { background: var(--warn-bg); color: var(--warn); }
+    .badge-err { background: var(--err-bg); color: var(--err); }
+    .badge-info { background: var(--info-bg); color: var(--info); }
+    .badge-purple { background: var(--purple-bg); color: var(--purple); }
+    /* MatchPanel */
+    .match-panel { background: var(--bg-surface1); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .match-panel-top { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .match-panel-top svg { width: 16px; height: 16px; color: var(--accent); }
+    .match-panel-top span { font-size: 13px; font-weight: 600; color: var(--text-1); }
+    .match-input-row { display: flex; gap: 8px; }
+    .match-input-row input { flex: 1; background: var(--bg-app); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 12px; color: var(--text-2); font-size: 13px; font-family: var(--font-sans); outline: none; }
+    .match-input-row input::placeholder { color: var(--text-4); }
+    .match-input-row input:focus { border-color: var(--accent); }
+    .match-input-row button { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 12px; font-weight: 500; font-family: var(--font-mono); cursor: pointer; white-space: nowrap; transition: background .12s ease; }
+    .match-input-row button:hover { background: var(--accent-light); }
+    /* MatchResult */
+    .match-result { background: var(--bg-app); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
+    .match-result-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .match-result-top .mr-name { font-size: 14px; font-weight: 500; color: var(--text-1); }
+    .match-result-top .mr-meta { margin-left: auto; font-size: 11px; color: var(--text-4); font-family: var(--font-mono); }
+    .match-result-desc { font-size: 12px; color: var(--text-3); margin-bottom: 8px; }
+    .match-keywords { display: flex; flex-wrap: wrap; gap: 6px; }
+    /* PlaybookStep */
+    .pb-step { display: flex; gap: 12px; margin-bottom: 14px; }
+    .pb-step:last-child { margin-bottom: 0; }
+    .pb-step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--bg-surface2); border: 1px solid var(--border-std); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--text-2); font-family: var(--font-mono); flex-shrink: 0; }
+    .pb-step-body { flex: 1; }
+    .pb-step-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .pb-step-purpose { font-size: 13px; color: var(--text-2); margin-bottom: 6px; }
+    /* CodeBlock */
+    .code-block { background: var(--bg-code); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 10px 12px; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; color: var(--text-2); overflow-x: auto; }
+    .code-block .kw { color: var(--accent); }
+    .code-block .str { color: var(--ok); }
+    .code-block .num { color: var(--warn); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-header">
+      <div class="page-title">剧本页组件</div>
+      <div class="page-subtitle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>2 components · batch 3</span>
+      </div>
+    </div>
+
+    <!-- MatchPanel -->
+    <div class="comp-group">
+      <div class="comp-label"><span>MatchPanel · MatchResult</span></div>
+
+      <div class="match-panel">
+        <div class="match-panel-top">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect width="6" height="4" x="9" y="3" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
+          <span>剧本匹配</span>
+        </div>
+        <div class="match-input-row">
+          <input type="text" placeholder="输入症状关键词，如 OOMKill、延迟飙升、5xx 告警…" value="payment-service P99 延迟飙升">
+          <button>匹配</button>
+        </div>
+      </div>
+
+      <div class="match-result">
+        <div class="match-result-top">
+          <span class="badge badge-err">P0</span>
+          <span class="mr-name">高延迟根因分析</span>
+          <span class="mr-meta">4 steps · 92% match</span>
+        </div>
+        <div class="match-result-desc">针对微服务延迟异常的标准排查流程：指标确认 → 日志取证 → 链路定位 → 修复验证</div>
+        <div class="match-keywords">
+          <span class="badge badge-warn">latency</span>
+          <span class="badge badge-info">P99</span>
+          <span class="badge badge-ok">timeout</span>
+          <span class="badge badge-purple">upstream</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PlaybookStep -->
+    <div class="comp-group">
+      <div class="comp-label"><span>PlaybookStep</span></div>
+
+      <div style="background:var(--bg-main); border:1px solid var(--border-subtle); border-radius:8px; padding:16px;">
+        <div class="pb-step">
+          <div class="pb-step-num">1</div>
+          <div class="pb-step-body">
+            <div class="pb-step-head"><span class="badge badge-warn">Mimir</span><span style="font-size:12px;color:var(--text-3)">指标确认</span></div>
+            <div class="pb-step-purpose">查询 payment-service 的 P99 延迟趋势，确认是否超出阈值</div>
+            <div class="code-block"><span class="kw">histogram_quantile</span>(<span class="num">0.99</span>, <span class="kw">sum by</span>(le) (<span class="kw">rate</span>(http_request_duration_seconds_bucket{<span class="str">service</span>=<span class="str">'payment-service'</span>}[<span class="num">5m</span>])))</div>
+          </div>
+        </div>
+
+        <div class="pb-step">
+          <div class="pb-step-num">2</div>
+          <div class="pb-step-body">
+            <div class="pb-step-head"><span class="badge badge-ok">Loki</span><span style="font-size:12px;color:var(--text-3)">日志取证</span></div>
+            <div class="pb-step-purpose">检索 payment-service 错误日志，定位超时来源</div>
+            <div class="code-block">{<span class="str">app</span>=<span class="str">'payment-service'</span>} |= <span class="str">'timeout'</span> | json | line_format <span class="str">'{{.level}} {{.msg}}'</span></div>
+          </div>
+        </div>
+
+        <div class="pb-step">
+          <div class="pb-step-num">3</div>
+          <div class="pb-step-body">
+            <div class="pb-step-head"><span class="badge" style="background:var(--accent-muted);color:var(--accent)">Tempo</span><span style="font-size:12px;color:var(--text-3)">链路定位</span></div>
+            <div class="pb-step-purpose">通过 trace 定位调用链中的超时 Span</div>
+            <div class="code-block">{ <span class="kw">resource.service.name</span> = <span class="str">"payment-service"</span> && <span class="kw">duration</span> &gt; <span class="num">500ms</span> }</div>
+          </div>
+        </div>
+
+        <div class="pb-step">
+          <div class="pb-step-num">4</div>
+          <div class="pb-step-body">
+            <div class="pb-step-head"><span class="badge badge-warn">Mimir</span><span style="font-size:12px;color:var(--text-3)">修复验证</span></div>
+            <div class="pb-step-purpose">扩容后再次确认延迟是否恢复正常</div>
+            <div class="code-block"><span class="kw">histogram_quantile</span>(<span class="num">0.99</span>, <span class="kw">sum by</span>(le) (<span class="kw">rate</span>(http_request_duration_seconds_bucket{<span class="str">service</span>=<span class="str">'payment-service'</span>}[<span class="num">5m</span>]))) <span class="kw">&lt; 100</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

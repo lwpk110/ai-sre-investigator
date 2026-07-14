@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI SRE Investigator — 会话/设置页组件</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app:      #0a0c14;
+      --bg-main:     #0c0e18;
+      --bg-surface1: #141728;
+      --bg-surface2: #1a1e34;
+      --bg-code:     #070912;
+      --text-1:      #e8eaf0;
+      --text-2:      #a0a6b8;
+      --text-3:      #6b7088;
+      --text-4:      #444962;
+      --accent:      #5e8aff;
+      --accent-light:#7aa1ff;
+      --accent-muted:#3a5599;
+      --ok:          #10b981;
+      --warn:        #f59e0b;
+      --err:         #f43f5e;
+      --info:        #38bdf8;
+      --purple:      #a855f7;
+      --ok-bg:       rgba(16,185,129,0.1);
+      --warn-bg:     rgba(245,158,11,0.1);
+      --err-bg:      rgba(244,63,94,0.1);
+      --info-bg:     rgba(56,189,248,0.1);
+      --purple-bg:   rgba(168,85,247,0.1);
+      --border-subtle: rgba(255,255,255,0.06);
+      --border-std:    rgba(255,255,255,0.08);
+      --border-emph:   rgba(255,255,255,0.12);
+      --border-solid:  #252940;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg-app); color: var(--text-1); font-family: var(--font-sans); min-height: 100vh; padding: 24px; -webkit-font-smoothing: antialiased; }
+    .page { max-width: 780px; margin: 0 auto; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .page-title { font-size: 15px; font-weight: 600; color: var(--text-1); letter-spacing: -0.01em; }
+    .page-subtitle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); font-family: var(--font-mono); }
+    .comp-group { margin-bottom: 32px; }
+    .comp-label { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .comp-label::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+    .comp-label span { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; }
+    /* Badge */
+    .badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); color: var(--text-2); border-radius: 9999px; padding: 2px 8px; font-size: 11px; font-weight: 500; font-family: var(--font-mono); }
+    .badge-ok { background: var(--ok-bg); color: var(--ok); }
+    .badge-warn { background: var(--warn-bg); color: var(--warn); }
+    .badge-err { background: var(--err-bg); color: var(--err); }
+    .badge-info { background: var(--info-bg); color: var(--info); }
+    .badge-purple { background: var(--purple-bg); color: var(--purple); }
+    /* EventRow */
+    .event-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+    .event-row:last-child { margin-bottom: 0; }
+    .event-badge { font-size: 10px; font-weight: 500; font-family: var(--font-mono); padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; }
+    .event-code { background: var(--bg-code); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 10px; flex: 1; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.5; color: var(--text-2); overflow-x: auto; }
+    .event-code .kw { color: var(--accent); }
+    .event-code .str { color: var(--ok); }
+    .event-code .num { color: var(--warn); }
+    .event-text { flex: 1; font-size: 12.5px; color: var(--text-2); line-height: 1.5; padding-top: 1px; }
+    .event-text strong { color: var(--text-1); font-weight: 500; }
+    /* ModelCard */
+    .model-card { background: var(--bg-surface1); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 16px; transition: border-color .12s ease; }
+    .model-card:hover { border-color: var(--border-emph); }
+    .model-card.active { border-color: rgba(94,138,255,0.3); background: rgba(94,138,255,0.03); }
+    .model-info { flex: 1; }
+    .model-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .model-name { font-size: 14px; font-weight: 500; color: var(--text-1); }
+    .model-desc { font-size: 12px; color: var(--text-3); margin-bottom: 6px; }
+    .model-meta { display: flex; align-items: center; gap: 12px; font-size: 11px; font-family: var(--font-mono); color: var(--text-4); }
+    .model-meta span { display: inline-flex; align-items: center; gap: 3px; }
+    .model-meta svg { width: 12px; height: 12px; }
+    .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-emph); flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .radio.on { border-color: var(--accent); }
+    .radio.on::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-header">
+      <div class="page-title">会话/设置页组件</div>
+      <div class="page-subtitle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>2 components · batch 4+5</span>
+      </div>
+    </div>
+
+    <!-- EventRow -->
+    <div class="comp-group">
+      <div class="comp-label"><span>EventRow</span></div>
+      <div style="background:var(--bg-main); border:1px solid var(--border-subtle); border-radius:8px; padding:16px;">
+        <div class="event-row">
+          <span class="event-badge" style="background:var(--info-bg);color:var(--info)">tool_call</span>
+          <div class="event-code">{"<span class="kw">tool</span>":"<span class="str">mimir-query</span>","<span class="kw">query</span>":"histogram_quantile(0.99, rate(http_request_duration_seconds{<span class="str">service</span>=<span class="str">'payment-service'</span>}[<span class="num">5m</span>]))"}</div>
+        </div>
+        <div class="event-row">
+          <span class="event-badge" style="background:var(--info-bg);color:var(--info)">tool_call</span>
+          <div class="event-code">{"<span class="kw">tool</span>":"<span class="str">loki-query</span>","<span class="kw">query</span>":"{<span class="str">app</span>=<span class="str">'payment-service'</span>} |= <span class="str">'timeout'</span> | json"}</div>
+        </div>
+        <div class="event-row">
+          <span class="event-badge" style="background:var(--warn-bg);color:var(--warn)">self_heal</span>
+          <div class="event-text">查询超时，自动重试（<strong>2/3</strong>），切换到备用 endpoint</div>
+        </div>
+        <div class="event-row">
+          <span class="event-badge" style="background:var(--ok-bg);color:var(--ok)">analysis</span>
+          <div class="event-code">{"<span class="kw">finding</span>":"<span class="str">P99 延迟从 80ms 升至 340ms，上游 redis-cluster 响应超时</span>","<span class="kw">confidence</span>":<span class="num">0.92</span>}</div>
+        </div>
+        <div class="event-row">
+          <span class="event-badge" style="background:var(--purple-bg);color:var(--purple)">rca</span>
+          <div class="event-text"><strong>根因：</strong>redis-cluster 节点 OOMKill 导致连接池耗尽，payment-service 请求排队超时。建议扩容 redis-cluster 内存或增加连接池大小。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ModelRow -->
+    <div class="comp-group">
+      <div class="comp-label"><span>ModelRow</span></div>
+
+      <div class="model-card active">
+        <div class="radio on"></div>
+        <div class="model-info">
+          <div class="model-name-row">
+            <span class="model-name">gpt-4o</span>
+            <span class="badge badge-ok">推荐</span>
+          </div>
+          <div class="model-desc">最强推理能力，适合复杂根因分析和多步调查</div>
+          <div class="model-meta">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>128K ctx</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>$2.5/1M in</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>fast</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <div class="radio"></div>
+        <div class="model-info">
+          <div class="model-name-row">
+            <span class="model-name">gpt-4o-mini</span>
+          </div>
+          <div class="model-desc">低成本快速响应，适合简单查询和日常监控</div>
+          <div class="model-meta">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>128K ctx</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>$0.15/1M in</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>fast</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <div class="radio"></div>
+        <div class="model-info">
+          <div class="model-name-row">
+            <span class="model-name">o3-mini</span>
+            <span class="badge badge-purple">推理增强</span>
+          </div>
+          <div class="model-desc">深度推理模式，适合疑难问题和跨系统关联分析</div>
+          <div class="model-meta">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>200K ctx</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>$1.1/1M in</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>slow</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

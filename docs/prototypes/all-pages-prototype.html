@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI SRE Investigator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-app: #0a0c14;
+  --bg-sidebar: #0e1020;
+  --bg-main: #0c0e18;
+  --bg-surface1: #141728;
+  --bg-surface2: #1a1e34;
+  --bg-code: #070912;
+  --text-1: #e8eaf0;
+  --text-2: #a0a6b8;
+  --text-3: #6b7088;
+  --text-4: #444962;
+  --accent: #5e8aff;
+  --accent-hover: #7aa1ff;
+  --accent-muted: rgba(94,138,255,0.12);
+  --ok: #10b981;
+  --ok-bg: rgba(16,185,129,0.10);
+  --warn: #f59e0b;
+  --warn-bg: rgba(245,158,11,0.10);
+  --err: #f43f5e;
+  --err-bg: rgba(244,63,94,0.10);
+  --info: #38bdf8;
+  --info-bg: rgba(56,189,248,0.10);
+  --purple: #a855f7;
+  --purple-bg: rgba(168,85,247,0.10);
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-std: rgba(255,255,255,0.08);
+  --border-emph: rgba(255,255,255,0.12);
+  --font-sans: 'Inter', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  --sidebar-w: 260px;
+  --content-w: 780px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-app);
+  color: var(--text-2);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+.app { display:flex; height:100vh; }
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-logo { padding:16px 18px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--border-subtle); }
+.sidebar-logo .logo-icon { width:28px; height:28px; border-radius:6px; background: var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.sidebar-logo .logo-icon svg { width:16px; height:16px; color:#fff; }
+.sidebar-logo .logo-text { display:flex; flex-direction:column; line-height:1.15; }
+.sidebar-logo .logo-text b { color:var(--text-1); font-size:14px; font-weight:600; }
+.sidebar-logo .logo-text span { font-size:9px; font-weight:500; color:var(--text-3); letter-spacing:0.08em; text-transform:uppercase; }
+.sidebar-search { padding:12px 14px; }
+.sidebar-search input {
+  width:100%; background: var(--bg-surface1); border:1px solid var(--border-subtle);
+  border-radius:6px; padding:8px 10px 8px 32px; color:var(--text-2); font-size:13px; font-family:var(--font-sans);
+  position:relative;
+}
+.sidebar-search { position:relative; }
+.sidebar-search .search-ico { position:absolute; left:24px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-3); pointer-events:none; }
+.sidebar-search input::placeholder { color:var(--text-4); }
+.sidebar-search input:focus { outline:none; border-color: var(--accent); }
+.sidebar-nav { flex:1; overflow-y:auto; padding:4px 8px; }
+.nav-item {
+  display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:6px;
+  color:var(--text-2); font-size:13px; font-weight:500; cursor:pointer; margin-bottom:2px;
+  transition: background .12s ease; position:relative;
+}
+.nav-item:hover { background: rgba(255,255,255,0.04); color:var(--text-1); }
+.nav-item svg { width:16px; height:16px; flex-shrink:0; opacity:.8; }
+.nav-item.active { background: var(--accent-muted); color:var(--accent); }
+.nav-item.active svg { opacity:1; }
+.nav-item.active::before { content:''; position:absolute; left:0; top:6px; bottom:6px; width:2px; border-radius:0 2px 2px 0; background: var(--accent); }
+.sidebar-footer { padding:12px 16px; border-top:1px solid var(--border-subtle); display:flex; align-items:center; gap:8px; }
+.sidebar-footer .dot { width:8px; height:8px; border-radius:50%; background:var(--ok); box-shadow:0 0 6px rgba(16,185,129,0.5); }
+.sidebar-footer span { font-size:12px; color:var(--text-3); }
+
+/* ---- Main ---- */
+.main { flex:1; background: var(--bg-main); overflow-y:auto; }
+.main-content { max-width: var(--content-w); margin:0 auto; padding:24px; }
+.page { display:none; }
+.page.active { display:block; }
+.page-header { display:flex; align-items:center; gap:10px; margin-bottom:22px; }
+.page-header svg { width:20px; height:20px; color:var(--text-2); }
+.page-header h1 { font-size:20px; font-weight:600; color:var(--text-1); }
+.page-header .spacer { flex:1; }
+.page-header .count { font-size:12px; color:var(--text-3); font-family:var(--font-mono); background:var(--bg-surface1); padding:3px 8px; border-radius:9999px; border:1px solid var(--border-subtle); }
+
+/* Buttons */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:6px; font-family:var(--font-sans); font-size:13px; font-weight:500; cursor:pointer; border:none; transition: background .12s ease; }
+.btn-primary { background: var(--accent); color:#fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost { background: rgba(255,255,255,0.04); color:var(--text-2); border:1px solid var(--border-std); }
+.btn-ghost:hover { background: rgba(255,255,255,0.08); color:var(--text-1); }
+.btn-ghost svg { width:14px; height:14px; }
+.btn-sm { padding:5px 12px; font-size:12px; }
+
+/* Card */
+.card { background:var(--bg-surface1); border:1px solid var(--border-subtle); border-radius:8px; padding:16px; transition:border-color .12s ease; }
+.card:hover { border-color: var(--border-emph); }
+
+/* Badges / pills */
+.badge { display:inline-flex; align-items:center; gap:4px; background:rgba(255,255,255,0.05); color:var(--text-2); border-radius:9999px; padding:2px 8px; font-size:11px; font-weight:500; font-family:var(--font-mono); }
+.badge-ok { background:var(--ok-bg); color:var(--ok); }
+.badge-warn { background:var(--warn-bg); color:var(--warn); }
+.badge-err { background:var(--err-bg); color:var(--err); }
+.badge-info { background:var(--info-bg); color:var(--info); }
+.badge-purple { background:var(--purple-bg); color:var(--purple); }
+
+/* Code block */
+.code-block { background:var(--bg-code); border:1px solid var(--border-subtle); border-radius:6px; padding:12px 14px; font-family:var(--font-mono); font-size:12.5px; color:var(--text-2); line-height:1.6; white-space:pre; overflow-x:auto; }
+
+/* Status dot */
+.s-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* ---- Dashboard ---- */
+.kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+.kpi-card { background:var(--bg-surface1); border:1px solid var(--border-subtle); border-radius:8px; padding:16px; transition:border-color .12s ease; }
+.kpi-card:hover { border-color: var(--border-emph); }
+.kpi-top { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.kpi-ico { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.kpi-ico svg { width:16px; height:16px; }
+.kpi-label { font-size:12px; color:var(--text-3); font-weight:500; }
+.kpi-value { font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--text-1); }
+
+.section-title { font-size:15px; font-weight:600; color:var(--text-1); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.section-title svg { width:16px; height:16px; color:var(--text-3); }
+.section-block { margin-bottom:24px; }
+
+.chart-card { background:var(--bg-surface1); border:1px solid var(--border-subtle); border-radius:8px; padding:20px; }
+.chart-bars { display:flex; align-items:flex-end; gap:14px; height:140px; padding-top:10px; }
+.chart-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; height:100%; justify-content:flex-end; }
+.chart-bar { width:100%; max-width:36px; background:var(--accent-muted); border-radius:4px 4px 0 0; position:relative; transition: background .15s ease; }
+.chart-bar-fill { position:absolute; bottom:0; left:0; right:0; background:var(--accent); border-radius:4px 4px 0 0; }
+.chart-col:hover .chart-bar { background: var(--accent-hover); opacity:.35; }
+.chart-col:hover .chart-bar-fill { background: var(--accent-hover); }
+.chart-label { font-size:11px; font-family:var(--font-mono); color:var(--text-4); }
+.chart-val { font-size:10px; font-family:var(--font-mono); color:var(--text-3); }
+
+.brief-card { background:var(--bg-surface1); border:1px solid var(--border-subtle); border-radius:8px; padding:16px; }
+.brief-card ul { list-style:none; }
+.brief-card li { display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--text-2); margin-bottom:8px; line-height:1.5; }
+.brief-card li:last-child { margin-bottom:0; }
+.brief-card li .b-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:6px; flex-shrink:0; }
+
+/* ---- Service / list cards ---- */
+.list-item { background:var(--bg-surface1); border:1px solid var(--border-subtle); border-radius:8px; margin-bottom:8px; overflow:hidden; transition:border-color .12s ease; }
+.list-item:hover { border-color: var(--border-emph); }
+.list-item-head { display:flex; align-items:center; gap:12px; padding:14px 16px; cursor:pointer; }
+.list-item-head svg.chev { width:16px; height:16px; color:var(--text-3); margin-left:auto; transition:transform .15s ease; }
+.list-item.open .list-item-head svg.chev { transform: rotate(90deg); }
+.list-item-body { display:none; border-top:1px solid var(--border-subtle); padding:16px; background:var(--bg-main); }
+.list-item.open .list-item-body { display:block; }
+.row-info { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:13px; }
+.row-info:last-child { margin-bottom:0; }
+.row-info svg { width:15px; height:15px; color:var(--text-3); flex-shrink:0; }
+.row-info .lbl { color:var(--text-3); font-size:12px; min-width:56px; }
+.row-info .val { color:var(--text-2); font-family:var(--font-mono); font-size:12.5px; }
+
+/* ---- Toggle ---- */
+.toggle { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:9999px; font-size:11px; font-weight:500; font-family:var(--font-mono); cursor:pointer; border:1px solid transparent; transition: all .12s ease; }
+.toggle.on { background:var(--ok-bg); color:var(--ok); border-color: rgba(16,185,129,0.2); }
+.toggle.off { background:rgba(255,255,255,0.04); color:var(--text-4); border-color:var(--border-subtle); }
+.toggle .tdot { width:6px; height:6px; border-radius:50%; }
+.toggle.on .tdot { background:var(--ok); }
+.toggle.off .tdot { background:var(--text-4); }
+
+/* ---- Search bar (knowledge) ---- */
+.search-bar { position:relative; margin-bottom:16px; }
+.search-bar input { width:100%; background:var(--bg-surface1); border:1px solid var(--border-subtle); border-radius:8px; padding:10px 14px 10px 38px; color:var(--text-2); font-size:13px; font-family:var(--font-sans); }
+.search-bar input::placeholder { color:var(--text-4); }
+.search-bar input:focus { outline:none; border-color: var(--accent); }
+.search-bar .sb-ico { position:absolute; left:13px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-3); }
+
+/* ---- Playbook match ---- */
+.match-panel { background:var(--bg-surface1); border:1px solid var(--border-subtle); border-radius:8px; padding:16px; margin-bottom:16px; }
+.match-panel-top { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.match-panel-top svg { width:16px; height:16px; color:var(--accent); }
+.match-panel-top span { font-size:13px; font-weight:600; color:var(--text-1); }
+.match-input-row { display:flex; gap:8px; }
+.match-input-row input { flex:1; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:6px; padding:8px 12px; color:var(--text-2); font-size:13px; font-family:var(--font-sans); }
+.match-input-row input::placeholder { color:var(--text-4); }
+.match-input-row input:focus { outline:none; border-color: var(--accent); }
+.match-result { background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:8px; padding:14px 16px; margin-bottom:16px; }
+.match-result-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.match-result-top .mr-name { font-size:14px; font-weight:500; color:var(--text-1); }
+.match-keywords { display:flex; flex-wrap:wrap; gap:6px; }
+
+/* ---- Steps (playbook expanded) ---- */
+.pb-step { display:flex; gap:12px; margin-bottom:14px; }
+.pb-step:last-child { margin-bottom:0; }
+.pb-step-num { width:22px; height:22px; border-radius:50%; background:var(--bg-surface2); border:1px solid var(--border-std); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; color:var(--text-2); font-family:var(--font-mono); flex-shrink:0; }
+.pb-step-body { flex:1; }
+.pb-step-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.pb-step-purpose { font-size:13px; color:var(--text-2); margin-bottom:6px; }
+
+/* ---- Model cards ---- */
+.model-card { background:var(--bg-surface1); border:1px solid var(--border-subtle); border-radius:8px; padding:16px; margin-bottom:10px; display:flex; align-items:center; gap:16px; transition:border-color .12s ease; }
+.model-card:hover { border-color: var(--border-emph); }
+.model-card.active { border-color: rgba(94,138,255,0.3); }
+.model-info { flex:1; }
+.model-name-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.model-name { font-size:14px; font-weight:500; color:var(--text-1); }
+.model-desc { font-size:12px; color:var(--text-3); margin-bottom:6px; }
+.model-meta { display:flex; align-items:center; gap:12px; font-size:11px; font-family:var(--font-mono); color:var(--text-4); }
+.model-meta span { display:inline-flex; align-items:center; gap:3px; }
+.model-meta svg { width:12px; height:12px; }
+
+/* ---- Session events ---- */
+.event-row { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; }
+.event-row:last-child { margin-bottom:0; }
+.event-badge { font-size:10px; font-weight:500; font-family:var(--font-mono); padding:2px 6px; border-radius:4px; flex-shrink:0; margin-top:1px; }
+
+/* scrollbar */
+.main::-webkit-scrollbar, .sidebar-nav::-webkit-scrollbar { width:6px; }
+.main::-webkit-scrollbar-track, .sidebar-nav::-webkit-scrollbar-track { background:transparent; }
+.main::-webkit-scrollbar-thumb, .sidebar-nav::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:3px; }
+.main::-webkit-scrollbar-thumb:hover, .sidebar-nav::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.14); }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="logo-text"><b>AI SRE</b><span>Investigator</span></div>
+    </div>
+    <div class="sidebar-search">
+      <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" placeholder="搜索服务、症状...">
+    </div>
+    <nav class="sidebar-nav" id="nav">
+      <div class="nav-item active" data-page="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>仪表盘</div>
+      <div class="nav-item" data-page="services"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>服务目录</div>
+      <div class="nav-item" data-page="tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>工具管理</div>
+      <div class="nav-item" data-page="knowledge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>知识库</div>
+      <div class="nav-item" data-page="playbooks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>剧本库</div>
+      <div class="nav-item" data-page="sessions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>会话历史</div>
+      <div class="nav-item" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h6"/></svg>模型设置</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="dot"></div>
+      <span>Agent 在线</span>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+    <div class="main-content">
+
+      <!-- ============ PAGE 1: DASHBOARD ============ -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          <h1>价值仪表盘</h1>
+          <div class="spacer"></div>
+          <button class="btn btn-ghost btn-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>刷新</button>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card" data-od-id="kpi-autoclosure">
+            <div class="kpi-top">
+              <div class="kpi-ico" style="background:var(--ok-bg)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+              <span class="kpi-label">自闭环率</span>
+            </div>
+            <div class="kpi-value">67.3%</div>
+          </div>
+          <div class="kpi-card" data-od-id="kpi-duration">
+            <div class="kpi-top">
+              <div class="kpi-ico" style="background:var(--info-bg)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <span class="kpi-label">平均排查时长</span>
+            </div>
+            <div class="kpi-value">4.2min</div>
+          </div>
+          <div class="kpi-card" data-od-id="kpi-sessions">
+            <div class="kpi-top">
+              <div class="kpi-ico" style="background:var(--accent-muted)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+              <span class="kpi-label">总会话数</span>
+            </div>
+            <div class="kpi-value">1,284</div>
+          </div>
+          <div class="kpi-card" data-od-id="kpi-cost">
+            <div class="kpi-top">
+              <div class="kpi-ico" style="background:var(--warn-bg)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+              <span class="kpi-label">估算成本</span>
+            </div>
+            <div class="kpi-value">$42.50</div>
+          </div>
+          <div class="kpi-card" data-od-id="kpi-cache">
+            <div class="kpi-top">
+              <div class="kpi-ico" style="background:var(--purple-bg)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+              <span class="kpi-label">缓存命中率</span>
+            </div>
+            <div class="kpi-value">73.8%</div>
+          </div>
+          <div class="kpi-card" data-od-id="kpi-selfcorrect">
+            <div class="kpi-top">
+              <div class="kpi-ico" style="background:var(--err-bg)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--err)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+              <span class="kpi-label">自修正成功率</span>
+            </div>
+            <div class="kpi-value">84.1%</div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>近 7 天排查趋势</div>
+          <div class="chart-card">
+            <div class="chart-bars">
+              <div class="chart-col"><span class="chart-val">12</span><div class="chart-bar" style="height:90px"><div class="chart-bar-fill" style="height:42%"></div></div><span class="chart-label">07/08</span></div>
+              <div class="chart-col"><span class="chart-val">19</span><div class="chart-bar" style="height:90px"><div class="chart-bar-fill" style="height:67%"></div></div><span class="chart-label">07/09</span></div>
+              <div class="chart-col"><span class="chart-val">8</span><div class="chart-bar" style="height:90px"><div class="chart-bar-fill" style="height:28%"></div></div><span class="chart-label">07/10</span></div>
+              <div class="chart-col"><span class="chart-val">25</span><div class="chart-bar" style="height:90px"><div class="chart-bar-fill" style="height:88%"></div></div><span class="chart-label">07/11</span></div>
+              <div class="chart-col"><span class="chart-val">16</span><div class="chart-bar" style="height:90px"><div class="chart-bar-fill" style="height:56%"></div></div><span class="chart-label">07/12</span></div>
+              <div class="chart-col"><span class="chart-val">22</span><div class="chart-bar" style="height:90px"><div class="chart-bar-fill" style="height:77%"></div></div><span class="chart-label">07/13</span></div>
+              <div class="chart-col"><span class="chart-val">14</span><div class="chart-bar" style="height:90px"><div class="chart-bar-fill" style="height:49%"></div></div><span class="chart-label">07/14</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>价值简报</div>
+          <div class="brief-card">
+            <ul>
+              <li><span class="b-dot"></span>本周自动闭环 86 起故障，节省 SRE 人工约 12.5 小时</li>
+              <li><span class="b-dot"></span>平均单次排查耗时 4.2 分钟，较上周下降 18%</li>
+              <li><span class="b-dot"></span>知识库新增 RCA 记录 14 条，剧本命中率提升至 91%</li>
+              <li><span class="b-dot"></span>缓存命中率 73.8%，上游查询成本降低约 $11.20</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE 2: SERVICES ============ -->
+      <section class="page" id="page-services">
+        <div class="page-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+          <h1>服务目录</h1>
+          <div class="spacer"></div>
+          <span class="count">12 个服务</span>
+        </div>
+
+        <div class="list-item open" data-od-id="svc-payment">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">payment-service</span>
+            <span class="badge badge-err">P0</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">P99 ≤ 80ms</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-4);margin-left:8px">支付团队</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="list-item-body">
+            <div class="row-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="lbl">责任方</span><span class="val">支付团队 · #payments-pay</span></div>
+            <div class="row-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg><span class="lbl">SLO</span><span class="val">可用性 99.9% · P99 ≤ 80ms</span></div>
+            <div class="row-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="1" y="2" rx="1"/><rect width="8" height="4" x="15" y="18" rx="1"/><path d="M5 6v4a2 2 0 0 0 2 2h8a2 2 0 0 1 2 2v4"/></svg><span class="lbl">依赖</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge">redis-cluster</span><span class="badge">kafka</span><span class="badge">user-service</span><span class="badge">order-service</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="svc-order">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">order-service</span>
+            <span class="badge badge-err">P0</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">P99 ≤ 100ms</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-4);margin-left:8px">订单团队</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-md-id="svc-user">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">user-service</span>
+            <span class="badge badge-warn">P1</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">P99 ≤ 60ms</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-4);margin-left:8px">用户团队</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="svc-inventory">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">inventory-service</span>
+            <span class="badge badge-warn">P1</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">P99 ≤ 120ms</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-4);margin-left:8px">仓储团队</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="svc-notification">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">notification-service</span>
+            <span class="badge badge-info">P2</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">P99 ≤ 200ms</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-4);margin-left:8px">通知团队</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="svc-gateway">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">api-gateway</span>
+            <span class="badge badge-err">P0</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">P99 ≤ 30ms</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-4);margin-left:8px">平台团队</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE 3: TOOLS ============ -->
+      <section class="page" id="page-tools">
+        <div class="page-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          <h1>工具管理</h1>
+        </div>
+
+        <div class="list-item" data-od-id="tool-mimir">
+          <div class="list-item-head">
+            <svg style="width:18px;height:18px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text-1)">mimir-query</span><span class="badge badge-info">PromQL</span></div>
+              <div style="font-size:12px;color:var(--text-3)">查询 Mimir 指标数据</div>
+            </div>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">v1.2.0</span>
+            <div class="toggle on" onclick="toggleTool(this,event)"><span class="tdot"></span>已启用</div>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="tool-loki">
+          <div class="list-item-head">
+            <svg style="width:18px;height:18px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text-1)">loki-query</span><span class="badge badge-info">LogQL</span></div>
+              <div style="font-size:12px;color:var(--text-3)">查询 Loki 日志数据</div>
+            </div>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">v1.1.0</span>
+            <div class="toggle on" onclick="toggleTool(this,event)"><span class="tdot"></span>已启用</div>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="tool-tempo">
+          <div class="list-item-head">
+            <svg style="width:18px;height:18px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text-1)">tempo-trace</span><span class="badge badge-info">TraceQL</span></div>
+              <div style="font-size:12px;color:var(--text-3)">查询 Tempo 链路数据</div>
+            </div>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">v1.0.0</span>
+            <div class="toggle on" onclick="toggleTool(this,event)"><span class="tdot"></span>已启用</div>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="tool-registry">
+          <div class="list-item-head">
+            <svg style="width:18px;height:18px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text-1)">service-registry</span></div>
+              <div style="font-size:12px;color:var(--text-3)">服务注册表查询</div>
+            </div>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">v0.9.0</span>
+            <div class="toggle on" onclick="toggleTool(this,event)"><span class="tdot"></span>已启用</div>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="tool-knowledge">
+          <div class="list-item-head">
+            <svg style="width:18px;height:18px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text-1)">knowledge-search</span></div>
+              <div style="font-size:12px;color:var(--text-3)">知识库语义搜索</div>
+            </div>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">v0.8.0</span>
+            <div class="toggle off" onclick="toggleTool(this,event)"><span class="tdot"></span>已禁用</div>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="tool-playbook">
+          <div class="list-item-head">
+            <svg style="width:18px;height:18px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text-1)">playbook-match</span></div>
+              <div style="font-size:12px;color:var(--text-3)">剧本自动匹配</div>
+            </div>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">v1.0.0</span>
+            <div class="toggle on" onclick="toggleTool(this,event)"><span class="tdot"></span>已启用</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE 4: KNOWLEDGE ============ -->
+      <section class="page" id="page-knowledge">
+        <div class="page-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <h1>RCA 知识库</h1>
+          <div class="spacer"></div>
+          <span class="count">共 128 条</span>
+        </div>
+
+        <div class="search-bar">
+          <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" placeholder="按服务名或症状关键词搜索...">
+        </div>
+
+        <div class="list-item open" data-od-id="kb-oom">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Pod 内存持续增长导致 OOM</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">payment-service · 2025-07-12</div>
+            </div>
+            <span class="badge badge-ok">high</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="list-item-body">
+            <div style="margin-bottom:12px"><span style="font-size:12px;font-weight:500;color:var(--text-3);display:block;margin-bottom:4px">根因</span><span style="font-size:13px;color:var(--text-2)">payment-service Pod 因未限制堆内存上限，大促期间 GC 无法回收，RSS 持续增长触发 cgroup OOM Killer，Pod 被强制重启。</span></div>
+            <div><span style="font-size:12px;font-weight:500;color:var(--text-3);display:block;margin-bottom:4px">完整报告</span>
+              <div class="code-block">incident: INC-2025-0712-003
+service: payment-service
+symptom: Pod Restart count 飙升，RSS 接近 limit
+root_cause: heap unbounded, GC pause > 2s
+action: 设置 -Xmx512m，添加 container memory limit
+verification: restart_count == 0 for 30m
+confidence: 0.94</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="kb-connpool">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">数据库连接池打满导致请求超时</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">order-service · 2025-07-10</div>
+            </div>
+            <span class="badge badge-ok">high</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="kb-cascade">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex-size:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">下游依赖响应延迟导致级联超时</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">api-gateway · 2025-07-09</div>
+            </div>
+            <span class="badge badge-warn">medium</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="kb-kafka">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Kafka 消费者 Lag 过大导致消息延迟</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">notification-service · 2025-07-08</div>
+            </div>
+            <span class="badge badge-warn">medium</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="kb-diskio">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">磁盘 IO 瓶颈导致查询缓慢</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">inventory-service · 2025-07-06</div>
+            </div>
+            <span class="badge badge-err">low</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE 5: PLAYBOOKS ============ -->
+      <section class="page" id="page-playbooks">
+        <div class="page-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+          <h1>剧本库</h1>
+          <div class="spacer"></div>
+          <span class="count">8 个剧本</span>
+        </div>
+
+        <div class="match-panel">
+          <div class="match-panel-top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>剧本匹配测试</span></div>
+          <div class="match-input-row">
+            <input type="text" placeholder="输入故障描述，如「内存溢出 OOM 服务重启」" value="内存溢出 OOM 服务重启">
+            <button class="btn btn-primary btn-sm">匹配</button>
+          </div>
+        </div>
+
+        <div class="match-result">
+          <div class="match-result-top">
+            <span class="mr-name">Pod OOM 排查</span>
+            <span class="badge badge-ok">95%</span>
+          </div>
+          <div class="match-keywords">
+            <span class="badge badge-info">内存溢出</span>
+            <span class="badge badge-info">OOM</span>
+            <span class="badge badge-info">服务重启</span>
+          </div>
+        </div>
+
+        <div class="list-item open" data-od-id="pb-oom">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">Pod OOM 排查</span>
+            <span class="badge badge-purple">memory</span>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">4 步</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="list-item-body">
+            <div style="font-size:13px;color:var(--text-3);margin-bottom:14px">排查 Pod 因内存超限被 OOM Kill 的标准流程，覆盖指标确认、日志取证、根因定位与修复验证。</div>
+
+            <div class="pb-step">
+              <div class="pb-step-num">1</div>
+              <div class="pb-step-body">
+                <div class="pb-step-head"><span class="badge badge-warn">Mimir</span><span style="font-size:12px;color:var(--text-3)">指标确认</span></div>
+                <div class="pb-step-purpose">确认 Pod 内存使用量接近 limit 且发生重启</div>
+                <div class="code-block">container_memory_working_set_bytes{pod="payment-service.*"}
+  / container_spec_memory_limit_bytes > 0.9
+kube_pod_container_status_restarts_count > 3</div>
+              </div>
+            </div>
+
+            <div class="pb-step">
+              <div class="pb-step-num">2</div>
+              <div class="pb-step-body">
+                <div class="pb-step-head"><span class="badge badge-ok">Loki</span><span style="font-size:12px;color:var(--text-3)">日志取证</span></div>
+                <div class="pb-step-purpose">检索 OOM Kill 事件及重启前日志</div>
+                <div class="code-block">{app="payment-service"} |= "OOM"
+  | json | line_format "{{.msg}} {{.ts}}"</div>
+              </div>
+            </div>
+
+            <div class="pb-step">
+              <div class="pb-step-num">3</div>
+              <div class="pb-step-body">
+                <div class="pb-step-head"><span class="badge badge-info" style="background:var(--accent-muted);color:var(--accent)">Tempo</span><span style="font-size:12px;color:var(--text-3)">链路定位</span></div>
+                <div class="pb-step-purpose">定位 GC 停顿最长的请求链路</div>
+                <div class="code-block">{ resource.service.name = "payment-service" }
+  | span.gc_pause > 1s</div>
+              </div>
+            </div>
+
+            <div class="pb-step">
+              <div class="pb-step-num">4</div>
+              <div class="pb-step-body">
+                <div class="pb-step-head"><span class="badge badge-warn">Mimir</span><span style="font-size:12px;color:var(--text-3)">修复验证</span></div>
+                <div class="pb-step-purpose">确认内存回落且 30 分钟内无重启</div>
+                <div class="code-block">kube_pod_container_status_restarts_count offset 30m == 0
+container_memory_working_set_bytes < limit * 0.7</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="pb-connpool">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">数据库连接池排查</span>
+            <span class="badge badge-purple">connection</span>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">5 步</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="pb-latency">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">API 延迟突增排查</span>
+            <span class="badge badge-purple">latency</span>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">4 步</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="pb-throttle">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--text-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span style="font-size:14px;font-weight:500;color:var(--text-1)">限流触发排查</span>
+            <span class="badge badge-purple">throttling</span>
+            <span style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">3 步</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE 6: SESSIONS ============ -->
+      <section class="page" id="page-sessions">
+        <div class="page-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+          <h1>会话历史</h1>
+          <div class="spacer"></div>
+          <span class="count">1,284 个会话</span>
+        </div>
+
+        <div class="list-item open" data-od-id="sess-pay-latency">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--ok)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">payment-service 延迟突增排查</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">2025-07-14 10:32</div>
+            </div>
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--ok)">completed</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="list-item-body">
+            <div style="margin-bottom:16px">
+              <div style="font-size:12px;font-weight:500;color:var(--text-3);margin-bottom:8px">事件重放</div>
+              <div class="event-row"><span class="event-badge" style="background:var(--info-bg);color:var(--info)">tool_call</span><div class="code-block" style="flex:1;padding:8px 10px">{"tool":"mimir-query","query":"histogram_quantile(0.99, rate(http_request_duration_seconds{service='payment-service'}[5m]))"}</div></div>
+              <div class="event-row"><span class="event-badge" style="background:var(--info-bg);color:var(--info)">tool_call</span><div class="code-block" style="flex:1;padding:8px 10px">{"tool":"loki-query","query":"{app='payment-service'} |= 'timeout' | json"}</div></div>
+              <div class="event-row"><span class="event-badge" style="background:var(--ok-bg);color:var(--ok)">analysis</span><div class="code-block" style="flex:1;padding:8px 10px">{"finding":"P99 延迟从 80ms 升至 340ms，上游 redis-cluster 响应超时"}</div></div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:500;color:var(--text-3);margin-bottom:8px">RCA 报告</div>
+              <div class="code-block">session: a7f3c2e1
+service: payment-service
+severity: P0
+duration: 3m42s
+root_cause: redis-cluster 节点故障导致缓存超时，
+  支付链路同步等待引发排队延迟。
+auto_resolved: true
+action_taken: 切换至备用 redis 副本
+confidence: 0.91</div>
+            </div>
+  -        </div>
+        </div>
+
+        <div class="list-item" data-od-id="sess-order-db">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--ok)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">order-service 数据库连接超时</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">2025-07-14 09:15</div>
+            </div>
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--ok)">completed</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="sess-gateway-502">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--ok)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">api-gateway 502 错误排查</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">2025-07-13 22:04</div>
+            </div>
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--ok)">completed</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="sess-notif-lag">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--info)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="6"/><line x1="12" x2="12" y1="18" y2="22"/><line x1="4.93" x2="7.76" y1="4.93" y2="7.76"/><line x1="16.24" x2="19.07" y1="16.24" y2="19.07"/><line x1="2" x2="6" y1="12" y2="12"/><line x1="18" x2="22" y1="12" y2="12"/><line x1="4.93" x2="7.76" y1="19.07" y2="16.24"/><line x1="16.24" x2="19.07" y1="7.76" y2="4.93"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">notification-service 消息积压</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">2025-07-14 11:20</div>
+            </div>
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--info)">running</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="sess-inv-disk">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--err)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">inventory-service 磁盘告警</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">2025-07-13 15:47</div>
+            </div>
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--err)">error</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div class="list-item" data-od-id="sess-user-login">
+          <div class="list-item-head">
+            <svg style="width:16px;height:16px;color:var(--ok)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">user-service 登录失败率升高</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-4);margin-top:2px">2025-07-12 14:30</div>
+            </div>
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--ok)">completed</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE 7: SETTINGS ============ -->
+      <section class="page" id="page-settings">
+        <div class="page-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h6"/></svg>
+          <h1>模型设置</h1>
+        </div>
+
+        <div class="model-card active" data-od-id="model-gpt4o">
+          <div class="model-info">
+            <div class="model-name-row"><span class="model-name">GPT-4o</span><span class="badge badge-ok"><svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>当前</span></div>
+            <div class="model-desc">最强推理能力，适合复杂故障分析</div>
+            <div class="model-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>OpenAI</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>$0.005/1K</span></div>
+          </div>
+        </div>
+
+        <div class="model-card" data-od-id="model-gpt4o-mini">
+          <div class="model-info">
+            <div class="model-name-row"><span class="model-name">GPT-4o-mini</span></div>
+            <div class="model-desc">快速响应，适合简单查询</div>
+          </div>
+          <button class="btn btn-sm" style="background:var(--accent-muted);color:var(--accent)">切换</button>
+        </div>
+
+        <div class="model-card" data-od-id="model-claude">
+          <div class="model-info">
+            <div class="model-name-row"><span class="model-name">Claude 3.5 Sonnet</span></div>
+            <div class="model-desc">平衡性能与成本</div>
+            <div class="model-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>Anthropic</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>$0.003/1K</span></div>
+          </div>
+          <button class="btn btn-sm" style="background:var(--accent-muted);color:var(--accent)">切换</button>
+        </div>
+
+        <div class="model-card" data-od-id="model-deepseek">
+          <div class="model-info">
+            <div class="model-name-row"><span class="model-name">DeepSeek V3</span></div>
+            <div class="model-desc">高性价比国产模型</div>
+            <div class="model-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>DeepSeek</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>$0.001/1K</span></div>
+          </div>
+          <button class="btn btn-sm" style="background:var(--accent-muted);color:var(--accent)">切换</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+// ---- Tab switching ----
+document.getElementById('nav').addEventListener('click', function(e) {
+  var item = e.target.closest('.nav-item');
+  if (!item) return;
+  var page = item.getAttribute('data-page');
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  item.classList.add('active');
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  var target = document.getElementById('page-' + page);
+  if (target) { target.classList.add('active'); }
+  document.querySelector('.main').scrollTop = 0;
+});
+
+// ---- Expandable list items ----
+document.querySelectorAll('.list-item').forEach(function(item) {
+  var head = item.querySelector('.list-item-head');
+  if (head) {
+    head.addEventListener('click', function() {
+      item.classList.toggle('open');
+    });
+  }
+});
+
+// ---- Tool toggle ----
+function toggleTool(el, e) {
+  e.stopPropagation();
+  if (el.classList.contains('on')) {
+    el.classList.remove('on'); el.classList.add('off');
+    el.innerHTML = '<span class="tdot"></span>已禁用';
+  } else {
+    el.classList.remove('off'); el.classList.add('on');
+    el.innerHTML = '<span class="tdot"></span>已启用';
+  }
+}
+</script>
+</body>
+</html>

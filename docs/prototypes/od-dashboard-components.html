@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI SRE Investigator Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app:      #0a0c14;
+      --bg-main:     #0c0e18;
+      --bg-surface1: #141728;
+      --bg-surface2: #1a1e34;
+      --bg-code:     #070912;
+
+      --text-primary:   #e8eaf0;
+      --text-secondary: #a0a6b8;
+      --text-tertiary:  #6b7088;
+      --text-quaternary:#444962;
+
+      --accent:       #5e8aff;
+      --accent-light: #7aa1ff;
+
+      --status-ok:     #10b981;
+      --status-warn:   #f59e0b;
+      --status-err:    #f43f5e;
+      --status-info:   #38bdf8;
+      --status-purple: #a855f7;
+
+      --border-subtle:  rgba(255,255,255,0.08);
+      --border-soft:    rgba(255,255,255,0.06);
+      --border-strong:  rgba(255,255,255,0.12);
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .page-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .page-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--status-ok);
+      box-shadow: 0 0 6px var(--status-ok);
+    }
+
+    /* KpiCard */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 16px;
+      transition: border-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+                  background 140ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .kpi-card:hover {
+      border-color: var(--border-strong);
+      background: var(--bg-surface2);
+    }
+
+    .kpi-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .kpi-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .kpi-icon svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .kpi-label {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+
+    .kpi-value {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .icon-ok     { background: rgba(16,185,129,0.1); }
+    .icon-ok svg     { stroke: var(--status-ok); }
+    .icon-info   { background: rgba(56,189,248,0.1); }
+    .icon-info svg   { stroke: var(--status-info); }
+    .icon-accent { background: rgba(94,138,255,0.1); }
+    .icon-accent svg { stroke: var(--accent); }
+    .icon-warn   { background: rgba(245,158,11,0.1); }
+    .icon-warn svg   { stroke: var(--status-warn); }
+    .icon-purple { background: rgba(168,85,247,0.1); }
+    .icon-purple svg { stroke: var(--status-purple); }
+    .icon-err    { background: rgba(244,63,94,0.1); }
+    .icon-err svg    { stroke: var(--status-err); }
+
+    /* TrendChart + BriefCard */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .trend-chart {
+      background: var(--bg-surface1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .trend-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .trend-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .trend-meta {
+      font-size: 11px;
+      color: var(--text-quaternary);
+      font-family: var(--font-mono);
+    }
+
+    .trend-cols {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+    }
+
+    .trend-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .trend-value {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      margin-bottom: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .trend-bar-track {
+      width: 100%;
+      height: 140px;
+      background: rgba(94,138,255,0.12);
+      border-radius: 4px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+
+    .trend-bar-fill {
+      width: 100%;
+      background: var(--accent);
+      border-radius: 4px 4px 0 0;
+    }
+
+    .trend-date {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-quaternary);
+      margin-top: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .brief-card {
+      background: var(--bg-surface1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .brief-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .brief-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .brief-count {
+      font-size: 11px;
+      color: var(--text-quaternary);
+      font-family: var(--font-mono);
+    }
+
+    .brief-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brief-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .brief-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .brief-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="page" data-od-id="dashboard">
+
+    <header class="page-header" data-od-id="dashboard-header">
+      <h1 class="page-title">AI SRE Investigator</h1>
+      <span class="page-status">
+        <span class="status-dot"></span>
+        实时监控
+      </span>
+    </header>
+
+    <!-- 组件1 KpiCard -->
+    <section class="kpi-grid" data-od-id="kpi-grid">
+
+      <div class="kpi-card" data-od-id="kpi-card-autoclosure">
+        <div class="kpi-top">
+          <div class="kpi-icon icon-ok">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+              <path d="M8 16H3v5"/>
+            </svg>
+          </div>
+          <span class="kpi-label">自闭环率</span>
+        </div>
+        <div class="kpi-value">67.3%</div>
+      </div>
+
+      <div class="kpi-card" data-od-id="kpi-card-duration">
+        <div class="kpi-top">
+          <div class="kpi-icon icon-info">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <span class="kpi-label">平均排查时长</span>
+        </div>
+        <div class="kpi-value">4.2 min</div>
+      </div>
+
+      <div class="kpi-card" data-od-id="kpi-card-sessions">
+        <div class="kpi-top">
+          <div class="kpi-icon icon-accent">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <span class="kpi-label">总会话数</span>
+        </div>
+        <div class="kpi-value">1,284</div>
+      </div>
+
+      <div class="kpi-card" data-od-id="kpi-card-cost">
+        <div class="kpi-top">
+          <div class="kpi-icon icon-warn">
+            <svg viewBox="0 0 24 24">
+              <line x1="12" y1="2" x2="12" y2="22"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <span class="kpi-label">估算成本</span>
+        </div>
+        <div class="kpi-value">$42.50</div>
+      </div>
+
+      <div class="kpi-card" data-od-id="kpi-card-cache">
+        <div class="kpi-top">
+          <div class="kpi-icon icon-purple">
+            <svg viewBox="0 0 24 24">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M3 5V19A9 3 0 0 0 21 19V5"/>
+              <path d="M3 12A9 3 0 0 0 21 12"/>
+            </svg>
+          </div>
+          <span class="kpi-label">缓存命中率</span>
+        </div>
+        <div class="kpi-value">73.8%</div>
+      </div>
+
+      <div class="kpi-card" data-od-id="kpi-card-selffix">
+        <div class="kpi-top">
+          <div class="kpi-icon icon-err">
+            <svg viewBox="0 0 24 24">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </div>
+          <span class="kpi-label">自修正成功率</span>
+        </div>
+        <div class="kpi-value">84.1%</div>
+      </div>
+
+    </section>
+
+    <!-- 组件2 TrendChart + 组件3 BriefCard -->
+    <div class="bottom-row">
+
+      <section class="trend-chart" data-od-id="trend-chart">
+        <div class="trend-header">
+          <span class="trend-title">会话趋势</span>
+          <span class="trend-meta">近 7 天</span>
+        </div>
+        <div class="trend-cols">
+          <div class="trend-col">
+            <span class="trend-value">12</span>
+            <div class="trend-bar-track">
+              <div class="trend-bar-fill" style="height:48%"></div>
+            </div>
+            <span class="trend-date">07/08</span>
+          </div>
+          <div class="trend-col">
+            <span class="trend-value">19</span>
+            <div class="trend-bar-track">
+              <div class="trend-bar-fill" style="height:76%"></div>
+            </div>
+            <span class="trend-date">07/09</span>
+          </div>
+          <div class="trend-col">
+            <span class="trend-value">8</span>
+            <div class="trend-bar-track">
+              <div class="trend-bar-fill" style="height:32%"></div>
+            </div>
+            <span class="trend-date">07/10</span>
+          </div>
+          <div class="trend-col">
+            <span class="trend-value">25</span>
+            <div class="trend-bar-track">
+              <div class="trend-bar-fill" style="height:100%"></div>
+            </div>
+            <span class="trend-date">07/11</span>
+          </div>
+          <div class="trend-col">
+            <span class="trend-value">16</span>
+            <div class="trend-bar-track">
+              <div class="trend-bar-fill" style="height:64%"></div>
+            </div>
+            <span class="trend-date">07/12</span>
+          </div>
+          <div class="trend-col">
+            <span class="trend-value">22</span>
+            <div class="trend-bar-track">
+              <div class="trend-bar-fill" style="height:88%"></div>
+            </div>
+            <span class="trend-date">07/13</span>
+          </div>
+          <div class="trend-col">
+            <span class="trend-value">14</span>
+            <div class="trend-bar-track">
+              <div class="trend-bar-fill" style="height:56%"></div>
+            </div>
+            <span class="trend-date">07/14</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="brief-card" data-od-id="brief-card">
+        <div class="brief-header">
+          <span class="brief-title">最新简报</span>
+          <span class="brief-count">4 条</span>
+        </div>
+        <div class="brief-list">
+          <div class="brief-item">
+            <span class="brief-dot"></span>
+            <span class="brief-text">prod-api-5f2c 内存泄漏触发 OOM，已自动回滚至 v2.3.1</span>
+          </div>
+          <div class="brief-item">
+            <span class="brief-dot"></span>
+            <span class="brief-text">Redis 集群 redis-03 延迟飙升至 340ms，热缓存重建完成</span>
+          </div>
+          <div class="brief-item">
+            <span class="brief-dot"></span>
+            <span class="brief-text">支付网关超时率 0.3% → 2.1%，根因 DB 连接池耗尽</span>
+          </div>
+          <div class="brief-item">
+            <span class="brief-dot"></span>
+            <span class="brief-text">CDN 边缘节点 sjc02 回源率异常，已切换备份源站</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</body>
+</html>

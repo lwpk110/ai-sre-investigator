@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI SRE Investigator — 跨页面交互组件</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app:      #0a0c14;
+      --bg-main:     #0c0e18;
+      --bg-surface1: #141728;
+      --bg-surface2: #1a1e34;
+      --bg-code:     #070912;
+      --text-1:      #e8eaf0;
+      --text-2:      #a0a6b8;
+      --text-3:      #6b7088;
+      --text-4:      #444962;
+      --accent:      #5e8aff;
+      --accent-light:#7aa1ff;
+      --ok:          #10b981;
+      --warn:        #f59e0b;
+      --err:         #f43f5e;
+      --info:        #38bdf8;
+      --purple:      #a855f7;
+      --ok-bg:       rgba(16,185,129,0.1);
+      --border-subtle: rgba(255,255,255,0.06);
+      --border-std:    rgba(255,255,255,0.08);
+      --border-emph:   rgba(255,255,255,0.12);
+      --border-solid:  #252940;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg-app); color: var(--text-1); font-family: var(--font-sans); min-height: 100vh; padding: 24px; -webkit-font-smoothing: antialiased; }
+    .page { max-width: 780px; margin: 0 auto; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .page-title { font-size: 15px; font-weight: 600; color: var(--text-1); letter-spacing: -0.01em; }
+    .page-subtitle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); font-family: var(--font-mono); }
+    .comp-group { margin-bottom: 32px; }
+    .comp-label { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .comp-label::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+    .comp-label span { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; }
+    /* ListItem */
+    .list-item { background: var(--bg-surface1); border: 1px solid var(--border-std); border-radius: 8px; margin-bottom: 8px; overflow: hidden; transition: border-color .12s ease; }
+    .list-item:hover { border-color: var(--border-emph); }
+    .list-item-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; }
+    .list-item-head .li-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .list-item-head .li-status.ok { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+    .list-item-head .li-status.warn { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+    .list-item-head .li-status.err { background: var(--err); box-shadow: 0 0 6px var(--err); }
+    .list-item-head .li-info { display: flex; flex-direction: column; gap: 2px; }
+    .list-item-head .li-name { font-size: 14px; font-weight: 500; color: var(--text-1); }
+    .list-item-head .li-desc { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); }
+    .list-item-head svg.chev { width: 16px; height: 16px; color: var(--text-3); margin-left: auto; transition: transform .15s ease; flex-shrink: 0; }
+    .list-item.open .list-item-head svg.chev { transform: rotate(90deg); }
+    .list-item-body { display: none; border-top: 1px solid var(--border-subtle); padding: 16px; background: var(--bg-main); }
+    .list-item.open .list-item-body { display: block; }
+    /* RowInfo */
+    .row-info { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; }
+    .row-info:last-child { margin-bottom: 0; }
+    .row-info svg { width: 15px; height: 15px; color: var(--text-3); flex-shrink: 0; }
+    .row-info .lbl { color: var(--text-3); font-size: 12px; min-width: 56px; }
+    .row-info .val { color: var(--text-2); font-family: var(--font-mono); font-size: 12.5px; }
+    /* Toggle */
+    .toggle { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 500; font-family: var(--font-mono); cursor: pointer; border: 1px solid transparent; transition: all .12s ease; }
+    .toggle.on { background: var(--ok-bg); color: var(--ok); border-color: rgba(16,185,129,0.2); }
+    .toggle.off { background: rgba(255,255,255,0.04); color: var(--text-4); border-color: var(--border-subtle); }
+    .toggle .tdot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .toggle.on .tdot { background: var(--ok); }
+    .toggle.off .tdot { background: var(--text-4); }
+    .toggle-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg-surface1); border: 1px solid var(--border-std); border-radius: 8px; margin-bottom: 8px; }
+    .toggle-row .tr-name { font-size: 14px; font-weight: 500; color: var(--text-1); }
+    .toggle-row .tr-desc { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); margin-left: auto; margin-right: 12px; }
+    /* SearchBar */
+    .search-bar { position: relative; margin-bottom: 16px; }
+    .search-bar input { width: 100%; background: var(--bg-surface1); border: 1px solid var(--border-std); border-radius: 8px; padding: 10px 14px 10px 38px; color: var(--text-2); font-size: 13px; font-family: var(--font-sans); outline: none; transition: border-color .12s ease; }
+    .search-bar input::placeholder { color: var(--text-4); }
+    .search-bar input:focus { border-color: var(--accent); }
+    .search-bar .sb-ico { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-3); pointer-events: none; }
+    .search-hint { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); padding: 0 4px; }
+    .search-hint .match-count { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-header">
+      <div class="page-title">跨页面交互组件</div>
+      <div class="page-subtitle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>4 components · batch 2</span>
+      </div>
+    </div>
+    <!-- ListItem + RowInfo -->
+    <div class="comp-group">
+      <div class="comp-label"><span>ListItem · RowInfo</span></div>
+      <div class="list-item">
+        <div class="list-item-head">
+          <div class="li-status ok"></div>
+          <div class="li-info"><div class="li-name">mimir-distributor</div><div class="li-desc">distributor · 6 replicas · healthy</div></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+      <div class="list-item open">
+        <div class="list-item-head">
+          <div class="li-status warn"></div>
+          <div class="li-info"><div class="li-name">loki-ingester</div><div class="li-desc">ingester · 5/6 replicas · self-healing</div></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="list-item-body">
+          <div class="row-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="lbl">Region</span><span class="val">us-east-1</span></div>
+          <div class="row-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg><span class="lbl">Replicas</span><span class="val">5 / 6</span></div>
+          <div class="row-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="lbl">P99</span><span class="val">89ms</span></div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-item-head">
+          <div class="li-status err"></div>
+          <div class="li-info"><div class="li-name">tempo-querier</div><div class="li-desc">querier · 3 replicas · 2 pods crashing</div></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </div>
+    <!-- Toggle -->
+    <div class="comp-group">
+      <div class="comp-label"><span>Toggle</span></div>
+      <div class="toggle-row"><span class="tr-name">query_mimir</span><span class="tr-desc">PromQL · metrics</span><div class="toggle on"><div class="tdot"></div>ENABLED</div></div>
+      <div class="toggle-row"><span class="tr-name">query_loki</span><span class="tr-desc">LogQL · logs</span><div class="toggle on"><div class="tdot"></div>ENABLED</div></div>
+      <div class="toggle-row"><span class="tr-name">query_tempo</span><span class="tr-desc">TraceQL · traces</span><div class="toggle off"><div class="tdot"></div>DISABLED</div></div>
+    </div>
+    <!-- SearchBar -->
+    <div class="comp-group">
+      <div class="comp-label"><span>SearchBar</span></div>
+      <div class="search-bar">
+        <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="搜索知识库：错误模式、自愈策略、历史 RCA…" value="OOMKill">
+      </div>
+      <div class="search-hint">匹配 <span class="match-count">12</span> 条结果 · 最近更新 2 小时前</div>
+    </div>
+  </div>
+  <script>
+    document.querySelectorAll('.list-item-head').forEach(head => {
+      head.addEventListener('click', () => head.parentElement.classList.toggle('open'));
+    });
+  </script>
+</body>
+</html>
