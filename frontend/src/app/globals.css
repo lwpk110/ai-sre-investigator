@@ -43,6 +43,40 @@
   /* --- 圆角 --- */
   --radius-sm: 6px;
   --radius-md: 8px;
+
+  /* --- 间距系统 (4px base, DESIGN.md) --- */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-base: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 40px;
+  --spacing-4xl: 48px;
+
+  /* --- 字体尺寸层级 (DESIGN.md typography) --- */
+  --text-page-title: 20px;
+  --text-card-title: 15px;
+  --text-body: 14px;
+  --text-small: 13px;
+  --text-caption: 12px;
+  --text-micro: 11px;
+  --text-data-large: 24px;
+
+  /* --- 状态色背景变体 (10% opacity, 原型用) --- */
+  --color-success-bg: rgba(16, 185, 129, 0.10);
+  --color-warning-bg: rgba(245, 158, 11, 0.10);
+  --color-error-bg: rgba(244, 63, 94, 0.10);
+  --color-info-bg: rgba(56, 189, 248, 0.10);
+  --color-purple: #a855f7;
+  --color-purple-bg: rgba(168, 85, 247, 0.10);
+
+  /* --- 代码块背景 (原型 --bg-code) --- */
+  --color-code-bg: #070912;
+
+  /* --- 强调色 muted 背景 (原型 --accent-muted) --- */
+  --color-accent-muted-bg: rgba(94, 138, 255, 0.12);
 }
 
 * {
